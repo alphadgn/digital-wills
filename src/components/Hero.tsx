@@ -1,10 +1,21 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/contexts/WalletContext";
+import TermsAndConditions from "./TermsAndConditions";
 
 const Hero = () => {
   const { connectWallet, isConnecting } = useWallet();
+  const [hasConsented, setHasConsented] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
+  
+  const handleOpenTerms = () => {
+    setTermsOpen(true);
+  };
+  
+  const handleAcceptTerms = () => {
+    setHasConsented(true);
+  };
   
   return (
     <section className="py-20 px-6">
@@ -19,19 +30,32 @@ const Hero = () => {
           <Button 
             size="lg" 
             onClick={() => connectWallet()}
-            disabled={isConnecting}
-            className="bg-digitalwill-primary hover:bg-digitalwill-primary/90"
+            disabled={isConnecting || !hasConsented}
+            className={`${hasConsented ? 'bg-digitalwill-primary hover:bg-digitalwill-primary/90' : 'bg-gray-400 cursor-not-allowed'}`}
           >
             {isConnecting ? "Connecting..." : "Sign Up & Connect Wallet"}
           </Button>
           <Button 
             size="lg" 
             variant="outline"
+            onClick={handleOpenTerms}
           >
-            Learn More
+            Terms & Conditions Consent
           </Button>
         </div>
+        
+        {!hasConsented && (
+          <p className="text-amber-600 mt-4 text-sm">
+            Please review and accept the Terms & Conditions before connecting your wallet
+          </p>
+        )}
       </div>
+      
+      <TermsAndConditions 
+        open={termsOpen}
+        onOpenChange={setTermsOpen}
+        onAccept={handleAcceptTerms}
+      />
     </section>
   );
 };
