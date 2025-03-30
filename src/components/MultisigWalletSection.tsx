@@ -6,10 +6,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Link, Wallet } from "lucide-react";
+import { Link, Wallet, Shield, AlertTriangle, Copy } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const MultisigWalletSection = () => {
-  const { createMultisigWallet, isMultisigCreated, beneficiaryWallet, setBeneficiaryWallet } = useWallet();
+  const { 
+    createMultisigWallet, 
+    isMultisigCreated, 
+    beneficiaryWallet, 
+    setBeneficiaryWallet,
+    seedPhrases,
+    productKeys,
+    multisigWallet
+  } = useWallet();
   const [isCreating, setIsCreating] = React.useState(false);
   const [beneficiaryAddress, setBeneficiaryAddress] = React.useState("");
   
@@ -20,11 +35,14 @@ const MultisigWalletSection = () => {
     }
     
     setIsCreating(true);
+    setBeneficiaryWallet(beneficiaryAddress);
     const success = await createMultisigWallet();
-    if (success) {
-      setBeneficiaryWallet(beneficiaryAddress);
-    }
     setIsCreating(false);
+  };
+
+  const copyToClipboard = (text: string, type: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${type} copied to clipboard`);
   };
 
   return (
@@ -37,15 +55,179 @@ const MultisigWalletSection = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         {isMultisigCreated ? (
-          <div className="py-6 flex flex-col items-center justify-center space-y-4">
+          <div className="py-4 flex flex-col items-center justify-center space-y-6">
             <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
               <Wallet className="h-8 w-8 text-green-500" />
             </div>
             <h3 className="text-lg font-medium text-center">Multisig Wallet Created!</h3>
-            <div className="text-sm text-center text-gray-500">
-              <p>Your assets are now protected with a multisig wallet.</p>
-              <p className="mt-1">Beneficiary address:</p>
-              <p className="font-mono text-xs mt-1 p-2 bg-gray-100 rounded">{beneficiaryWallet}</p>
+            
+            <Alert variant="destructive" className="bg-red-50 border-red-200">
+              <AlertTriangle className="h-4 w-4 text-red-500" />
+              <AlertTitle>Important Warning</AlertTitle>
+              <AlertDescription className="text-sm">
+                You are responsible for storing and/or distributing seed phrases and product keys. 
+                Digital Wills does not store and does not have access to any user specific data 
+                that grants access to assets. If you lose access to these wallets, all assets will be unrecoverable.
+              </AlertDescription>
+            </Alert>
+            
+            <div className="w-full">
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="donor">
+                  <AccordionTrigger className="text-left font-medium">
+                    Your Wallet (Donor)
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-500">Seed Phrase:</p>
+                      <div className="relative">
+                        <div className="p-3 bg-gray-100 rounded-md text-sm font-mono break-all">
+                          {seedPhrases.donor}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="absolute top-1 right-1"
+                          onClick={() => copyToClipboard(seedPhrases.donor || "", "Seed phrase")}
+                        >
+                          <Copy size={14} />
+                        </Button>
+                      </div>
+                      
+                      <p className="text-sm text-gray-500 mt-2">Product Key:</p>
+                      <div className="relative">
+                        <div className="p-3 bg-gray-100 rounded-md text-sm font-mono">
+                          {productKeys.donor}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="absolute top-1 right-1"
+                          onClick={() => copyToClipboard(productKeys.donor || "", "Product key")}
+                        >
+                          <Copy size={14} />
+                        </Button>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="multisig">
+                  <AccordionTrigger className="text-left font-medium">
+                    Asset Multisig Wallet
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-500">Wallet Address:</p>
+                      <div className="relative">
+                        <div className="p-3 bg-gray-100 rounded-md text-sm font-mono break-all">
+                          {multisigWallet}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="absolute top-1 right-1"
+                          onClick={() => copyToClipboard(multisigWallet || "", "Multisig wallet address")}
+                        >
+                          <Copy size={14} />
+                        </Button>
+                      </div>
+                      
+                      <p className="text-sm text-gray-500">Seed Phrase:</p>
+                      <div className="relative">
+                        <div className="p-3 bg-gray-100 rounded-md text-sm font-mono break-all">
+                          {seedPhrases.multisig}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="absolute top-1 right-1"
+                          onClick={() => copyToClipboard(seedPhrases.multisig || "", "Seed phrase")}
+                        >
+                          <Copy size={14} />
+                        </Button>
+                      </div>
+                      
+                      <p className="text-sm text-gray-500 mt-2">Product Key:</p>
+                      <div className="relative">
+                        <div className="p-3 bg-gray-100 rounded-md text-sm font-mono">
+                          {productKeys.multisig}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="absolute top-1 right-1"
+                          onClick={() => copyToClipboard(productKeys.multisig || "", "Product key")}
+                        >
+                          <Copy size={14} />
+                        </Button>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="beneficiary">
+                  <AccordionTrigger className="text-left font-medium">
+                    Beneficiary Wallet
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-500">Wallet Address:</p>
+                      <div className="relative">
+                        <div className="p-3 bg-gray-100 rounded-md text-sm font-mono break-all">
+                          {beneficiaryWallet}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="absolute top-1 right-1"
+                          onClick={() => copyToClipboard(beneficiaryWallet || "", "Beneficiary wallet address")}
+                        >
+                          <Copy size={14} />
+                        </Button>
+                      </div>
+                      
+                      <p className="text-sm text-gray-500">Seed Phrase:</p>
+                      <div className="relative">
+                        <div className="p-3 bg-gray-100 rounded-md text-sm font-mono break-all">
+                          {seedPhrases.beneficiary}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="absolute top-1 right-1"
+                          onClick={() => copyToClipboard(seedPhrases.beneficiary || "", "Seed phrase")}
+                        >
+                          <Copy size={14} />
+                        </Button>
+                      </div>
+                      
+                      <p className="text-sm text-gray-500 mt-2">Product Key:</p>
+                      <div className="relative">
+                        <div className="p-3 bg-gray-100 rounded-md text-sm font-mono">
+                          {productKeys.beneficiary}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="absolute top-1 right-1"
+                          onClick={() => copyToClipboard(productKeys.beneficiary || "", "Product key")}
+                        >
+                          <Copy size={14} />
+                        </Button>
+                      </div>
+                      
+                      <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md flex items-start">
+                        <Shield className="h-4 w-4 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
+                        <p className="text-xs text-amber-700">
+                          Important: Share the beneficiary wallet seed phrase and product key only with your intended beneficiary. 
+                          Keep your own wallet and multisig wallet seed phrases secure.
+                        </p>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </div>
           </div>
         ) : (

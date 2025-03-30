@@ -13,8 +13,7 @@ const Hero = () => {
           Secure Your Digital Legacy
         </h1>
         <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-          Plan for your digital future with our blockchain-based will solution. 
-          Ensure your digital assets pass on to your loved ones securely.
+          The true essence of decentralization is self custody so why would you leave the future of your hard earned assets to a court appointed probate process. Take control of the process. Ensure your loved ones receive full benefits of your empire. Create a digital will today.
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Button 

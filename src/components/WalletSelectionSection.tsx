@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wallet, AlertCircle } from "lucide-react";
+import { Wallet, AlertCircle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -32,16 +32,37 @@ const WalletSelectionSection = () => {
   const { isAuthenticated, authenticateWallet, setDonorWallet, donorWallet } = useWallet();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [authFailed, setAuthFailed] = useState(false);
+  const [failedWalletId, setFailedWalletId] = useState<string | null>(null);
 
-  const handleAuthenticate = async (walletAddress: string) => {
+  const handleAuthenticate = async (walletAddress: string, walletId: string) => {
     setIsAuthenticating(true);
-    setAuthFailed(false);
+    setFailedWalletId(walletId);
     
     const success = await authenticateWallet();
     
     if (success) {
       setDonorWallet(walletAddress);
+      setAuthFailed(false);
+      setFailedWalletId(null);
     } else {
+      setAuthFailed(true);
+    }
+    
+    setIsAuthenticating(false);
+  };
+
+  const retryAuthentication = async (walletAddress: string, walletId: string) => {
+    setIsAuthenticating(true);
+    
+    const success = await authenticateWallet();
+    
+    if (success) {
+      setDonorWallet(walletAddress);
+      setAuthFailed(false);
+      setFailedWalletId(null);
+    } else {
+      // After second failure, show the critical error
+      toast.error("Failed to authenticate wallet. Please gather necessary information and try again.");
       setAuthFailed(true);
     }
     
@@ -82,7 +103,9 @@ const WalletSelectionSection = () => {
               className={`p-4 border rounded-lg transition-colors ${
                 donorWallet === wallet.address 
                   ? "border-digitalwill-primary bg-digitalwill-primary/5" 
-                  : "hover:bg-gray-50"
+                  : (failedWalletId === wallet.id && authFailed)
+                    ? "border-red-300 bg-red-50"
+                    : "hover:bg-gray-50"
               }`}
             >
               <div className="flex justify-between items-start">
@@ -96,23 +119,41 @@ const WalletSelectionSection = () => {
                   </p>
                 </div>
                 
-                <Button
-                  variant={donorWallet === wallet.address ? "default" : "outline"}
-                  size="sm"
-                  disabled={isAuthenticating}
-                  onClick={() => handleAuthenticate(wallet.address)}
-                >
-                  {donorWallet === wallet.address ? (
-                    <>
-                      <Wallet className="h-4 w-4 mr-2" />
-                      Selected
-                    </>
-                  ) : isAuthenticating ? (
-                    "Authenticating..."
-                  ) : (
-                    "Select & Authenticate"
-                  )}
-                </Button>
+                {failedWalletId === wallet.id && authFailed ? (
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isAuthenticating}
+                      onClick={() => retryAuthentication(wallet.address, wallet.id)}
+                      className="text-red-500 border-red-300 hover:bg-red-50"
+                    >
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      Retry Authentication
+                    </Button>
+                    <div className="text-xs text-red-500">
+                      Failed to authenticate
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    variant={donorWallet === wallet.address ? "default" : "outline"}
+                    size="sm"
+                    disabled={isAuthenticating}
+                    onClick={() => handleAuthenticate(wallet.address, wallet.id)}
+                  >
+                    {donorWallet === wallet.address ? (
+                      <>
+                        <Wallet className="h-4 w-4 mr-2" />
+                        Selected
+                      </>
+                    ) : isAuthenticating && failedWalletId === wallet.id ? (
+                      "Authenticating..."
+                    ) : (
+                      "Select & Authenticate"
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           ))}
