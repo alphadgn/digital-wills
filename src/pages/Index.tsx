@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
@@ -11,6 +11,11 @@ import WalletSelectionSection from "@/components/WalletSelectionSection";
 import MultisigWalletSection from "@/components/MultisigWalletSection";
 import CompletionBanner from "@/components/CompletionBanner";
 
+// Define background image path as a constant to avoid magic numbers
+const BACKGROUND_IMAGE_PATH = "/lovable-uploads/0cc895a2-a55f-491d-b420-55cb73c32f4c.png";
+// Define opacity as a constant for easier maintenance
+const BACKGROUND_OPACITY = 0.15;
+
 const Index = () => {
   const { 
     address, 
@@ -20,16 +25,28 @@ const Index = () => {
     setShowCompletionBanner
   } = useWallet();
 
+  // Log when component mounts to verify it's rendering correctly
+  useEffect(() => {
+    console.log("🔍 Index component mounted");
+    console.log("🖼️ Using background image:", BACKGROUND_IMAGE_PATH);
+    
+    // Check if the image exists by trying to load it
+    const img = new Image();
+    img.onload = () => console.log("✅ Background image loaded successfully");
+    img.onerror = () => console.error("❌ Failed to load background image");
+    img.src = BACKGROUND_IMAGE_PATH;
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col relative">
       {/* Background image with transparency */}
       <div 
         className="fixed inset-0 z-0 bg-center bg-cover bg-no-repeat"
         style={{
-          backgroundImage: 'url(/lovable-uploads/0cc895a2-a55f-491d-b420-55cb73c32f4c.png)',
+          backgroundImage: `url(${BACKGROUND_IMAGE_PATH})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          opacity: 0.15
+          opacity: BACKGROUND_OPACITY
         }}
       ></div>
       
