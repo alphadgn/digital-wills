@@ -18,7 +18,7 @@ const Features = () => {
     {
       icon: <Check className="h-10 w-10 text-digitalwill-primary" />,
       title: "Easy Authentication",
-      description: "Simple verification process to ensure only authorized individuals can access the assets"
+      description: "Simple verification process to ensure only authorized individuals can access your assets TRUSTLESSLY"
     }
   ];
 
