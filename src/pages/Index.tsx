@@ -26,7 +26,7 @@ const Index = () => {
       <div 
         className="fixed inset-0 z-0 bg-center bg-cover bg-no-repeat"
         style={{
-          backgroundImage: 'url(/lovable-uploads/54fc367e-0d73-40ad-9b2a-a1410019dc6c.png)',
+          backgroundImage: 'url(/lovable-uploads/2551b029-666c-4421-9ab9-3e02111e1e0d.png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           opacity: 0.15

@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Dialog, 
@@ -27,6 +27,13 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
   const [hasScrolledToBottom, setHasScrolledToBottom] = React.useState(false);
   const [acceptedTerms, setAcceptedTerms] = React.useState(false);
   
+  // Auto-check the box when scrolled to bottom
+  useEffect(() => {
+    if (hasScrolledToBottom) {
+      setAcceptedTerms(true);
+    }
+  }, [hasScrolledToBottom]);
+  
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const element = e.currentTarget;
     const scrolledToBottom = 
@@ -48,7 +55,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
         <DialogHeader>
           <DialogTitle>Terms & Conditions</DialogTitle>
           <DialogDescription>
-            Please read and accept the terms and conditions to continue.
+            Please scroll to the bottom to review the terms and conditions.
           </DialogDescription>
         </DialogHeader>
         
@@ -130,11 +137,10 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
               id="terms" 
               checked={acceptedTerms}
               onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
-              disabled={!hasScrolledToBottom}
             />
             <label 
               htmlFor="terms" 
-              className={`text-sm ${!hasScrolledToBottom ? 'text-gray-400' : 'text-gray-700'}`}
+              className="text-sm text-gray-700"
             >
               I have read and agree to the terms and conditions
             </label>
@@ -142,7 +148,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
           
           <Button 
             onClick={handleAccept} 
-            disabled={!acceptedTerms || !hasScrolledToBottom}
+            disabled={!acceptedTerms}
             className="w-full sm:w-auto"
           >
             Accept Terms
