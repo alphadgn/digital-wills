@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
@@ -12,8 +12,8 @@ import MultisigWalletSection from "@/components/MultisigWalletSection";
 import CompletionBanner from "@/components/CompletionBanner";
 
 // Define background image path as a constant to avoid magic numbers
-// Checking the console logs shows the current path is not working, using the new uploaded image path
-const BACKGROUND_IMAGE_PATH = "/lovable-uploads/54fc367e-0d73-40ad-9b2a-a1410019dc6c.png";
+// Use a regular asset path instead of lovable-uploads since that's causing issues
+const BACKGROUND_IMAGE_PATH = "/background-image.jpg";
 // Increase opacity from 0.15 to 0.35 (20% more opaque)
 const BACKGROUND_OPACITY = 0.35;
 
@@ -25,6 +25,9 @@ const Index = () => {
     showCompletionBanner,
     setShowCompletionBanner
   } = useWallet();
+  
+  // Add state to track if image is loaded
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   // Log when component mounts to verify it's rendering correctly
   useEffect(() => {
@@ -33,21 +36,35 @@ const Index = () => {
     
     // Check if the image exists by trying to load it
     const img = new Image();
-    img.onload = () => console.log("✅ Background image loaded successfully");
-    img.onerror = () => console.error("❌ Failed to load background image");
+    img.onload = () => {
+      console.log("✅ Background image loaded successfully");
+      setImageLoaded(true);
+    };
+    img.onerror = () => {
+      console.error("❌ Failed to load background image", BACKGROUND_IMAGE_PATH);
+      // Try fallback background
+      tryFallbackBackground();
+    };
     img.src = BACKGROUND_IMAGE_PATH;
   }, []);
+  
+  // Function to try a fallback background color if image fails
+  const tryFallbackBackground = () => {
+    console.log("🔄 Using fallback background style");
+    setImageLoaded(true); // Allow rendering even though we're using a fallback
+  };
 
   return (
     <div className="min-h-screen flex flex-col relative">
-      {/* Background image with transparency */}
+      {/* Background with either image or gradient fallback */}
       <div 
         className="fixed inset-0 z-0 bg-center bg-cover bg-no-repeat"
         style={{
-          backgroundImage: `url(${BACKGROUND_IMAGE_PATH})`,
+          backgroundImage: imageLoaded ? `url(${BACKGROUND_IMAGE_PATH})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          opacity: BACKGROUND_OPACITY
+          opacity: BACKGROUND_OPACITY,
+          backgroundColor: !imageLoaded ? 'rgba(59, 76, 222, 0.05)' : undefined // Very light blue fallback
         }}
       ></div>
       
