@@ -24,9 +24,9 @@ const Index = () => {
     <div className="min-h-screen flex flex-col relative">
       {/* Background image with transparency */}
       <div 
-        className="absolute inset-0 z-0 bg-center bg-cover"
+        className="fixed inset-0 z-0 bg-center bg-cover"
         style={{
-          backgroundImage: 'url(/lovable-uploads/3e2c01dc-4f68-4cc4-b197-724940aa627e.png)',
+          backgroundImage: 'url(/background-image.jpg)',
           opacity: 0.15
         }}
       ></div>
