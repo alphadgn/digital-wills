@@ -12,9 +12,10 @@ import MultisigWalletSection from "@/components/MultisigWalletSection";
 import CompletionBanner from "@/components/CompletionBanner";
 
 // Define background image path as a constant to avoid magic numbers
-const BACKGROUND_IMAGE_PATH = "/lovable-uploads/0cc895a2-a55f-491d-b420-55cb73c32f4c.png";
-// Define opacity as a constant for easier maintenance
-const BACKGROUND_OPACITY = 0.15;
+// Checking the console logs shows the current path is not working, using the new uploaded image path
+const BACKGROUND_IMAGE_PATH = "/lovable-uploads/54fc367e-0d73-40ad-9b2a-a1410019dc6c.png";
+// Increase opacity from 0.15 to 0.35 (20% more opaque)
+const BACKGROUND_OPACITY = 0.35;
 
 const Index = () => {
   const { 
