@@ -48,7 +48,7 @@ const MultisigWalletSection = () => {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-center">Create Multisig Wallet</CardTitle>
+        <CardTitle className="text-center">Create Multi Sig Wallet</CardTitle>
         <CardDescription className="text-center">
           Set up a multi-signature wallet using Lore and designate your beneficiary
         </CardDescription>
@@ -114,7 +114,7 @@ const MultisigWalletSection = () => {
                 
                 <AccordionItem value="multisig">
                   <AccordionTrigger className="text-left font-medium">
-                    Asset Multisig Wallet
+                    Asset Multi Sig Wallet
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-2">
@@ -262,7 +262,7 @@ const MultisigWalletSection = () => {
             onClick={handleCreateMultisig}
             disabled={isCreating}
           >
-            {isCreating ? "Creating Multisig Wallet..." : "Create Multisig Wallet"}
+            {isCreating ? "Creating Multi Sig Wallet..." : "Create Multi Sig Wallet"}
           </Button>
         </CardFooter>
       )}

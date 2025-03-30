@@ -9,9 +9,16 @@ import Footer from "@/components/Footer";
 import WalletConnectSection from "@/components/WalletConnectSection";
 import WalletSelectionSection from "@/components/WalletSelectionSection";
 import MultisigWalletSection from "@/components/MultisigWalletSection";
+import CompletionBanner from "@/components/CompletionBanner";
 
 const Index = () => {
-  const { address, isAuthenticated, donorWallet } = useWallet();
+  const { 
+    address, 
+    isAuthenticated, 
+    donorWallet, 
+    showCompletionBanner,
+    setShowCompletionBanner
+  } = useWallet();
 
   return (
     <div className="min-h-screen flex flex-col relative">
@@ -19,7 +26,7 @@ const Index = () => {
       <div 
         className="absolute inset-0 z-0 bg-center bg-cover"
         style={{
-          backgroundImage: 'url(/background-image.jpg)',
+          backgroundImage: 'url(/lovable-uploads/3e2c01dc-4f68-4cc4-b197-724940aa627e.png)',
           opacity: 0.15
         }}
       ></div>
@@ -28,8 +35,13 @@ const Index = () => {
       <div className="relative z-10 flex flex-col flex-1">
         <Header />
         
+        {/* Completion Banner */}
+        {showCompletionBanner && (
+          <CompletionBanner />
+        )}
+        
         {/* If not connected to wallet, show landing page */}
-        {!address && (
+        {!address && !showCompletionBanner && (
           <>
             <Hero />
             <Features />
@@ -45,8 +57,8 @@ const Index = () => {
           </>
         )}
         
-        {/* If connected to wallet, show the appropriate section based on state */}
-        {address && (
+        {/* If connected to wallet and not showing completion banner, show the appropriate section based on state */}
+        {address && !showCompletionBanner && (
           <div className="flex-1 py-12 px-6">
             <div className="max-w-4xl mx-auto">
               <h2 className="text-3xl font-bold text-center mb-12">
@@ -76,7 +88,7 @@ const Index = () => {
                 {donorWallet && (
                   <>
                     <div className="border-l-4 border-digitalwill-primary pl-4 py-2 mb-8">
-                      <h3 className="text-lg font-medium">Step 3: Create Multisig Wallet & Add Beneficiary</h3>
+                      <h3 className="text-lg font-medium">Step 3: Create Multi Sig Wallet & Add Beneficiary</h3>
                       <p className="text-gray-500">
                         Create a multisig wallet and designate your beneficiary
                       </p>

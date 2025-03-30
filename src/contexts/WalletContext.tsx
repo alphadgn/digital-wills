@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { toast } from "sonner";
 
@@ -29,6 +30,11 @@ type WalletContextType = {
   initiateAssetRecovery: (beneficiaryAddress: string, organizerSSN: string) => Promise<boolean>;
   verifyDeathCertificate: (name: string) => Promise<boolean>;
   userHasAttemptedRecovery: boolean;
+  willsCreated: number;
+  showCompletionBanner: boolean;
+  setShowCompletionBanner: (show: boolean) => void;
+  createNewWill: () => void;
+  usedWallets: string[];
 };
 
 // Create the initial context
@@ -73,6 +79,9 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const [multisigWallet, setMultisigWallet] = useState<string | null>(null);
   const [isMultisigCreated, setIsMultisigCreated] = useState(false);
   const [userHasAttemptedRecovery, setUserHasAttemptedRecovery] = useState(false);
+  const [willsCreated, setWillsCreated] = useState(0);
+  const [showCompletionBanner, setShowCompletionBanner] = useState(false);
+  const [usedWallets, setUsedWallets] = useState<string[]>([]);
   
   // Seed phrases and product keys for the wallets
   const [seedPhrases, setSeedPhrases] = useState({
@@ -96,6 +105,14 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       
       // Mock successful connection
       const mockAddress = "0x" + Math.random().toString(16).substring(2, 42);
+      
+      // Check if this wallet has been used before
+      if (usedWallets.includes(mockAddress)) {
+        toast.error("This wallet has already been used for a Digital Will. Please use a different wallet.");
+        setIsConnecting(false);
+        return false;
+      }
+      
       setAddress(mockAddress);
       
       // Generate seed phrase and product key for the connected wallet
@@ -169,6 +186,12 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
+      // Check if donor wallet has been used before
+      if (usedWallets.includes(donorWallet)) {
+        toast.error("This donor wallet has already been used for a Digital Will. Please use a different wallet.");
+        return false;
+      }
+      
       // Generate a new multisig wallet address
       const newMultisigWallet = "0x" + Math.random().toString(16).substring(2, 42);
       setMultisigWallet(newMultisigWallet);
@@ -193,6 +216,12 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       
       setIsMultisigCreated(true);
       
+      // Add the donor wallet to the list of used wallets
+      setUsedWallets(prev => [...prev, donorWallet]);
+      
+      // Increment the number of wills created
+      setWillsCreated(prev => prev + 1);
+      
       // Fix the toast implementation - Sonner uses different syntax than the shadcn/ui toast
       toast.message(
         "Important: You are responsible for storing and/or distributing seed phrases and product keys. Digital Wills does not store and does not have access to any user specific data that grants access to assets. If you lose access to these wallets, all assets will be unrecoverable.",
@@ -200,6 +229,16 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
           duration: 10000,
         }
       );
+      
+      // Show success notification
+      toast.success("Success", {
+        duration: 3000,
+      });
+      
+      // Show completion banner after 3 seconds
+      setTimeout(() => {
+        setShowCompletionBanner(true);
+      }, 3000);
       
       return true;
     } catch (error) {
@@ -268,6 +307,12 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       beneficiary: null
     });
     setUserHasAttemptedRecovery(false);
+    setShowCompletionBanner(false);
+  };
+  
+  // Start creating a new will
+  const createNewWill = () => {
+    resetProcess();
   };
 
   return (
@@ -291,6 +336,11 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         initiateAssetRecovery,
         verifyDeathCertificate,
         userHasAttemptedRecovery,
+        willsCreated,
+        showCompletionBanner,
+        setShowCompletionBanner,
+        createNewWill,
+        usedWallets,
       }}
     >
       {children}
