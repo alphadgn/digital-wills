@@ -18,13 +18,13 @@ const mockWallets = [
     id: "wallet2",
     address: "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
     assets: "5.8 ETH, 250 APE, 10 NFTs",
-    name: "Investment Wallet"
+    name: "Multi Sig"
   },
   {
     id: "wallet3",
     address: "0xdD870fA1b7C4700F2BD7f44238821C26f7392148",
     assets: "0.7 ETH, 500 APE, 2 NFTs",
-    name: "Collection Wallet"
+    name: "Beneficiary"
   }
 ];
 

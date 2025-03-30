@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Wallet, Search, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useNavigate } from "react-router-dom";
 
 const AssetRecoverySection = () => {
   const { initiateAssetRecovery, userHasAttemptedRecovery } = useWallet();
@@ -14,6 +14,7 @@ const AssetRecoverySection = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [recoverySuccess, setRecoverySuccess] = useState(false);
   const [showRecoveryForm, setShowRecoveryForm] = useState(false);
+  const navigate = useNavigate();
   
   const handleRecoveryRequest = async () => {
     if (!ssn || ssn.length < 9) {
@@ -27,6 +28,10 @@ const AssetRecoverySection = () => {
     const success = await initiateAssetRecovery(beneficiaryAddress, ssn);
     setRecoverySuccess(success);
     setIsProcessing(false);
+  };
+
+  const handleNoClick = () => {
+    navigate('/');
   };
 
   return (
@@ -122,7 +127,7 @@ const AssetRecoverySection = () => {
           <div className="flex gap-3">
             <Button
               variant="outline"
-              onClick={() => window.location.reload()}
+              onClick={handleNoClick}
             >
               No
             </Button>
