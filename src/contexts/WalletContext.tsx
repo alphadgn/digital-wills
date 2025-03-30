@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { toast } from "sonner";
 
@@ -194,12 +193,13 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       
       setIsMultisigCreated(true);
       
-      // Show responsibility warning
-      toast({
-        title: "Important",
-        description: "You are responsible for storing and/or distributing seed phrases and product keys. Digital Wills does not store and does not have access to any user specific data that grants access to assets. If you lose access to these wallets, all assets will be unrecoverable.",
-        duration: 10000,
-      });
+      // Fix the toast implementation - Sonner uses different syntax than the shadcn/ui toast
+      toast.message(
+        "Important: You are responsible for storing and/or distributing seed phrases and product keys. Digital Wills does not store and does not have access to any user specific data that grants access to assets. If you lose access to these wallets, all assets will be unrecoverable.",
+        {
+          duration: 10000,
+        }
+      );
       
       return true;
     } catch (error) {
