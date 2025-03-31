@@ -11,9 +11,16 @@ import WalletSelectionSection from "@/components/WalletSelectionSection";
 import MultisigWalletSection from "@/components/MultisigWalletSection";
 import CompletionBanner from "@/components/CompletionBanner";
 
-// Define background image path as a constant to avoid magic numbers
-// Use the direct path to the uploaded image
-const BACKGROUND_IMAGE_PATH = "/lovable-uploads/54fc367e-0d73-40ad-9b2a-a1410019dc6c.png";
+// Define background image paths as constants to avoid magic numbers
+// Try multiple potential paths/formats for better compatibility
+const IMAGE_PATHS = [
+  "/lovable-uploads/54fc367e-0d73-40ad-9b2a-a1410019dc6c.png",
+  "./lovable-uploads/54fc367e-0d73-40ad-9b2a-a1410019dc6c.png",
+  "lovable-uploads/54fc367e-0d73-40ad-9b2a-a1410019dc6c.png",
+  "/54fc367e-0d73-40ad-9b2a-a1410019dc6c.png",
+  "/images/background.png"
+];
+
 // Increase opacity from 0.15 to 0.35 (20% more opaque)
 const BACKGROUND_OPACITY = 0.35;
 
@@ -28,24 +35,42 @@ const Index = () => {
   
   // Add state to track if image is loaded
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [backgroundImagePath, setBackgroundImagePath] = useState("");
+  const [attemptCount, setAttemptCount] = useState(0);
 
   // Log when component mounts to verify it's rendering correctly
   useEffect(() => {
     console.log("🔍 Index component mounted");
-    console.log("🖼️ Using background image:", BACKGROUND_IMAGE_PATH);
     
-    // Check if the image exists by trying to load it
-    const img = new Image();
-    img.onload = () => {
-      console.log("✅ Background image loaded successfully");
-      setImageLoaded(true);
+    // Function to try loading each image path
+    const tryLoadImage = (index = 0) => {
+      if (index >= IMAGE_PATHS.length) {
+        console.error("❌ Failed to load background image from all paths");
+        // Use fallback background
+        tryFallbackBackground();
+        return;
+      }
+
+      const path = IMAGE_PATHS[index];
+      console.log(`🖼️ Attempting to load background image from: ${path}`);
+      
+      const img = new Image();
+      img.onload = () => {
+        console.log(`✅ Successfully loaded background image from: ${path}`);
+        setBackgroundImagePath(path);
+        setImageLoaded(true);
+      };
+      img.onerror = () => {
+        console.error(`❌ Failed to load background image from: ${path}`);
+        // Try next path
+        setAttemptCount(prev => prev + 1);
+        tryLoadImage(index + 1);
+      };
+      img.src = path;
     };
-    img.onerror = (e) => {
-      console.error("❌ Failed to load background image", BACKGROUND_IMAGE_PATH, e);
-      // Try fallback background
-      tryFallbackBackground();
-    };
-    img.src = BACKGROUND_IMAGE_PATH;
+
+    // Start trying to load images
+    tryLoadImage();
   }, []);
   
   // Function to try a fallback background color if image fails
@@ -54,23 +79,41 @@ const Index = () => {
     setImageLoaded(true); // Allow rendering even though we're using a fallback
   };
 
+  // Create an inline style for the background with the loaded image or fallback
+  const backgroundStyle = {
+    backgroundImage: imageLoaded && backgroundImagePath ? `url(${backgroundImagePath})` : 'none',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    opacity: BACKGROUND_OPACITY,
+    backgroundColor: !imageLoaded || !backgroundImagePath ? 'rgba(59, 76, 222, 0.05)' : undefined // Very light blue fallback
+  };
+
+  // Add debug information for troubleshooting
+  console.log("🔄 Current image state:", {
+    imageLoaded,
+    backgroundImagePath,
+    attemptCount,
+    style: backgroundStyle
+  });
+
   return (
     <div className="min-h-screen flex flex-col relative">
       {/* Background with either image or gradient fallback */}
       <div 
         className="fixed inset-0 z-0 bg-center bg-cover bg-no-repeat"
-        style={{
-          backgroundImage: imageLoaded ? `url(${BACKGROUND_IMAGE_PATH})` : 'none',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: BACKGROUND_OPACITY,
-          backgroundColor: !imageLoaded ? 'rgba(59, 76, 222, 0.05)' : undefined // Very light blue fallback
-        }}
-      ></div>
+        style={backgroundStyle}
+      />
       
       {/* Content container with relative positioning to appear above the background */}
       <div className="relative z-10 flex flex-col flex-1">
         <Header />
+        
+        {/* Debug info visible during development */}
+        {process.env.NODE_ENV === 'development' && !imageLoaded && backgroundImagePath === "" && attemptCount >= IMAGE_PATHS.length && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded m-4">
+            <p>Debug: Failed to load background image after {attemptCount} attempts</p>
+          </div>
+        )}
         
         {/* Completion Banner */}
         {showCompletionBanner && (
