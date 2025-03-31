@@ -12,8 +12,8 @@ import MultisigWalletSection from "@/components/MultisigWalletSection";
 import CompletionBanner from "@/components/CompletionBanner";
 
 // Define background image path as a constant to avoid magic numbers
-// Use a regular asset path instead of lovable-uploads since that's causing issues
-const BACKGROUND_IMAGE_PATH = "/background-image.jpg";
+// Use the direct path to the uploaded image
+const BACKGROUND_IMAGE_PATH = "/lovable-uploads/54fc367e-0d73-40ad-9b2a-a1410019dc6c.png";
 // Increase opacity from 0.15 to 0.35 (20% more opaque)
 const BACKGROUND_OPACITY = 0.35;
 
@@ -40,8 +40,8 @@ const Index = () => {
       console.log("✅ Background image loaded successfully");
       setImageLoaded(true);
     };
-    img.onerror = () => {
-      console.error("❌ Failed to load background image", BACKGROUND_IMAGE_PATH);
+    img.onerror = (e) => {
+      console.error("❌ Failed to load background image", BACKGROUND_IMAGE_PATH, e);
       // Try fallback background
       tryFallbackBackground();
     };
