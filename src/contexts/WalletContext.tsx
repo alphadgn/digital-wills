@@ -35,6 +35,9 @@ type WalletContextType = {
   setShowCompletionBanner: (show: boolean) => void;
   createNewWill: () => void;
   usedWallets: string[];
+  // Add new fields for SSN
+  donorSSN: string | null;
+  setDonorSSN: (ssn: string) => void;
 };
 
 // Create the initial context
@@ -82,6 +85,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const [willsCreated, setWillsCreated] = useState(0);
   const [showCompletionBanner, setShowCompletionBanner] = useState(false);
   const [usedWallets, setUsedWallets] = useState<string[]>([]);
+  // Add state for SSN
+  const [donorSSN, setDonorSSN] = useState<string | null>(null);
   
   // Seed phrases and product keys for the wallets
   const [seedPhrases, setSeedPhrases] = useState({
@@ -269,6 +274,13 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
+      // Compare the entered SSN with the stored donor SSN
+      const formattedOrganizerSSN = organizerSSN.replace(/-/g, "");
+      if (donorSSN && formattedOrganizerSSN !== donorSSN) {
+        toast.error("Social Security Number verification failed");
+        return false;
+      }
+      
       // Verify death certificate
       const isDonorDeceased = await verifyDeathCertificate("John Doe"); // In real app, would use actual name
       
@@ -308,6 +320,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     });
     setUserHasAttemptedRecovery(false);
     setShowCompletionBanner(false);
+    setDonorSSN(null); // Reset the SSN as well
   };
   
   // Start creating a new will
@@ -341,6 +354,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         setShowCompletionBanner,
         createNewWill,
         usedWallets,
+        donorSSN,
+        setDonorSSN,
       }}
     >
       {children}
