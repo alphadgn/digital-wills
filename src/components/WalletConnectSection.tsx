@@ -6,10 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Wallet, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SSNInputDialog from "./SSNInputDialog";
+import CommunicationPreferenceDialog from "./CommunicationPreferenceDialog";
 
 const WalletConnectSection = () => {
-  const { address, connectWallet, isConnecting } = useWallet();
+  const { address, connectWallet, isConnecting, donorSSN, communicationPreference } = useWallet();
   const [showSSNDialog, setShowSSNDialog] = useState(false);
+  const [showCommunicationDialog, setShowCommunicationDialog] = useState(false);
 
   // Show SSN dialog when wallet is connected
   useEffect(() => {
@@ -22,6 +24,18 @@ const WalletConnectSection = () => {
       return () => clearTimeout(timer);
     }
   }, [address]);
+
+  // Show communication preference dialog after SSN is provided
+  useEffect(() => {
+    if (donorSSN && !communicationPreference.method) {
+      // Add a slight delay after SSN dialog closes
+      const timer = setTimeout(() => {
+        setShowCommunicationDialog(true);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [donorSSN, communicationPreference.method]);
 
   return (
     <>
@@ -79,6 +93,13 @@ const WalletConnectSection = () => {
         title="Complete Your Wallet Connection"
         description="Please provide your Social Security Number to complete the wallet connection process."
         buttonText="Complete Connection"
+      />
+
+      {/* Communication Preference Dialog */}
+      <CommunicationPreferenceDialog
+        open={showCommunicationDialog}
+        onOpenChange={setShowCommunicationDialog}
+        onConfirm={() => setShowCommunicationDialog(false)}
       />
     </>
   );

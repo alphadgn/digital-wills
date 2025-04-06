@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Wallet, AlertCircle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import SSNInputDialog from "./SSNInputDialog";
+import CommunicationPreferenceDialog from "./CommunicationPreferenceDialog";
 
 const mockWallets = [
   {
@@ -30,12 +31,29 @@ const mockWallets = [
 ];
 
 const WalletSelectionSection = () => {
-  const { isAuthenticated, authenticateWallet, setDonorWallet, donorWallet } = useWallet();
+  const { 
+    isAuthenticated, 
+    authenticateWallet, 
+    setDonorWallet, 
+    donorWallet,
+    donorSSN,
+    communicationPreference
+  } = useWallet();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [authFailed, setAuthFailed] = useState(false);
   const [failedWalletId, setFailedWalletId] = useState<string | null>(null);
   const [showSSNDialog, setShowSSNDialog] = useState(false);
+  const [showCommunicationDialog, setShowCommunicationDialog] = useState(false);
   const [pendingWallet, setPendingWallet] = useState<{address: string, id: string} | null>(null);
+  const [ssnProvided, setSsnProvided] = useState(false);
+
+  // Show communication preference dialog if SSN is provided but no communication preference is set
+  useEffect(() => {
+    if (ssnProvided && donorSSN && !communicationPreference.method && pendingWallet) {
+      // Show communication dialog after SSN is provided
+      setShowCommunicationDialog(true);
+    }
+  }, [ssnProvided, donorSSN, communicationPreference.method, pendingWallet]);
 
   // Handle the initial wallet selection
   const handleWalletSelect = (walletAddress: string, walletId: string) => {
@@ -43,7 +61,7 @@ const WalletSelectionSection = () => {
     setShowSSNDialog(true);
   };
 
-  // Process authentication after SSN has been provided
+  // Process authentication after SSN has been provided and communication preference set
   const handleAuthenticate = async (walletAddress: string, walletId: string) => {
     setIsAuthenticating(true);
     setFailedWalletId(walletId);
@@ -61,18 +79,28 @@ const WalletSelectionSection = () => {
     setIsAuthenticating(false);
   };
 
-  // After SSN dialog closes successfully, proceed with authentication
+  // After SSN dialog closes successfully, proceed to communication preferences
   const handleSSNDialogClose = (confirmed: boolean) => {
     setShowSSNDialog(false);
     
     if (confirmed && pendingWallet) {
-      // If SSN was provided, proceed with authentication
-      handleAuthenticate(pendingWallet.address, pendingWallet.id);
-    }
-    
-    // Clear the pending wallet if not proceeding
-    if (!confirmed) {
+      // SSN was provided, mark it
+      setSsnProvided(true);
+      // Communication dialog will show via useEffect
+    } else {
+      // Clear the pending wallet if not proceeding
       setPendingWallet(null);
+      setSsnProvided(false);
+    }
+  };
+
+  // After communication preference dialog closes
+  const handleCommunicationDialogClose = () => {
+    setShowCommunicationDialog(false);
+    
+    if (pendingWallet && communicationPreference.method) {
+      // Both SSN and communication preference are set, proceed with authentication
+      handleAuthenticate(pendingWallet.address, pendingWallet.id);
     }
   };
 
@@ -184,6 +212,13 @@ const WalletSelectionSection = () => {
         onConfirm={() => handleSSNDialogClose(true)}
         title="Identity Verification Required"
         description="Please provide your Social Security Number to authenticate your wallet. This helps secure your digital assets."
+      />
+
+      {/* Communication Preference Dialog */}
+      <CommunicationPreferenceDialog
+        open={showCommunicationDialog}
+        onOpenChange={setShowCommunicationDialog}
+        onConfirm={handleCommunicationDialogClose}
       />
     </>
   );

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
@@ -60,7 +61,7 @@ const AssetRecoverySection = () => {
               <AlertTitle>Verification Failed</AlertTitle>
               <AlertDescription className="text-sm">
                 We could not verify the death certificate or the information provided. 
-                The original account owner has been notified of this attempt.
+                The original account owner has been notified of this failed attempt via their preferred communication method.
               </AlertDescription>
             </Alert>
           </div>
@@ -85,6 +86,7 @@ const AssetRecoverySection = () => {
               <AlertTitle>Death Certificate Verification</AlertTitle>
               <AlertDescription className="text-sm">
                 We'll automatically search for and verify the death certificate of the wallet organizer.
+                If the SSN doesn't match or verification fails, the donor will be notified.
               </AlertDescription>
             </Alert>
           </div>

@@ -35,9 +35,17 @@ type WalletContextType = {
   setShowCompletionBanner: (show: boolean) => void;
   createNewWill: () => void;
   usedWallets: string[];
-  // Add new fields for SSN
+  // SSN related fields
   donorSSN: string | null;
   setDonorSSN: (ssn: string) => void;
+  // New communication preference fields
+  communicationPreference: {
+    method: "email" | "phone" | null;
+    value: string | null;
+  };
+  setCommunicationPreference: (method: "email" | "phone", value: string) => void;
+  // Method to notify donor of recovery attempt
+  notifyDonorOfRecoveryAttempt: () => void;
 };
 
 // Create the initial context
@@ -85,8 +93,17 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const [willsCreated, setWillsCreated] = useState(0);
   const [showCompletionBanner, setShowCompletionBanner] = useState(false);
   const [usedWallets, setUsedWallets] = useState<string[]>([]);
-  // Add state for SSN
+  // SSN state
   const [donorSSN, setDonorSSN] = useState<string | null>(null);
+  
+  // New communication preference state
+  const [communicationPreference, setCommunicationPreference] = useState<{
+    method: "email" | "phone" | null;
+    value: string | null;
+  }>({
+    method: null,
+    value: null
+  });
   
   // Seed phrases and product keys for the wallets
   const [seedPhrases, setSeedPhrases] = useState({
@@ -100,6 +117,18 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     multisig: null as string | null,
     beneficiary: null as string | null
   });
+
+  // Function to notify donor of recovery attempt
+  const notifyDonorOfRecoveryAttempt = () => {
+    if (!communicationPreference.method || !communicationPreference.value) {
+      console.log("No communication preference set, cannot notify donor");
+      return;
+    }
+    
+    // In a real app, this would send an email or SMS
+    console.log(`Notifying donor via ${communicationPreference.method} to ${communicationPreference.value}`);
+    toast.info(`Mock notification sent to donor via ${communicationPreference.method}`);
+  };
 
   // Simulate wallet connection (in a real app, this would connect to ApeChain)
   const connectWallet = async (): Promise<boolean> => {
@@ -277,6 +306,9 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       // Compare the entered SSN with the stored donor SSN
       const formattedOrganizerSSN = organizerSSN.replace(/-/g, "");
       if (donorSSN && formattedOrganizerSSN !== donorSSN) {
+        // Notify the donor about failed recovery attempt
+        notifyDonorOfRecoveryAttempt();
+        
         toast.error("Social Security Number verification failed");
         return false;
       }
@@ -290,6 +322,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         return true;
       } else {
         // Notify the original donor that someone tried to access the assets
+        notifyDonorOfRecoveryAttempt();
+        
         toast.error("Death certificate verification failed. The original account owner has been notified of this attempt.");
         return false;
       }
@@ -320,7 +354,11 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     });
     setUserHasAttemptedRecovery(false);
     setShowCompletionBanner(false);
-    setDonorSSN(null); // Reset the SSN as well
+    setDonorSSN(null);
+    setCommunicationPreference({
+      method: null,
+      value: null
+    });
   };
   
   // Start creating a new will
@@ -356,6 +394,9 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         usedWallets,
         donorSSN,
         setDonorSSN,
+        communicationPreference,
+        setCommunicationPreference,
+        notifyDonorOfRecoveryAttempt,
       }}
     >
       {children}
