@@ -20,17 +20,29 @@ interface CommunicationPreferenceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
+  isCompleted?: boolean;
 }
 
 const CommunicationPreferenceDialog = ({
   open,
   onOpenChange,
   onConfirm,
+  isCompleted = false,
 }: CommunicationPreferenceDialogProps) => {
-  const { setCommunicationPreference } = useWallet();
-  const [preferredMethod, setPreferredMethod] = useState<"email" | "phone">("email");
-  const [contactValue, setContactValue] = useState("");
+  const { setCommunicationPreference, communicationPreference } = useWallet();
+  const [preferredMethod, setPreferredMethod] = useState<"email" | "phone">(
+    communicationPreference?.method || "email"
+  );
+  const [contactValue, setContactValue] = useState(communicationPreference?.value || "");
   const [error, setError] = useState<string | null>(null);
+
+  // Prevent dialog from opening if it's already completed and trying to be reopened
+  const handleOpenChange = (newOpen: boolean) => {
+    if (isCompleted && newOpen) {
+      return; // Don't allow reopening if completed
+    }
+    onOpenChange(newOpen);
+  };
 
   const handleConfirm = () => {
     // Validate input based on selected preference
@@ -67,7 +79,7 @@ const CommunicationPreferenceDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Communication Preferences</DialogTitle>

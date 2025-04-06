@@ -2,12 +2,20 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wallet, AlertCircle, RefreshCw, Check } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Wallet, AlertCircle, RefreshCw, Check, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import SSNInputDialog from "./SSNInputDialog";
 import CommunicationPreferenceDialog from "./CommunicationPreferenceDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const mockWallets = [
   {
@@ -30,6 +38,78 @@ const mockWallets = [
   }
 ];
 
+// Summary confirmation dialog component
+const SummaryConfirmationDialog = ({ 
+  open, 
+  onOpenChange, 
+  onConfirm, 
+  donorSSN, 
+  communicationPreference,
+  donorWallet,
+  selectedWalletName
+}) => {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Review Information</DialogTitle>
+          <DialogDescription className="space-y-2">
+            <p>Please review your information before final submission.</p>
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          <Alert className="bg-amber-50 border-amber-200">
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertTitle className="text-amber-800">Warning</AlertTitle>
+            <AlertDescription className="text-amber-700">
+              Once submitted, this information cannot be changed. You will need to discard everything and start over if changes are needed later.
+            </AlertDescription>
+          </Alert>
+          
+          <div className="space-y-3 border rounded-md p-4">
+            <h3 className="font-medium">Selected Donor Wallet</h3>
+            <p className="text-sm">{selectedWalletName}</p>
+            <p className="text-sm font-mono">
+              {donorWallet.substring(0, 8)}...{donorWallet.substring(donorWallet.length - 6)}
+            </p>
+          </div>
+          
+          <div className="space-y-1 border rounded-md p-4">
+            <h3 className="font-medium">Identity Verification</h3>
+            <p className="text-sm">SSN: •••••{donorSSN?.substring(5)}</p>
+          </div>
+          
+          <div className="space-y-1 border rounded-md p-4">
+            <h3 className="font-medium">Communication Preference</h3>
+            <p className="text-sm">Method: {communicationPreference.method === 'email' ? 'Email' : 'SMS'}</p>
+            <p className="text-sm">
+              {communicationPreference.method === 'email' 
+                ? `Email: ${communicationPreference.value}` 
+                : `Phone: ${communicationPreference.value}`}
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter className="sm:justify-between">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
+            Make Changes
+          </Button>
+          <Button onClick={() => {
+            onConfirm();
+            toast.success("Information submitted successfully!");
+          }}>
+            Submit
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const WalletSelectionSection = () => {
   const { 
     isAuthenticated, 
@@ -44,14 +124,16 @@ const WalletSelectionSection = () => {
   const [failedWalletId, setFailedWalletId] = useState<string | null>(null);
   const [showSSNDialog, setShowSSNDialog] = useState(false);
   const [showCommunicationDialog, setShowCommunicationDialog] = useState(false);
-  const [pendingWallet, setPendingWallet] = useState<{address: string, id: string} | null>(null);
+  const [pendingWallet, setPendingWallet] = useState<{address: string, id: string, name: string} | null>(null);
   const [ssnProvided, setSsnProvided] = useState(false);
+  const [showSummaryDialog, setShowSummaryDialog] = useState(false);
   
   // Track completion of each step
   const [steps, setSteps] = useState({
     ssnComplete: false,
     commPrefComplete: false,
-    authComplete: false
+    authComplete: false,
+    finalConfirmation: false
   });
 
   // Show communication preference dialog if SSN is provided but no communication preference is set
@@ -67,13 +149,22 @@ const WalletSelectionSection = () => {
     setSteps({
       ssnComplete: !!donorSSN,
       commPrefComplete: !!communicationPreference.method,
-      authComplete: !!donorWallet
+      authComplete: !!donorWallet,
+      finalConfirmation: false
     });
   }, [donorSSN, communicationPreference.method, donorWallet]);
 
+  // Find the selected wallet name
+  const selectedWalletName = React.useMemo(() => {
+    if (!donorWallet) return "";
+    const wallet = mockWallets.find(wallet => wallet.address === donorWallet);
+    return wallet?.name || "";
+  }, [donorWallet]);
+
   // Handle the initial wallet selection
-  const handleWalletSelect = (walletAddress: string, walletId: string) => {
-    setPendingWallet({ address: walletAddress, id: walletId });
+  const handleWalletSelect = (walletAddress: string, walletId: string, walletName: string) => {
+    if (steps.authComplete) return; // Prevent reselection if already completed
+    setPendingWallet({ address: walletAddress, id: walletId, name: walletName });
     setShowSSNDialog(true);
   };
 
@@ -95,7 +186,9 @@ const WalletSelectionSection = () => {
       setDonorWallet(walletAddress);
       setAuthFailed(false);
       setFailedWalletId(null);
-      toast.success("Wallet successfully authenticated. You can now proceed to the next step.");
+      
+      // Show summary confirmation dialog
+      setShowSummaryDialog(true);
     } else {
       setAuthFailed(true);
     }
@@ -129,9 +222,16 @@ const WalletSelectionSection = () => {
     }
   };
 
+  // Handle summary confirmation
+  const handleSummaryConfirm = () => {
+    setShowSummaryDialog(false);
+    setSteps(prev => ({...prev, finalConfirmation: true}));
+    // Final step completed - any additional submission logic would go here
+  };
+
   const retryAuthentication = async (walletAddress: string, walletId: string) => {
     // For retry, we'll show the SSN dialog again
-    setPendingWallet({ address: walletAddress, id: walletId });
+    setPendingWallet({ address: walletAddress, id: walletId, name: selectedWalletName });
     setShowSSNDialog(true);
   };
 
@@ -141,8 +241,16 @@ const WalletSelectionSection = () => {
       <div className="mb-8 max-w-md mx-auto">
         <div className="space-y-4">
           {/* Step 1: SSN Verification */}
-          <div className={`flex items-center p-3 border rounded-lg ${steps.ssnComplete ? 'border-green-500 bg-green-50' : 'border-digitalwill-primary bg-digitalwill-primary/5'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${steps.ssnComplete ? 'bg-green-500' : 'bg-digitalwill-primary'}`}>
+          <div className={`flex items-center p-3 border rounded-lg ${
+            steps.ssnComplete 
+              ? 'border-green-500 bg-green-50' 
+              : 'border-digitalwill-primary bg-digitalwill-primary/5'
+          }`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+              steps.ssnComplete 
+                ? 'bg-green-500'
+                : 'bg-digitalwill-primary'
+            }`}>
               {steps.ssnComplete ? (
                 <Check className="h-5 w-5 text-white" />
               ) : (
@@ -222,6 +330,45 @@ const WalletSelectionSection = () => {
               </p>
             </div>
           </div>
+          
+          {/* Step 4: Final Review (only shown when first 3 steps are complete) */}
+          {steps.authComplete && (
+            <div className={`flex items-center p-3 border rounded-lg ${
+              steps.finalConfirmation 
+                ? 'border-green-500 bg-green-50' 
+                : 'border-digitalwill-primary bg-digitalwill-primary/5'
+            }`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+                steps.finalConfirmation 
+                  ? 'bg-green-500' 
+                  : 'bg-digitalwill-primary'
+              }`}>
+                {steps.finalConfirmation ? (
+                  <Check className="h-5 w-5 text-white" />
+                ) : (
+                  <span className="text-white font-medium">4</span>
+                )}
+              </div>
+              <div className="flex-1">
+                <h4 className="font-medium">Review and Confirm</h4>
+                <p className="text-sm text-gray-500">
+                  {steps.finalConfirmation 
+                    ? "Information confirmed" 
+                    : "Review your information before final submission"}
+                </p>
+                {!steps.finalConfirmation && (
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    className="mt-2"
+                    onClick={() => setShowSummaryDialog(true)}
+                  >
+                    Review Now
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -263,6 +410,7 @@ const WalletSelectionSection = () => {
                 size="sm"
                 className="mt-2 border-amber-300 text-amber-700 hover:bg-amber-100"
                 onClick={() => setShowCommunicationDialog(true)}
+                disabled={steps.commPrefComplete} // Disable if already completed
               >
                 Set Preferences
               </Button>
@@ -278,7 +426,9 @@ const WalletSelectionSection = () => {
                     ? "border-digitalwill-primary bg-digitalwill-primary/5" 
                     : (failedWalletId === wallet.id && authFailed)
                       ? "border-red-300 bg-red-50"
-                      : "hover:bg-gray-50"
+                      : steps.authComplete 
+                        ? "bg-gray-100 opacity-60" // Dim other wallets when one is selected
+                        : "hover:bg-gray-50"
                 }`}
               >
                 <div className="flex justify-between items-start">
@@ -297,7 +447,7 @@ const WalletSelectionSection = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        disabled={isAuthenticating}
+                        disabled={isAuthenticating || steps.authComplete}
                         onClick={() => retryAuthentication(wallet.address, wallet.id)}
                         className="text-red-500 border-red-300 hover:bg-red-50"
                       >
@@ -312,8 +462,8 @@ const WalletSelectionSection = () => {
                     <Button
                       variant={donorWallet === wallet.address ? "default" : "outline"}
                       size="sm"
-                      disabled={isAuthenticating}
-                      onClick={() => handleWalletSelect(wallet.address, wallet.id)}
+                      disabled={isAuthenticating || (steps.authComplete && donorWallet !== wallet.address)}
+                      onClick={() => handleWalletSelect(wallet.address, wallet.id, wallet.name)}
                     >
                       {donorWallet === wallet.address ? (
                         <>
@@ -322,6 +472,8 @@ const WalletSelectionSection = () => {
                         </>
                       ) : isAuthenticating && pendingWallet?.id === wallet.id ? (
                         "Authenticating..."
+                      ) : steps.authComplete ? (
+                        <XCircle className="h-4 w-4 mr-1" />
                       ) : (
                         "Select & Authenticate"
                       )}
@@ -332,6 +484,17 @@ const WalletSelectionSection = () => {
             ))}
           </div>
         </CardContent>
+        {steps.authComplete && steps.finalConfirmation && (
+          <CardFooter className="flex justify-center">
+            <Alert className="w-full bg-green-50 border-green-300">
+              <Check className="h-5 w-5 text-green-500" />
+              <AlertTitle className="text-green-700">Setup Complete!</AlertTitle>
+              <AlertDescription className="text-green-600">
+                You can now proceed to set up your multisig wallet and beneficiaries.
+              </AlertDescription>
+            </Alert>
+          </CardFooter>
+        )}
       </Card>
 
       {/* SSN Dialog for wallet authentication */}
@@ -350,6 +513,18 @@ const WalletSelectionSection = () => {
         open={showCommunicationDialog}
         onOpenChange={setShowCommunicationDialog}
         onConfirm={handleCommunicationDialogClose}
+        isCompleted={steps.commPrefComplete}
+      />
+      
+      {/* Summary Confirmation Dialog */}
+      <SummaryConfirmationDialog
+        open={showSummaryDialog}
+        onOpenChange={setShowSummaryDialog}
+        onConfirm={handleSummaryConfirm}
+        donorSSN={donorSSN}
+        communicationPreference={communicationPreference}
+        donorWallet={donorWallet || ""}
+        selectedWalletName={selectedWalletName}
       />
     </>
   );
