@@ -190,21 +190,41 @@ const Index = () => {
                   </div>
                 </div>
                 
-                {/* Show the appropriate step component based on current step */}
-                {currentStep === STEP.DONOR_WALLET && (
-                  <WalletSelectionSection />
-                )}
-                
-                {currentStep === STEP.MULTISIG_WALLET && donorWallet && (
-                  <MultisigWalletSection />
-                )}
-                
-                {currentStep === STEP.BENEFICIARY_SETUP && isMultisigCreated && (
-                  <div className="text-center py-8">
-                    <p className="text-gray-600 mb-4">You've completed all the necessary steps!</p>
-                    <p className="text-green-600">Your Digital Will is almost ready.</p>
-                  </div>
-                )}
+                {/* Step sections - Only show the current active step component */}
+                <div className="mt-8">
+                  {/* Step 1: Donor Wallet Selection - Only show if current step is donor wallet */}
+                  {currentStep === STEP.DONOR_WALLET && (
+                    <div>
+                      <h3 className="text-xl font-semibold text-center mb-6">Select Donor Wallet</h3>
+                      <p className="text-center text-gray-600 mb-8">
+                        Choose the wallet containing assets you wish to assign to your successor.
+                      </p>
+                      <WalletSelectionSection />
+                    </div>
+                  )}
+                  
+                  {/* Step 2: Multi-Sig Wallet - Only show if current step is multisig wallet */}
+                  {currentStep === STEP.MULTISIG_WALLET && (
+                    <div>
+                      <h3 className="text-xl font-semibold text-center mb-6">Create Multi-Sig Wallet</h3>
+                      <p className="text-center text-gray-600 mb-8">
+                        Set up a multi-signature wallet and configure security settings.
+                      </p>
+                      <MultisigWalletSection />
+                    </div>
+                  )}
+                  
+                  {/* Step 3: Beneficiary Setup - Only show if current step is beneficiary setup */}
+                  {currentStep === STEP.BENEFICIARY_SETUP && (
+                    <div>
+                      <h3 className="text-xl font-semibold text-center mb-6">Configure Beneficiary</h3>
+                      <p className="text-center text-gray-600 mb-8">
+                        Designate a beneficiary to receive your assets when conditions are met.
+                      </p>
+                      <MultisigWalletSection />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
