@@ -25,10 +25,21 @@ type SsnFormValues = z.infer<typeof ssnFormSchema>;
 interface SSNInputDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onConfirm?: () => void;
+  title?: string;
+  description?: string;
+  buttonText?: string;
 }
 
-const SSNInputDialog = ({ open, onOpenChange }: SSNInputDialogProps) => {
-  const { address, setDonorSSN } = useWallet();
+const SSNInputDialog = ({ 
+  open, 
+  onOpenChange,
+  onConfirm,
+  title = "Secure Identity Verification",
+  description = "Please provide your Social Security Number for future beneficiary verification of your Digital Will.",
+  buttonText = "Save Identity Information"
+}: SSNInputDialogProps) => {
+  const { setDonorSSN } = useWallet();
 
   // Initialize form with react-hook-form
   const form = useForm<SsnFormValues>({
@@ -47,6 +58,11 @@ const SSNInputDialog = ({ open, onOpenChange }: SSNInputDialogProps) => {
     
     toast.success("Social Security Number saved successfully");
     onOpenChange(false);
+    
+    // Call onConfirm callback if provided
+    if (onConfirm) {
+      onConfirm();
+    }
   };
 
   // Format SSN as user types (add dashes)
@@ -70,10 +86,10 @@ const SSNInputDialog = ({ open, onOpenChange }: SSNInputDialogProps) => {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-digitalwill-primary" />
-            Secure Identity Verification
+            {title}
           </DialogTitle>
           <DialogDescription>
-            Please provide your Social Security Number for future beneficiary verification of your Digital Will.
+            {description}
           </DialogDescription>
         </DialogHeader>
         
@@ -106,7 +122,7 @@ const SSNInputDialog = ({ open, onOpenChange }: SSNInputDialogProps) => {
             
             <DialogFooter>
               <Button type="submit" className="w-full">
-                Save Identity Information
+                {buttonText}
               </Button>
             </DialogFooter>
           </form>

