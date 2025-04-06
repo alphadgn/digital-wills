@@ -59,8 +59,8 @@ const MultisigWalletSection = () => {
     toast.success("Digital Will setup completed successfully!");
   };
 
-  // Check if multisig wallet should be disabled
-  const isMultisigDisabled = communicationPreference.method && communicationPreference.value;
+  // Check if multisig wallet should be disabled - FIX: Convert to boolean
+  const isMultisigDisabled = !!(communicationPreference.method && communicationPreference.value);
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -233,8 +233,6 @@ const MultisigWalletSection = () => {
                           <Copy size={14} />
                         </Button>
                       </div>
-                      
-                      {/* Removed the notification banner from beneficiary wallet setup */}
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -254,7 +252,8 @@ const MultisigWalletSection = () => {
               <Button
                 className="w-full mt-4"
                 onClick={handleFinalSubmit}
-                disabled={showConfirmation}
+                // FIX: Convert showConfirmation to boolean with !! operator
+                disabled={!!showConfirmation}
               >
                 Complete Digital Will Setup
               </Button>
