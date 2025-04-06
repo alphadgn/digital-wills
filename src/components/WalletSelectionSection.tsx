@@ -126,7 +126,7 @@ const WalletSelectionSection = () => {
   const [pendingWallet, setPendingWallet] = useState<{address: string, id: string, name: string} | null>(null);
   const [ssnProvided, setSsnProvided] = useState(false);
   const [showSummaryDialog, setShowSummaryDialog] = useState(false);
-  const [authenticatedWallets, setAuthenticatedWallets] = useState<string[]>([]);
+  const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
   
   // Track completion of each step
   const [steps, setSteps] = useState({
@@ -162,17 +162,12 @@ const WalletSelectionSection = () => {
 
   // Handle the initial wallet selection
   const handleWalletSelect = (walletAddress: string, walletId: string, walletName: string) => {
-    if (authenticatedWallets.includes(walletId) || steps.authComplete) {
-      toast.error("This wallet has already been authenticated");
+    if (donorWallet) {
+      toast.error("You've already selected a wallet");
       return;
     }
     
-    // If communication preferences are set, don't allow selecting another wallet
-    if (communicationPreference.method && communicationPreference.value) {
-      toast.error("Communication preferences already set. Please proceed with the current wallet.");
-      return;
-    }
-    
+    setSelectedWalletId(walletId);
     setPendingWallet({ address: walletAddress, id: walletId, name: walletName });
     setShowSSNDialog(true);
   };
@@ -194,9 +189,6 @@ const WalletSelectionSection = () => {
       setDonorWallet(walletAddress);
       setAuthFailed(false);
       setFailedWalletId(null);
-      
-      setAuthenticatedWallets(prev => [...prev, walletId]);
-      
       setShowSummaryDialog(true);
     } else {
       setAuthFailed(true);
@@ -215,6 +207,7 @@ const WalletSelectionSection = () => {
     } else {
       setPendingWallet(null);
       setSsnProvided(false);
+      setSelectedWalletId(null);
     }
   };
 
@@ -233,16 +226,15 @@ const WalletSelectionSection = () => {
     setSteps(prev => ({...prev, finalConfirmation: true}));
   };
 
-  const retryAuthentication = async (walletAddress: string, walletId: string) => {
-    setPendingWallet({ address: walletAddress, id: walletId, name: selectedWalletName });
+  const retryAuthentication = async (walletAddress: string, walletId: string, walletName: string) => {
+    setPendingWallet({ address: walletAddress, id: walletId, name: walletName });
+    setSelectedWalletId(walletId);
     setShowSSNDialog(true);
   };
 
   // Check if wallet selection should be disabled
   const isWalletDisabled = (walletId: string) => {
-    return authenticatedWallets.includes(walletId) || 
-           steps.authComplete || 
-           (communicationPreference.method && communicationPreference.value && !pendingWallet);
+    return donorWallet !== null && selectedWalletId !== walletId;
   };
 
   return (
@@ -396,7 +388,10 @@ const WalletSelectionSection = () => {
                 variant="outline" 
                 size="sm"
                 className="mt-2"
-                onClick={() => setAuthFailed(false)}
+                onClick={() => {
+                  setAuthFailed(false);
+                  setSelectedWalletId(null);
+                }}
               >
                 Dismiss
               </Button>
@@ -424,21 +419,23 @@ const WalletSelectionSection = () => {
           
           <div className="space-y-3">
             {mockWallets.map((wallet) => {
-              const isWalletAuthenticated = authenticatedWallets.includes(wallet.id);
-              const isSelected = donorWallet === wallet.address;
+              const isSelected = selectedWalletId === wallet.id;
+              const isAuthenticated = donorWallet === wallet.address;
               const isDisabled = isWalletDisabled(wallet.id);
               
               return (
                 <div 
                   key={wallet.id} 
                   className={`p-4 border rounded-lg transition-colors ${
-                    isSelected
+                    isSelected && !isAuthenticated
                       ? "border-digitalwill-primary bg-digitalwill-primary/5" 
-                      : isWalletAuthenticated || (steps.authComplete && !isSelected) || (communicationPreference.method && !pendingWallet)
-                        ? "bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed"
-                        : (failedWalletId === wallet.id && authFailed)
-                          ? "border-red-300 bg-red-50"
-                          : "hover:bg-gray-50"
+                      : isAuthenticated && wallet.address === donorWallet
+                        ? "border-green-500 bg-green-50"
+                        : isDisabled
+                          ? "bg-gray-100 border-gray-200 opacity-60"
+                          : (failedWalletId === wallet.id && authFailed)
+                            ? "border-red-300 bg-red-50"
+                            : "hover:bg-gray-50"
                   }`}
                 >
                   <div className="flex justify-between items-start">
@@ -452,17 +449,18 @@ const WalletSelectionSection = () => {
                       </p>
                     </div>
                     
-                    {isWalletAuthenticated ? (
-                      <div className="text-xs text-gray-500 italic">
-                        Already authenticated
+                    {isAuthenticated && wallet.address === donorWallet ? (
+                      <div className="flex items-center text-green-500">
+                        <Check className="h-4 w-4 mr-1" />
+                        <span className="text-xs">Selected</span>
                       </div>
                     ) : failedWalletId === wallet.id && authFailed ? (
                       <div className="flex flex-col gap-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          disabled={isAuthenticating || steps.authComplete}
-                          onClick={() => retryAuthentication(wallet.address, wallet.id)}
+                          disabled={isAuthenticating}
+                          onClick={() => retryAuthentication(wallet.address, wallet.id, wallet.name)}
                           className="text-red-500 border-red-300 hover:bg-red-50"
                         >
                           <RefreshCw className="h-3 w-3 mr-1" />
@@ -474,15 +472,13 @@ const WalletSelectionSection = () => {
                       </div>
                     ) : (
                       <Button
-                        variant={donorWallet === wallet.address ? "default" : "outline"}
+                        variant={isSelected ? "default" : "outline"}
                         size="sm"
-                        disabled={
-                          isAuthenticating || 
-                          isDisabled
-                        }
+                        disabled={isAuthenticating || isDisabled}
                         onClick={() => handleWalletSelect(wallet.address, wallet.id, wallet.name)}
+                        className={isSelected ? "" : ""}
                       >
-                        {donorWallet === wallet.address ? (
+                        {isSelected ? (
                           <>
                             <Wallet className="h-4 w-4 mr-2" />
                             Selected
@@ -490,7 +486,7 @@ const WalletSelectionSection = () => {
                         ) : isAuthenticating && pendingWallet?.id === wallet.id ? (
                           "Authenticating..."
                         ) : isDisabled ? (
-                          <XCircle className="h-4 w-4 mr-1" />
+                          "Not Available"
                         ) : (
                           "Select & Authenticate"
                         )}
