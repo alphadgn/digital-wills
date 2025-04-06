@@ -37,7 +37,6 @@ const mockWallets = [
   }
 ];
 
-// Summary confirmation dialog component
 const SummaryConfirmationDialog = ({ 
   open, 
   onOpenChange, 
@@ -116,7 +115,10 @@ const WalletSelectionSection = () => {
     setDonorWallet, 
     donorWallet,
     donorSSN,
-    communicationPreference
+    communicationPreference,
+    isMultisigCreated,
+    beneficiaryWallet,
+    beneficiaryAddress
   } = useWallet();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [authFailed, setAuthFailed] = useState(false);
@@ -128,7 +130,6 @@ const WalletSelectionSection = () => {
   const [showSummaryDialog, setShowSummaryDialog] = useState(false);
   const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
   
-  // Track completion of each step
   const [steps, setSteps] = useState({
     ssnComplete: false,
     commPrefComplete: false,
@@ -136,14 +137,21 @@ const WalletSelectionSection = () => {
     finalConfirmation: false
   });
 
-  // Show communication preference dialog if SSN is provided but no communication preference is set
+  useEffect(() => {
+    console.log("👛 WalletSelectionSection rendered:", {
+      isMultisigCreated,
+      beneficiaryWallet: !!beneficiaryWallet,
+      hasBeneficiaryAddress: !!beneficiaryAddress,
+      step: isMultisigCreated ? (beneficiaryWallet ? "complete" : "beneficiary setup") : "multisig setup"
+    });
+  }, [isMultisigCreated, beneficiaryWallet, beneficiaryAddress]);
+
   useEffect(() => {
     if (ssnProvided && donorSSN && !communicationPreference.method && pendingWallet) {
       setShowCommunicationDialog(true);
     }
   }, [ssnProvided, donorSSN, communicationPreference.method, pendingWallet]);
 
-  // Update steps status whenever relevant state changes
   useEffect(() => {
     setSteps({
       ssnComplete: !!donorSSN,
@@ -153,14 +161,12 @@ const WalletSelectionSection = () => {
     });
   }, [donorSSN, communicationPreference.method, donorWallet]);
 
-  // Find the selected wallet name
   const selectedWalletName = React.useMemo(() => {
     if (!donorWallet) return "";
     const wallet = mockWallets.find(wallet => wallet.address === donorWallet);
     return wallet?.name || "";
   }, [donorWallet]);
 
-  // Handle the initial wallet selection
   const handleWalletSelect = (walletAddress: string, walletId: string, walletName: string) => {
     if (donorWallet) {
       toast.error("You've already selected a wallet");
@@ -172,7 +178,6 @@ const WalletSelectionSection = () => {
     setShowSSNDialog(true);
   };
 
-  // Process authentication after SSN has been provided and communication preference set
   const handleAuthenticate = async (walletAddress: string, walletId: string) => {
     if (!communicationPreference.method) {
       toast.error("Please set your communication preference before proceeding");
@@ -197,7 +202,6 @@ const WalletSelectionSection = () => {
     setIsAuthenticating(false);
   };
 
-  // After SSN dialog closes successfully, proceed to communication preferences
   const handleSSNDialogClose = (confirmed: boolean) => {
     setShowSSNDialog(false);
     
@@ -211,7 +215,6 @@ const WalletSelectionSection = () => {
     }
   };
 
-  // After communication preference dialog closes
   const handleCommunicationDialogClose = () => {
     setShowCommunicationDialog(false);
     
@@ -220,7 +223,6 @@ const WalletSelectionSection = () => {
     }
   };
 
-  // Handle summary confirmation
   const handleSummaryConfirm = () => {
     setShowSummaryDialog(false);
     setSteps(prev => ({...prev, finalConfirmation: true}));
@@ -232,7 +234,6 @@ const WalletSelectionSection = () => {
     setShowSSNDialog(true);
   };
 
-  // Check if wallet selection should be disabled
   const isWalletDisabled = (walletId: string) => {
     return donorWallet !== null && selectedWalletId !== walletId;
   };
@@ -371,7 +372,7 @@ const WalletSelectionSection = () => {
 
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
-          <CardTitle className="text-center">Select Donor Wallet</CardTitle>
+          <CardTitle className="text-center">Donor Information</CardTitle>
           <CardDescription className="text-center">
             Choose the wallet containing assets you wish to assign to your successor
           </CardDescription>
@@ -417,25 +418,52 @@ const WalletSelectionSection = () => {
             </Alert>
           )}
           
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold text-center mb-4">Select Wallets</h3>
+          </div>
+          
           <div className="space-y-3">
             {mockWallets.map((wallet) => {
               const isSelected = selectedWalletId === wallet.id;
               const isAuthenticated = donorWallet === wallet.address;
-              const isDisabled = isWalletDisabled(wallet.id);
+              
+              let isDisabled = false;
+              let highlightColor = ""; 
+              
+              if (wallet.id === "wallet1") {
+                isDisabled = isWalletDisabled(wallet.id);
+                if (!donorWallet) {
+                  highlightColor = "border-digitalwill-primary bg-digitalwill-primary/5";
+                }
+              } 
+              else if (wallet.id === "wallet2") {
+                isDisabled = !donorWallet || isWalletDisabled(wallet.id);
+                if (donorWallet && !isMultisigCreated) {
+                  highlightColor = "border-digitalwill-primary bg-digitalwill-primary/5";
+                }
+              } 
+              else if (wallet.id === "wallet3") {
+                isDisabled = !isMultisigCreated || isWalletDisabled(wallet.id);
+                if (isMultisigCreated && !beneficiaryWallet) {
+                  highlightColor = "border-digitalwill-primary bg-digitalwill-primary/5";
+                }
+              }
+              
+              console.log(`🔍 Wallet ${wallet.name} - disabled: ${isDisabled}, highlight: ${highlightColor}`);
               
               return (
                 <div 
                   key={wallet.id} 
                   className={`p-4 border rounded-lg transition-colors ${
-                    isSelected && !isAuthenticated
-                      ? "border-digitalwill-primary bg-digitalwill-primary/5" 
-                      : isAuthenticated && wallet.address === donorWallet
-                        ? "border-green-500 bg-green-50"
-                        : isDisabled
-                          ? "bg-gray-100 border-gray-200 opacity-60"
-                          : (failedWalletId === wallet.id && authFailed)
-                            ? "border-red-300 bg-red-50"
-                            : "hover:bg-gray-50"
+                    isAuthenticated && wallet.address === donorWallet
+                      ? "border-green-500 bg-green-50"
+                      : isSelected && !isAuthenticated
+                        ? "border-digitalwill-primary bg-digitalwill-primary/5" 
+                        : highlightColor || (isDisabled
+                           ? "bg-gray-100 border-gray-200 opacity-60"
+                           : (failedWalletId === wallet.id && authFailed)
+                             ? "border-red-300 bg-red-50"
+                             : "hover:bg-gray-50")
                   }`}
                 >
                   <div className="flex justify-between items-start">

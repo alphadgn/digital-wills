@@ -209,10 +209,6 @@ const Index = () => {
                   {/* Step 1: Donor Wallet Selection - Only show if current step is donor wallet */}
                   {currentStep === STEP.DONOR_WALLET && (
                     <div>
-                      <h3 className="text-xl font-semibold text-center mb-6">Select Wallets</h3>
-                      <p className="text-center text-gray-600 mb-8">
-                        Choose the wallet containing assets you wish to assign to your successor.
-                      </p>
                       <WalletSelectionSection />
                     </div>
                   )}
