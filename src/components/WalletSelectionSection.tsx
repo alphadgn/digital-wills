@@ -167,6 +167,12 @@ const WalletSelectionSection = () => {
       return;
     }
     
+    // If communication preferences are set, don't allow selecting another wallet
+    if (communicationPreference.method && communicationPreference.value) {
+      toast.error("Communication preferences already set. Please proceed with the current wallet.");
+      return;
+    }
+    
     setPendingWallet({ address: walletAddress, id: walletId, name: walletName });
     setShowSSNDialog(true);
   };
@@ -232,8 +238,11 @@ const WalletSelectionSection = () => {
     setShowSSNDialog(true);
   };
 
+  // Check if wallet selection should be disabled
   const isWalletDisabled = (walletId: string) => {
-    return authenticatedWallets.includes(walletId) || steps.authComplete;
+    return authenticatedWallets.includes(walletId) || 
+           steps.authComplete || 
+           (communicationPreference.method && communicationPreference.value && !pendingWallet);
   };
 
   return (
@@ -425,7 +434,7 @@ const WalletSelectionSection = () => {
                   className={`p-4 border rounded-lg transition-colors ${
                     isSelected
                       ? "border-digitalwill-primary bg-digitalwill-primary/5" 
-                      : isWalletAuthenticated || (steps.authComplete && !isSelected)
+                      : isWalletAuthenticated || (steps.authComplete && !isSelected) || (communicationPreference.method && !pendingWallet)
                         ? "bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed"
                         : (failedWalletId === wallet.id && authFailed)
                           ? "border-red-300 bg-red-50"

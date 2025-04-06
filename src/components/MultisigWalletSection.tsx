@@ -1,12 +1,12 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Link, Wallet, Shield, AlertTriangle, Copy } from "lucide-react";
+import { Link, Wallet, Shield, AlertTriangle, Copy, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Accordion,
@@ -24,11 +24,12 @@ const MultisigWalletSection = () => {
     seedPhrases,
     productKeys,
     multisigWallet,
-    setShowCompletionBanner
+    setShowCompletionBanner,
+    communicationPreference
   } = useWallet();
-  const [isCreating, setIsCreating] = React.useState(false);
-  const [beneficiaryAddress, setBeneficiaryAddress] = React.useState("");
-  const [showConfirmation, setShowConfirmation] = React.useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [beneficiaryAddress, setBeneficiaryAddress] = useState("");
+  const [showConfirmation, setShowConfirmation] = useState(false);
   
   const handleCreateMultisig = async () => {
     if (!beneficiaryAddress || !beneficiaryAddress.startsWith("0x") || beneficiaryAddress.length !== 42) {
@@ -57,6 +58,9 @@ const MultisigWalletSection = () => {
     setShowCompletionBanner(true);
     toast.success("Digital Will setup completed successfully!");
   };
+
+  // Check if multisig wallet should be disabled
+  const isMultisigDisabled = communicationPreference.method && communicationPreference.value;
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -230,13 +234,7 @@ const MultisigWalletSection = () => {
                         </Button>
                       </div>
                       
-                      <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md flex items-start">
-                        <Shield className="h-4 w-4 text-amber-500 mt-0.5 mr-2 flex-shrink-0" />
-                        <p className="text-xs text-amber-700">
-                          Important: Share the beneficiary wallet seed phrase and product key only with your intended beneficiary. 
-                          Keep your own wallet and multisig wallet seed phrases secure.
-                        </p>
-                      </div>
+                      {/* Removed the notification banner from beneficiary wallet setup */}
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -271,6 +269,8 @@ const MultisigWalletSection = () => {
                 placeholder="0x..."
                 value={beneficiaryAddress}
                 onChange={(e) => setBeneficiaryAddress(e.target.value)}
+                className={isMultisigDisabled ? "bg-gray-100" : ""}
+                disabled={isMultisigDisabled}
               />
               <p className="text-xs text-gray-500">
                 Enter the wallet address that will receive the assets
@@ -283,6 +283,17 @@ const MultisigWalletSection = () => {
                 The beneficiary will gain access only under conditions specified in your digital will
               </p>
             </div>
+
+            {isMultisigDisabled && (
+              <Alert className="bg-gray-100 border-gray-300">
+                <AlertCircle className="h-4 w-4 text-gray-500" />
+                <AlertTitle className="text-gray-700">Communication Preferences Already Set</AlertTitle>
+                <AlertDescription className="text-gray-600">
+                  You've already set communication preferences for this donor wallet.
+                  Please continue with the current setup or start over if you need to make changes.
+                </AlertDescription>
+              </Alert>
+            )}
           </>
         )}
       </CardContent>
@@ -292,7 +303,7 @@ const MultisigWalletSection = () => {
           <Button
             className="w-full"
             onClick={handleCreateMultisig}
-            disabled={isCreating}
+            disabled={isCreating || isMultisigDisabled}
           >
             {isCreating ? "Creating Multi Sig Wallet..." : "Create Multi Sig Wallet"}
           </Button>
