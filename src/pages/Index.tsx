@@ -10,7 +10,10 @@ import WalletConnectSection from "@/components/WalletConnectSection";
 import WalletSelectionSection from "@/components/WalletSelectionSection";
 import MultisigWalletSection from "@/components/MultisigWalletSection";
 import CompletionBanner from "@/components/CompletionBanner";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 // Define constants for background configuration
 const BACKGROUND_OPACITY = 0.35; // Opacity value for background image
@@ -34,6 +37,9 @@ const Index = () => {
     beneficiaryWallet
   } = useWallet();
   
+  // State for final submission confirmation
+  const [showFinalConfirmation, setShowFinalConfirmation] = React.useState(false);
+  
   // Determine the current active step based on state
   const currentStep = React.useMemo(() => {
     if (!donorWallet) return STEP.DONOR_WALLET;
@@ -46,9 +52,17 @@ const Index = () => {
     console.log("🔄 Current Step:", currentStep, {
       donorWallet: !!donorWallet,
       isMultisigCreated,
-      beneficiaryWallet: !!beneficiaryWallet
+      beneficiaryWallet: !!beneficiaryWallet,
+      showFinalConfirmation
     });
-  }, [currentStep, donorWallet, isMultisigCreated, beneficiaryWallet]);
+  }, [currentStep, donorWallet, isMultisigCreated, beneficiaryWallet, showFinalConfirmation]);
+  
+  // Function to handle final submission
+  const handleFinalSubmission = () => {
+    setShowCompletionBanner(true);
+    setShowFinalConfirmation(false);
+    toast.success("Digital Will setup completed successfully!");
+  };
   
   return (
     <div className="min-h-screen flex flex-col relative">
@@ -91,7 +105,7 @@ const Index = () => {
         )}
         
         {/* If connected to wallet and not showing completion banner, show the appropriate section based on state */}
-        {address && !showCompletionBanner && (
+        {address && !showCompletionBanner && !showFinalConfirmation && (
           <div className="flex-1 py-12 px-6">
             <div className="max-w-4xl mx-auto">
               <h2 className="text-3xl font-bold text-center mb-12">
@@ -120,7 +134,7 @@ const Index = () => {
                         <span className="text-lg font-bold">1</span>
                       )}
                     </div>
-                    <span className="text-sm mt-2">Connect Wallet</span>
+                    <span className="text-sm mt-2">Donor Information</span>
                   </div>
                   
                   {/* Progress line 1-2 */}
@@ -195,7 +209,7 @@ const Index = () => {
                   {/* Step 1: Donor Wallet Selection - Only show if current step is donor wallet */}
                   {currentStep === STEP.DONOR_WALLET && (
                     <div>
-                      <h3 className="text-xl font-semibold text-center mb-6">Select Donor Wallet</h3>
+                      <h3 className="text-xl font-semibold text-center mb-6">Select Wallets</h3>
                       <p className="text-center text-gray-600 mb-8">
                         Choose the wallet containing assets you wish to assign to your successor.
                       </p>
@@ -221,10 +235,69 @@ const Index = () => {
                       <p className="text-center text-gray-600 mb-8">
                         Designate a beneficiary to receive your assets when conditions are met.
                       </p>
-                      <MultisigWalletSection />
+                      <MultisigWalletSection 
+                        onCompleteBeneficiary={() => setShowFinalConfirmation(true)} 
+                      />
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Final Confirmation Banner */}
+        {showFinalConfirmation && (
+          <div className="flex-1 py-12 px-6">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-3xl font-bold text-center mb-8">
+                Confirm Digital Will Setup
+              </h2>
+              
+              <Alert className="bg-amber-50 border-amber-300 my-8">
+                <AlertTriangle className="h-5 w-5 text-amber-600" />
+                <AlertTitle className="text-amber-800 text-lg">Important Notice</AlertTitle>
+                <AlertDescription className="text-amber-700">
+                  <p className="mb-4">You are about to finalize your Digital Will setup. After submission, this information cannot be changed or modified.</p>
+                  <p>Please carefully review all your information before proceeding.</p>
+                </AlertDescription>
+              </Alert>
+              
+              <div className="space-y-6 border rounded-lg p-6 bg-white shadow-sm">
+                <div className="space-y-2">
+                  <h3 className="font-semibold">Donor Information</h3>
+                  <p className="text-sm text-gray-600">
+                    Your donor wallet and identification information has been verified.
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="font-semibold">Multi-Signature Wallet</h3>
+                  <p className="text-sm text-gray-600">
+                    Multi-signature wallet has been created and configured successfully.
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="font-semibold">Beneficiary Setup</h3>
+                  <p className="text-sm text-gray-600">
+                    Beneficiary wallet address has been registered and will be notified when conditions are met.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="mt-8 flex justify-center space-x-4">
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowFinalConfirmation(false)}
+                >
+                  Make Changes
+                </Button>
+                <Button 
+                  onClick={handleFinalSubmission}
+                >
+                  Submit & Complete Setup
+                </Button>
               </div>
             </div>
           </div>

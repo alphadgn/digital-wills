@@ -15,7 +15,13 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-const MultisigWalletSection = () => {
+interface MultisigWalletSectionProps {
+  onCompleteBeneficiary?: () => void;
+}
+
+const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({ 
+  onCompleteBeneficiary 
+}) => {
   const { 
     createMultisigWallet, 
     isMultisigCreated, 
@@ -49,6 +55,11 @@ const MultisigWalletSection = () => {
       // Show beneficiary confirmation notification
       setShowBeneficiaryConfirmation(true);
       toast.success("Beneficiary wallet address has been saved");
+      
+      // If we're in the beneficiary setup step and the callback exists, call it
+      if (beneficiaryWallet && onCompleteBeneficiary) {
+        onCompleteBeneficiary();
+      }
     }
   };
 
@@ -59,19 +70,37 @@ const MultisigWalletSection = () => {
 
   const handleFinalSubmit = () => {
     // Set the completion banner to show on the main page
-    setShowCompletionBanner(true);
-    toast.success("Digital Will setup completed successfully!");
+    if (onCompleteBeneficiary) {
+      onCompleteBeneficiary();
+    } else {
+      setShowCompletionBanner(true);
+      toast.success("Digital Will setup completed successfully!");
+    }
   };
 
-  // Check if multisig wallet should be disabled - FIX: Convert to boolean
+  // Check if multisig wallet should be disabled
   const isMultisigDisabled = !!(communicationPreference.method && communicationPreference.value);
+  
+  // Log component lifecycle and state for debugging
+  React.useEffect(() => {
+    console.log("🔑 MultisigWalletSection rendered:", {
+      isMultisigCreated,
+      beneficiaryWallet: !!beneficiaryWallet,
+      hasBeneficiaryAddress: !!beneficiaryAddress,
+      step: isMultisigCreated ? (beneficiaryWallet ? "complete" : "beneficiary setup") : "multisig setup"
+    });
+  }, [isMultisigCreated, beneficiaryWallet, beneficiaryAddress]);
 
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-center">Create Multi Sig Wallet</CardTitle>
+        <CardTitle className="text-center">
+          {isMultisigCreated && !beneficiaryWallet ? "Configure Beneficiary" : "Create Multi Sig Wallet"}
+        </CardTitle>
         <CardDescription className="text-center">
-          Set up a multi-signature wallet using Lore and designate your beneficiary
+          {isMultisigCreated && !beneficiaryWallet 
+            ? "Designate a beneficiary to receive your assets when conditions are met"
+            : "Set up a multi-signature wallet using Lore and designate your beneficiary"}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -267,10 +296,9 @@ const MultisigWalletSection = () => {
               <Button
                 className="w-full mt-4"
                 onClick={handleFinalSubmit}
-                // FIX: Convert showConfirmation to boolean with !! operator
-                disabled={!!showConfirmation}
+                disabled={!!showConfirmation && !onCompleteBeneficiary}
               >
-                Complete Digital Will Setup
+                {onCompleteBeneficiary ? "Continue to Final Review" : "Complete Digital Will Setup"}
               </Button>
             </div>
           </div>
