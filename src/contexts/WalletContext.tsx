@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { toast } from "sonner";
 
@@ -97,13 +96,21 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const [donorSSN, setDonorSSN] = useState<string | null>(null);
   
   // New communication preference state
-  const [communicationPreference, setCommunicationPreference] = useState<{
+  const [communicationPreference, setCommunicationPreferenceState] = useState<{
     method: "email" | "phone" | null;
     value: string | null;
   }>({
     method: null,
     value: null
   });
+  
+  // Create a wrapper function that matches the expected signature
+  const setCommunicationPreference = (method: "email" | "phone", value: string) => {
+    setCommunicationPreferenceState({
+      method,
+      value
+    });
+  };
   
   // Seed phrases and product keys for the wallets
   const [seedPhrases, setSeedPhrases] = useState({
@@ -355,7 +362,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     setUserHasAttemptedRecovery(false);
     setShowCompletionBanner(false);
     setDonorSSN(null);
-    setCommunicationPreference({
+    setCommunicationPreferenceState({
       method: null,
       value: null
     });
