@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Link, Wallet, Shield, AlertTriangle, Copy, AlertCircle } from "lucide-react";
+import { Link, Wallet, Shield, AlertTriangle, Copy, AlertCircle, Check } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Accordion,
@@ -30,6 +30,7 @@ const MultisigWalletSection = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [beneficiaryAddress, setBeneficiaryAddress] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showBeneficiaryConfirmation, setShowBeneficiaryConfirmation] = useState(false);
   
   const handleCreateMultisig = async () => {
     if (!beneficiaryAddress || !beneficiaryAddress.startsWith("0x") || beneficiaryAddress.length !== 42) {
@@ -45,6 +46,9 @@ const MultisigWalletSection = () => {
     if (success) {
       // Show confirmation dialog after successful creation
       setShowConfirmation(true);
+      // Show beneficiary confirmation notification
+      setShowBeneficiaryConfirmation(true);
+      toast.success("Beneficiary wallet address has been saved");
     }
   };
 
@@ -77,6 +81,17 @@ const MultisigWalletSection = () => {
               <Wallet className="h-8 w-8 text-green-500" />
             </div>
             <h3 className="text-lg font-medium text-center">Multisig Wallet Created!</h3>
+            
+            {/* Beneficiary confirmation notification */}
+            {showBeneficiaryConfirmation && (
+              <Alert className="bg-green-50 border-green-200">
+                <Check className="h-4 w-4 text-green-500" />
+                <AlertTitle>Beneficiary Wallet Confirmed</AlertTitle>
+                <AlertDescription className="text-sm">
+                  Beneficiary wallet address <span className="font-mono">{beneficiaryWallet}</span> has been successfully linked to this Digital Will.
+                </AlertDescription>
+              </Alert>
+            )}
             
             <Alert variant="destructive" className="bg-red-50 border-red-200">
               <AlertTriangle className="h-4 w-4 text-red-500" />
@@ -272,7 +287,7 @@ const MultisigWalletSection = () => {
                 disabled={isMultisigDisabled}
               />
               <p className="text-xs text-gray-500">
-                Enter the wallet address that will receive the assets
+                Enter the wallet address that will receive the assets when beneficiary initiates a claim request
               </p>
             </div>
             
