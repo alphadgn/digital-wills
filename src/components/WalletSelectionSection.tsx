@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wallet, AlertCircle, RefreshCw } from "lucide-react";
+import { Wallet, AlertCircle, RefreshCw, Check } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import SSNInputDialog from "./SSNInputDialog";
@@ -46,6 +46,13 @@ const WalletSelectionSection = () => {
   const [showCommunicationDialog, setShowCommunicationDialog] = useState(false);
   const [pendingWallet, setPendingWallet] = useState<{address: string, id: string} | null>(null);
   const [ssnProvided, setSsnProvided] = useState(false);
+  
+  // Track completion of each step
+  const [steps, setSteps] = useState({
+    ssnComplete: false,
+    commPrefComplete: false,
+    authComplete: false
+  });
 
   // Show communication preference dialog if SSN is provided but no communication preference is set
   useEffect(() => {
@@ -55,6 +62,15 @@ const WalletSelectionSection = () => {
     }
   }, [ssnProvided, donorSSN, communicationPreference.method, pendingWallet]);
 
+  // Update steps status whenever relevant state changes
+  useEffect(() => {
+    setSteps({
+      ssnComplete: !!donorSSN,
+      commPrefComplete: !!communicationPreference.method,
+      authComplete: !!donorWallet
+    });
+  }, [donorSSN, communicationPreference.method, donorWallet]);
+
   // Handle the initial wallet selection
   const handleWalletSelect = (walletAddress: string, walletId: string) => {
     setPendingWallet({ address: walletAddress, id: walletId });
@@ -63,6 +79,13 @@ const WalletSelectionSection = () => {
 
   // Process authentication after SSN has been provided and communication preference set
   const handleAuthenticate = async (walletAddress: string, walletId: string) => {
+    // Check if communication preference is set before proceeding
+    if (!communicationPreference.method) {
+      toast.error("Please set your communication preference before proceeding");
+      setShowCommunicationDialog(true);
+      return;
+    }
+    
     setIsAuthenticating(true);
     setFailedWalletId(walletId);
     
@@ -72,6 +95,7 @@ const WalletSelectionSection = () => {
       setDonorWallet(walletAddress);
       setAuthFailed(false);
       setFailedWalletId(null);
+      toast.success("Wallet successfully authenticated. You can now proceed to the next step.");
     } else {
       setAuthFailed(true);
     }
@@ -86,7 +110,8 @@ const WalletSelectionSection = () => {
     if (confirmed && pendingWallet) {
       // SSN was provided, mark it
       setSsnProvided(true);
-      // Communication dialog will show via useEffect
+      // Show communication dialog right after SSN is provided
+      setShowCommunicationDialog(true);
     } else {
       // Clear the pending wallet if not proceeding
       setPendingWallet(null);
@@ -112,6 +137,94 @@ const WalletSelectionSection = () => {
 
   return (
     <>
+      {/* Step Progress Indicator */}
+      <div className="mb-8 max-w-md mx-auto">
+        <div className="space-y-4">
+          {/* Step 1: SSN Verification */}
+          <div className={`flex items-center p-3 border rounded-lg ${steps.ssnComplete ? 'border-green-500 bg-green-50' : 'border-digitalwill-primary bg-digitalwill-primary/5'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${steps.ssnComplete ? 'bg-green-500' : 'bg-digitalwill-primary'}`}>
+              {steps.ssnComplete ? (
+                <Check className="h-5 w-5 text-white" />
+              ) : (
+                <span className="text-white font-medium">1</span>
+              )}
+            </div>
+            <div className="flex-1">
+              <h4 className="font-medium">Social Security Verification</h4>
+              <p className="text-sm text-gray-500">
+                {steps.ssnComplete ? "Completed" : "Provide SSN for identity verification"}
+              </p>
+            </div>
+          </div>
+          
+          {/* Step 2: Communication Preference */}
+          <div className={`flex items-center p-3 border rounded-lg ${
+            steps.ssnComplete 
+              ? (steps.commPrefComplete 
+                  ? 'border-green-500 bg-green-50' 
+                  : 'border-digitalwill-primary bg-digitalwill-primary/5') 
+              : 'border-gray-300 bg-gray-50'
+          }`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+              steps.ssnComplete 
+                ? (steps.commPrefComplete 
+                    ? 'bg-green-500' 
+                    : 'bg-digitalwill-primary') 
+                : 'bg-gray-300'
+            }`}>
+              {steps.commPrefComplete ? (
+                <Check className="h-5 w-5 text-white" />
+              ) : (
+                <span className={`${steps.ssnComplete ? 'text-white' : 'text-gray-500'} font-medium`}>2</span>
+              )}
+            </div>
+            <div className="flex-1">
+              <h4 className={`font-medium ${!steps.ssnComplete ? 'text-gray-500' : ''}`}>Communication Preferences</h4>
+              <p className={`text-sm ${!steps.ssnComplete ? 'text-gray-400' : 'text-gray-500'}`}>
+                {steps.commPrefComplete 
+                  ? `${communicationPreference.method === 'email' ? 'Email' : 'Phone'} notifications enabled` 
+                  : (steps.ssnComplete 
+                      ? "Set up recovery notifications" 
+                      : "Complete previous step first")}
+              </p>
+            </div>
+          </div>
+          
+          {/* Step 3: Authentication */}
+          <div className={`flex items-center p-3 border rounded-lg ${
+            steps.commPrefComplete 
+              ? (steps.authComplete 
+                  ? 'border-green-500 bg-green-50' 
+                  : 'border-digitalwill-primary bg-digitalwill-primary/5') 
+              : 'border-gray-300 bg-gray-50'
+          }`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+              steps.commPrefComplete 
+                ? (steps.authComplete 
+                    ? 'bg-green-500' 
+                    : 'bg-digitalwill-primary') 
+                : 'bg-gray-300'
+            }`}>
+              {steps.authComplete ? (
+                <Check className="h-5 w-5 text-white" />
+              ) : (
+                <span className={`${steps.commPrefComplete ? 'text-white' : 'text-gray-500'} font-medium`}>3</span>
+              )}
+            </div>
+            <div className="flex-1">
+              <h4 className={`font-medium ${!steps.commPrefComplete ? 'text-gray-500' : ''}`}>Wallet Authentication</h4>
+              <p className={`text-sm ${!steps.commPrefComplete ? 'text-gray-400' : 'text-gray-500'}`}>
+                {steps.authComplete 
+                  ? "Wallet successfully authenticated" 
+                  : (steps.commPrefComplete 
+                      ? "Authenticate your donor wallet" 
+                      : "Complete previous steps first")}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
           <CardTitle className="text-center">Select Donor Wallet</CardTitle>
@@ -134,6 +247,24 @@ const WalletSelectionSection = () => {
                 onClick={() => setAuthFailed(false)}
               >
                 Dismiss
+              </Button>
+            </Alert>
+          )}
+          
+          {!steps.commPrefComplete && steps.ssnComplete && (
+            <Alert className="bg-amber-50 border-amber-200">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertTitle className="text-amber-800">Communication Preference Required</AlertTitle>
+              <AlertDescription className="text-amber-700">
+                Please set up your communication preferences for recovery notifications before proceeding.
+              </AlertDescription>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="mt-2 border-amber-300 text-amber-700 hover:bg-amber-100"
+                onClick={() => setShowCommunicationDialog(true)}
+              >
+                Set Preferences
               </Button>
             </Alert>
           )}

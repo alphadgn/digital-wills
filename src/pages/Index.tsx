@@ -21,7 +21,8 @@ const Index = () => {
     isAuthenticated, 
     donorWallet, 
     showCompletionBanner,
-    setShowCompletionBanner
+    setShowCompletionBanner,
+    isMultisigCreated
   } = useWallet();
   
   return (
@@ -73,33 +74,47 @@ const Index = () => {
               </h2>
               
               <div className="space-y-8">
-                {/* Step 1: Connect Wallet (already done but shown for clarity) */}
-                <div className="border-l-4 border-green-500 pl-4 py-2 mb-8">
-                  <h3 className="text-lg font-medium">Step 1: Connect Wallet</h3>
-                  <p className="text-gray-500">Connected successfully</p>
-                </div>
-                
-                {/* Step 2: Select Donor Wallet */}
-                <div className={`border-l-4 ${donorWallet ? 'border-green-500' : 'border-digitalwill-primary'} pl-4 py-2 mb-8`}>
-                  <h3 className="text-lg font-medium">Step 2: Select Donor Wallet</h3>
-                  <p className="text-gray-500">
-                    {donorWallet 
-                      ? "Donor wallet selected and authenticated" 
-                      : "Select and authenticate the wallet containing assets you wish to assign"}
-                  </p>
-                </div>
-                
-                {!donorWallet && <WalletSelectionSection />}
-                
-                {/* Step 3: Create Multisig and Add Beneficiary */}
-                {donorWallet && (
-                  <>
-                    <div className="border-l-4 border-digitalwill-primary pl-4 py-2 mb-8">
-                      <h3 className="text-lg font-medium">Step 3: Create Multi Sig Wallet & Add Beneficiary</h3>
-                      <p className="text-gray-500">
-                        Create a multisig wallet and designate your beneficiary
-                      </p>
+                {/* Process Timeline */}
+                <div className="flex justify-between items-center mb-12">
+                  <div className={`flex flex-col items-center ${address ? 'text-green-500' : 'text-gray-400'}`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${address ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}>
+                      <span className="text-lg font-bold">1</span>
                     </div>
+                    <span className="text-sm mt-2">Connect Wallet</span>
+                  </div>
+                  
+                  <div className="flex-1 h-1 mx-2 bg-gray-200">
+                    <div className={`h-full ${donorWallet ? 'bg-green-500' : 'bg-gray-200'}`} style={{ width: address ? '100%' : '0%', transition: 'width 0.5s' }}></div>
+                  </div>
+                  
+                  <div className={`flex flex-col items-center ${donorWallet ? 'text-green-500' : address ? 'text-digitalwill-primary' : 'text-gray-400'}`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${donorWallet ? 'border-green-500 bg-green-50' : address ? 'border-digitalwill-primary' : 'border-gray-300'}`}>
+                      <span className="text-lg font-bold">2</span>
+                    </div>
+                    <span className="text-sm mt-2">Donor Wallet</span>
+                  </div>
+                  
+                  <div className="flex-1 h-1 mx-2 bg-gray-200">
+                    <div className={`h-full ${isMultisigCreated ? 'bg-green-500' : 'bg-gray-200'}`} style={{ width: donorWallet ? '100%' : '0%', transition: 'width 0.5s' }}></div>
+                  </div>
+                  
+                  <div className={`flex flex-col items-center ${isMultisigCreated ? 'text-green-500' : donorWallet ? 'text-digitalwill-primary' : 'text-gray-400'}`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${isMultisigCreated ? 'border-green-500 bg-green-50' : donorWallet ? 'border-digitalwill-primary' : 'border-gray-300'}`}>
+                      <span className="text-lg font-bold">3</span>
+                    </div>
+                    <span className="text-sm mt-2">Multi-Sig & Beneficiary</span>
+                  </div>
+                </div>
+                
+                {/* Current step content */}
+                {!donorWallet ? (
+                  <>
+                    {/* Step 2: Select and authenticate the donor wallet */}
+                    <WalletSelectionSection />
+                  </>
+                ) : (
+                  <>
+                    {/* Step 3: Create Multisig and Add Beneficiary */}
                     <MultisigWalletSection />
                   </>
                 )}

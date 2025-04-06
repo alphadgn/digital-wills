@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useWallet } from "@/contexts/WalletContext";
 import { toast } from "sonner";
+import { AlertCircle } from "lucide-react";
 
 interface CommunicationPreferenceDialogProps {
   open: boolean;
@@ -70,8 +71,12 @@ const CommunicationPreferenceDialog = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Communication Preferences</DialogTitle>
-          <DialogDescription>
-            How would you like to be notified in case someone attempts to recover your assets?
+          <DialogDescription className="space-y-2">
+            <p>How would you like to be notified in case someone attempts to recover your assets?</p>
+            <p className="text-amber-600 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              <span>Required for donor wallet authentication</span>
+            </p>
           </DialogDescription>
         </DialogHeader>
 
