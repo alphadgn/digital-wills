@@ -39,6 +39,7 @@ const CommunicationPreferenceDialog = ({
   // Prevent dialog from opening if it's already completed and trying to be reopened
   const handleOpenChange = (newOpen: boolean) => {
     if (isCompleted && newOpen) {
+      toast.error("Communication preferences already set");
       return; // Don't allow reopening if completed
     }
     onOpenChange(newOpen);

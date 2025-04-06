@@ -127,6 +127,7 @@ const WalletSelectionSection = () => {
   const [pendingWallet, setPendingWallet] = useState<{address: string, id: string, name: string} | null>(null);
   const [ssnProvided, setSsnProvided] = useState(false);
   const [showSummaryDialog, setShowSummaryDialog] = useState(false);
+  const [authenticatedWallets, setAuthenticatedWallets] = useState<string[]>([]);
   
   // Track completion of each step
   const [steps, setSteps] = useState({
@@ -163,7 +164,9 @@ const WalletSelectionSection = () => {
 
   // Handle the initial wallet selection
   const handleWalletSelect = (walletAddress: string, walletId: string, walletName: string) => {
-    if (steps.authComplete) return; // Prevent reselection if already completed
+    // If the wallet is already authenticated, prevent selection
+    if (authenticatedWallets.includes(walletId) || steps.authComplete) return;
+    
     setPendingWallet({ address: walletAddress, id: walletId, name: walletName });
     setShowSSNDialog(true);
   };
@@ -186,6 +189,9 @@ const WalletSelectionSection = () => {
       setDonorWallet(walletAddress);
       setAuthFailed(false);
       setFailedWalletId(null);
+      
+      // Add the wallet ID to the authenticated wallets list
+      setAuthenticatedWallets(prev => [...prev, walletId]);
       
       // Show summary confirmation dialog
       setShowSummaryDialog(true);
@@ -418,70 +424,86 @@ const WalletSelectionSection = () => {
           )}
           
           <div className="space-y-3">
-            {mockWallets.map((wallet) => (
-              <div 
-                key={wallet.id} 
-                className={`p-4 border rounded-lg transition-colors ${
-                  donorWallet === wallet.address 
-                    ? "border-digitalwill-primary bg-digitalwill-primary/5" 
-                    : (failedWalletId === wallet.id && authFailed)
-                      ? "border-red-300 bg-red-50"
-                      : steps.authComplete 
-                        ? "bg-gray-100 opacity-60" // Dim other wallets when one is selected
-                        : "hover:bg-gray-50"
-                }`}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-medium">{wallet.name}</h3>
-                    <p className="text-sm text-gray-500 font-mono mt-1">
-                      {wallet.address.substring(0, 8)}...{wallet.address.substring(wallet.address.length - 6)}
-                    </p>
-                    <p className="text-xs text-gray-600 mt-1">
-                      {wallet.assets}
-                    </p>
-                  </div>
-                  
-                  {failedWalletId === wallet.id && authFailed ? (
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={isAuthenticating || steps.authComplete}
-                        onClick={() => retryAuthentication(wallet.address, wallet.id)}
-                        className="text-red-500 border-red-300 hover:bg-red-50"
-                      >
-                        <RefreshCw className="h-3 w-3 mr-1" />
-                        Retry Authentication
-                      </Button>
-                      <div className="text-xs text-red-500">
-                        Failed to authenticate
-                      </div>
+            {mockWallets.map((wallet) => {
+              // Check if this wallet is already authenticated
+              const isWalletAuthenticated = authenticatedWallets.includes(wallet.id);
+              const isSelected = donorWallet === wallet.address;
+              
+              return (
+                <div 
+                  key={wallet.id} 
+                  className={`p-4 border rounded-lg transition-colors ${
+                    isSelected
+                      ? "border-digitalwill-primary bg-digitalwill-primary/5" 
+                      : isWalletAuthenticated
+                        ? "bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed" // Gray out authenticated wallets
+                        : (failedWalletId === wallet.id && authFailed)
+                          ? "border-red-300 bg-red-50"
+                          : steps.authComplete 
+                            ? "bg-gray-100 opacity-60" // Dim other wallets when one is selected
+                            : "hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium">{wallet.name}</h3>
+                      <p className="text-sm text-gray-500 font-mono mt-1">
+                        {wallet.address.substring(0, 8)}...{wallet.address.substring(wallet.address.length - 6)}
+                      </p>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {wallet.assets}
+                      </p>
                     </div>
-                  ) : (
-                    <Button
-                      variant={donorWallet === wallet.address ? "default" : "outline"}
-                      size="sm"
-                      disabled={isAuthenticating || (steps.authComplete && donorWallet !== wallet.address)}
-                      onClick={() => handleWalletSelect(wallet.address, wallet.id, wallet.name)}
-                    >
-                      {donorWallet === wallet.address ? (
-                        <>
-                          <Wallet className="h-4 w-4 mr-2" />
-                          Selected
-                        </>
-                      ) : isAuthenticating && pendingWallet?.id === wallet.id ? (
-                        "Authenticating..."
-                      ) : steps.authComplete ? (
-                        <XCircle className="h-4 w-4 mr-1" />
-                      ) : (
-                        "Select & Authenticate"
-                      )}
-                    </Button>
-                  )}
+                    
+                    {isWalletAuthenticated && !isSelected ? (
+                      <div className="text-xs text-gray-500 italic">
+                        Already authenticated
+                      </div>
+                    ) : failedWalletId === wallet.id && authFailed ? (
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={isAuthenticating || steps.authComplete}
+                          onClick={() => retryAuthentication(wallet.address, wallet.id)}
+                          className="text-red-500 border-red-300 hover:bg-red-50"
+                        >
+                          <RefreshCw className="h-3 w-3 mr-1" />
+                          Retry Authentication
+                        </Button>
+                        <div className="text-xs text-red-500">
+                          Failed to authenticate
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        variant={donorWallet === wallet.address ? "default" : "outline"}
+                        size="sm"
+                        disabled={
+                          isAuthenticating || 
+                          (steps.authComplete && donorWallet !== wallet.address) ||
+                          isWalletAuthenticated // Disable if already authenticated
+                        }
+                        onClick={() => handleWalletSelect(wallet.address, wallet.id, wallet.name)}
+                      >
+                        {donorWallet === wallet.address ? (
+                          <>
+                            <Wallet className="h-4 w-4 mr-2" />
+                            Selected
+                          </>
+                        ) : isAuthenticating && pendingWallet?.id === wallet.id ? (
+                          "Authenticating..."
+                        ) : steps.authComplete || isWalletAuthenticated ? (
+                          <XCircle className="h-4 w-4 mr-1" />
+                        ) : (
+                          "Select & Authenticate"
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
         {steps.authComplete && steps.finalConfirmation && (
