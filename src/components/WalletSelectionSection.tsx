@@ -118,7 +118,6 @@ const WalletSelectionSection = () => {
     communicationPreference,
     isMultisigCreated,
     beneficiaryWallet,
-    beneficiaryAddress
   } = useWallet();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [authFailed, setAuthFailed] = useState(false);
@@ -141,10 +140,10 @@ const WalletSelectionSection = () => {
     console.log("👛 WalletSelectionSection rendered:", {
       isMultisigCreated,
       beneficiaryWallet: !!beneficiaryWallet,
-      hasBeneficiaryAddress: !!beneficiaryAddress,
+      hasBeneficiaryWallet: !!beneficiaryWallet,
       step: isMultisigCreated ? (beneficiaryWallet ? "complete" : "beneficiary setup") : "multisig setup"
     });
-  }, [isMultisigCreated, beneficiaryWallet, beneficiaryAddress]);
+  }, [isMultisigCreated, beneficiaryWallet]);
 
   useEffect(() => {
     if (ssnProvided && donorSSN && !communicationPreference.method && pendingWallet) {
