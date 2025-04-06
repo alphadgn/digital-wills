@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
@@ -140,7 +139,6 @@ const WalletSelectionSection = () => {
   // Show communication preference dialog if SSN is provided but no communication preference is set
   useEffect(() => {
     if (ssnProvided && donorSSN && !communicationPreference.method && pendingWallet) {
-      // Show communication dialog after SSN is provided
       setShowCommunicationDialog(true);
     }
   }, [ssnProvided, donorSSN, communicationPreference.method, pendingWallet]);
@@ -164,8 +162,10 @@ const WalletSelectionSection = () => {
 
   // Handle the initial wallet selection
   const handleWalletSelect = (walletAddress: string, walletId: string, walletName: string) => {
-    // If the wallet is already authenticated, prevent selection
-    if (authenticatedWallets.includes(walletId) || steps.authComplete) return;
+    if (authenticatedWallets.includes(walletId) || steps.authComplete) {
+      toast.error("This wallet has already been authenticated");
+      return;
+    }
     
     setPendingWallet({ address: walletAddress, id: walletId, name: walletName });
     setShowSSNDialog(true);
@@ -173,7 +173,6 @@ const WalletSelectionSection = () => {
 
   // Process authentication after SSN has been provided and communication preference set
   const handleAuthenticate = async (walletAddress: string, walletId: string) => {
-    // Check if communication preference is set before proceeding
     if (!communicationPreference.method) {
       toast.error("Please set your communication preference before proceeding");
       setShowCommunicationDialog(true);
@@ -190,10 +189,8 @@ const WalletSelectionSection = () => {
       setAuthFailed(false);
       setFailedWalletId(null);
       
-      // Add the wallet ID to the authenticated wallets list
       setAuthenticatedWallets(prev => [...prev, walletId]);
       
-      // Show summary confirmation dialog
       setShowSummaryDialog(true);
     } else {
       setAuthFailed(true);
@@ -207,12 +204,9 @@ const WalletSelectionSection = () => {
     setShowSSNDialog(false);
     
     if (confirmed && pendingWallet) {
-      // SSN was provided, mark it
       setSsnProvided(true);
-      // Show communication dialog right after SSN is provided
       setShowCommunicationDialog(true);
     } else {
-      // Clear the pending wallet if not proceeding
       setPendingWallet(null);
       setSsnProvided(false);
     }
@@ -223,7 +217,6 @@ const WalletSelectionSection = () => {
     setShowCommunicationDialog(false);
     
     if (pendingWallet && communicationPreference.method) {
-      // Both SSN and communication preference are set, proceed with authentication
       handleAuthenticate(pendingWallet.address, pendingWallet.id);
     }
   };
@@ -232,21 +225,21 @@ const WalletSelectionSection = () => {
   const handleSummaryConfirm = () => {
     setShowSummaryDialog(false);
     setSteps(prev => ({...prev, finalConfirmation: true}));
-    // Final step completed - any additional submission logic would go here
   };
 
   const retryAuthentication = async (walletAddress: string, walletId: string) => {
-    // For retry, we'll show the SSN dialog again
     setPendingWallet({ address: walletAddress, id: walletId, name: selectedWalletName });
     setShowSSNDialog(true);
   };
 
+  const isWalletDisabled = (walletId: string) => {
+    return authenticatedWallets.includes(walletId) || steps.authComplete;
+  };
+
   return (
     <>
-      {/* Step Progress Indicator */}
       <div className="mb-8 max-w-md mx-auto">
         <div className="space-y-4">
-          {/* Step 1: SSN Verification */}
           <div className={`flex items-center p-3 border rounded-lg ${
             steps.ssnComplete 
               ? 'border-green-500 bg-green-50' 
@@ -271,7 +264,6 @@ const WalletSelectionSection = () => {
             </div>
           </div>
           
-          {/* Step 2: Communication Preference */}
           <div className={`flex items-center p-3 border rounded-lg ${
             steps.ssnComplete 
               ? (steps.commPrefComplete 
@@ -304,7 +296,6 @@ const WalletSelectionSection = () => {
             </div>
           </div>
           
-          {/* Step 3: Authentication */}
           <div className={`flex items-center p-3 border rounded-lg ${
             steps.commPrefComplete 
               ? (steps.authComplete 
@@ -337,7 +328,6 @@ const WalletSelectionSection = () => {
             </div>
           </div>
           
-          {/* Step 4: Final Review (only shown when first 3 steps are complete) */}
           {steps.authComplete && (
             <div className={`flex items-center p-3 border rounded-lg ${
               steps.finalConfirmation 
@@ -416,7 +406,7 @@ const WalletSelectionSection = () => {
                 size="sm"
                 className="mt-2 border-amber-300 text-amber-700 hover:bg-amber-100"
                 onClick={() => setShowCommunicationDialog(true)}
-                disabled={steps.commPrefComplete} // Disable if already completed
+                disabled={steps.commPrefComplete}
               >
                 Set Preferences
               </Button>
@@ -425,9 +415,9 @@ const WalletSelectionSection = () => {
           
           <div className="space-y-3">
             {mockWallets.map((wallet) => {
-              // Check if this wallet is already authenticated
               const isWalletAuthenticated = authenticatedWallets.includes(wallet.id);
               const isSelected = donorWallet === wallet.address;
+              const isDisabled = isWalletDisabled(wallet.id);
               
               return (
                 <div 
@@ -435,13 +425,11 @@ const WalletSelectionSection = () => {
                   className={`p-4 border rounded-lg transition-colors ${
                     isSelected
                       ? "border-digitalwill-primary bg-digitalwill-primary/5" 
-                      : isWalletAuthenticated
-                        ? "bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed" // Gray out authenticated wallets
+                      : isWalletAuthenticated || (steps.authComplete && !isSelected)
+                        ? "bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed"
                         : (failedWalletId === wallet.id && authFailed)
                           ? "border-red-300 bg-red-50"
-                          : steps.authComplete 
-                            ? "bg-gray-100 opacity-60" // Dim other wallets when one is selected
-                            : "hover:bg-gray-50"
+                          : "hover:bg-gray-50"
                   }`}
                 >
                   <div className="flex justify-between items-start">
@@ -455,7 +443,7 @@ const WalletSelectionSection = () => {
                       </p>
                     </div>
                     
-                    {isWalletAuthenticated && !isSelected ? (
+                    {isWalletAuthenticated ? (
                       <div className="text-xs text-gray-500 italic">
                         Already authenticated
                       </div>
@@ -481,8 +469,7 @@ const WalletSelectionSection = () => {
                         size="sm"
                         disabled={
                           isAuthenticating || 
-                          (steps.authComplete && donorWallet !== wallet.address) ||
-                          isWalletAuthenticated // Disable if already authenticated
+                          isDisabled
                         }
                         onClick={() => handleWalletSelect(wallet.address, wallet.id, wallet.name)}
                       >
@@ -493,7 +480,7 @@ const WalletSelectionSection = () => {
                           </>
                         ) : isAuthenticating && pendingWallet?.id === wallet.id ? (
                           "Authenticating..."
-                        ) : steps.authComplete || isWalletAuthenticated ? (
+                        ) : isDisabled ? (
                           <XCircle className="h-4 w-4 mr-1" />
                         ) : (
                           "Select & Authenticate"
@@ -519,7 +506,6 @@ const WalletSelectionSection = () => {
         )}
       </Card>
 
-      {/* SSN Dialog for wallet authentication */}
       <SSNInputDialog 
         open={showSSNDialog} 
         onOpenChange={(open) => {
@@ -530,7 +516,6 @@ const WalletSelectionSection = () => {
         description="Please provide your Social Security Number to authenticate your wallet. This helps secure your digital assets."
       />
 
-      {/* Communication Preference Dialog */}
       <CommunicationPreferenceDialog
         open={showCommunicationDialog}
         onOpenChange={setShowCommunicationDialog}
@@ -538,7 +523,6 @@ const WalletSelectionSection = () => {
         isCompleted={steps.commPrefComplete}
       />
       
-      {/* Summary Confirmation Dialog */}
       <SummaryConfirmationDialog
         open={showSummaryDialog}
         onOpenChange={setShowSummaryDialog}

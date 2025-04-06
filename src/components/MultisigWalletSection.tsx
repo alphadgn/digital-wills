@@ -23,10 +23,12 @@ const MultisigWalletSection = () => {
     setBeneficiaryWallet,
     seedPhrases,
     productKeys,
-    multisigWallet
+    multisigWallet,
+    setShowCompletionBanner
   } = useWallet();
   const [isCreating, setIsCreating] = React.useState(false);
   const [beneficiaryAddress, setBeneficiaryAddress] = React.useState("");
+  const [showConfirmation, setShowConfirmation] = React.useState(false);
   
   const handleCreateMultisig = async () => {
     if (!beneficiaryAddress || !beneficiaryAddress.startsWith("0x") || beneficiaryAddress.length !== 42) {
@@ -38,11 +40,22 @@ const MultisigWalletSection = () => {
     setBeneficiaryWallet(beneficiaryAddress);
     const success = await createMultisigWallet();
     setIsCreating(false);
+    
+    if (success) {
+      // Show confirmation dialog after successful creation
+      setShowConfirmation(true);
+    }
   };
 
   const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${type} copied to clipboard`);
+  };
+
+  const handleFinalSubmit = () => {
+    // Set the completion banner to show on the main page
+    setShowCompletionBanner(true);
+    toast.success("Digital Will setup completed successfully!");
   };
 
   return (
@@ -228,6 +241,25 @@ const MultisigWalletSection = () => {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
+            </div>
+            
+            {/* Final confirmation and submit button */}
+            <div className="w-full mt-4">
+              <Alert className="bg-amber-50 border-amber-200">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertTitle className="text-amber-800">Final Review</AlertTitle>
+                <AlertDescription className="text-amber-700">
+                  Please review all information carefully. Once submitted, you cannot make changes to this setup.
+                </AlertDescription>
+              </Alert>
+              
+              <Button
+                className="w-full mt-4"
+                onClick={handleFinalSubmit}
+                disabled={showConfirmation}
+              >
+                Complete Digital Will Setup
+              </Button>
             </div>
           </div>
         ) : (
