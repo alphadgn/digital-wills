@@ -237,8 +237,19 @@ const WalletSelectionSection = () => {
     return donorWallet !== null && selectedWalletId !== walletId;
   };
 
+  // Determine current step logic
+  const determineCurrentStep = () => {
+    if (!donorWallet) return "wallet1"; // Main Wallet
+    if (!isMultisigCreated) return "wallet2"; // Multi Sig
+    if (isMultisigCreated && !beneficiaryWallet) return "wallet3"; // Beneficiary
+    return null; // All steps completed
+  };
+  
+  const currentStep = determineCurrentStep();
+
   return (
     <>
+      {/* Progress tracking UI */}
       <div className="mb-8 max-w-md mx-auto">
         <div className="space-y-4">
           <div className={`flex items-center p-3 border rounded-lg ${
@@ -426,29 +437,35 @@ const WalletSelectionSection = () => {
               const isSelected = selectedWalletId === wallet.id;
               const isAuthenticated = donorWallet === wallet.address;
               
+              // Determine if wallet should be highlighted as the current step
+              const isCurrentStep = currentStep === wallet.id;
+              
               let isDisabled = false;
               let highlightColor = ""; 
               
+              // Main Wallet logic
               if (wallet.id === "wallet1") {
                 isDisabled = isWalletDisabled(wallet.id);
-                if (!donorWallet) {
+                if (currentStep === "wallet1") {
                   highlightColor = "border-digitalwill-primary bg-digitalwill-primary/5";
                 }
               } 
+              // Multi Sig logic
               else if (wallet.id === "wallet2") {
                 isDisabled = !donorWallet || isWalletDisabled(wallet.id);
-                if (donorWallet && !isMultisigCreated) {
+                if (currentStep === "wallet2") {
                   highlightColor = "border-digitalwill-primary bg-digitalwill-primary/5";
                 }
               } 
+              // Beneficiary logic
               else if (wallet.id === "wallet3") {
                 isDisabled = !isMultisigCreated || isWalletDisabled(wallet.id);
-                if (isMultisigCreated && !beneficiaryWallet) {
+                if (currentStep === "wallet3") {
                   highlightColor = "border-digitalwill-primary bg-digitalwill-primary/5";
                 }
               }
               
-              console.log(`🔍 Wallet ${wallet.name} - disabled: ${isDisabled}, highlight: ${highlightColor}`);
+              console.log(`🔍 Wallet ${wallet.name} - disabled: ${isDisabled}, highlight: ${highlightColor}, currentStep: ${currentStep}`);
               
               return (
                 <div 

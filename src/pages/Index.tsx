@@ -66,7 +66,7 @@ const Index = () => {
   
   return (
     <div className="min-h-screen flex flex-col relative">
-      {/* Background image with fixed positioning and opacity */}
+      {/* Background image */}
       <div 
         className="fixed inset-0 z-0 bg-center bg-cover bg-no-repeat"
         style={{
@@ -74,11 +74,11 @@ const Index = () => {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           opacity: BACKGROUND_OPACITY,
-          backgroundColor: FALLBACK_BG_COLOR, // Fallback color if image fails
+          backgroundColor: FALLBACK_BG_COLOR,
         }}
       />
       
-      {/* Content container with relative positioning to appear above the background */}
+      {/* Content container */}
       <div className="relative z-10 flex flex-col flex-1">
         <Header />
         
