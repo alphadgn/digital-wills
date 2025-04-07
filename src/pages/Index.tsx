@@ -24,8 +24,8 @@ const Index = () => {
   // State for final submission confirmation
   const [showFinalConfirmation, setShowFinalConfirmation] = React.useState(false);
   
-  // Track the visibility of each section (improved step flow control)
-  const [visibleSection, setVisibleSection] = React.useState<string | null>("donor");
+  // IMPORTANT: Always start with "donor" as the visible section to ensure flow begins properly
+  const [visibleSection, setVisibleSection] = React.useState<string>("donor");
   
   // Determine the current active step based on state
   const currentStep = React.useMemo(() => {
@@ -42,31 +42,16 @@ const Index = () => {
     return 0;
   }, [donorWallet, isMultisigCreated, beneficiaryWallet]);
 
-  // Update visible section whenever the current step changes
+  // Debug log for tracking component state
   React.useEffect(() => {
-    // Automatically set visible section based on current step
-    switch (currentStep) {
-      case STEP.DONOR_WALLET:
-        setVisibleSection("donor");
-        break;
-      case STEP.MULTISIG_WALLET:
-        setVisibleSection("multisig");
-        break;
-      case STEP.BENEFICIARY_SETUP:
-        setVisibleSection("beneficiary");
-        break;
-      default:
-        setVisibleSection("donor");
-    }
-    
-    console.log("🔄 Current Step:", currentStep, {
+    console.log("🔄 Index.tsx: Current Step:", currentStep, {
       donorWallet: !!donorWallet,
       isMultisigCreated,
       beneficiaryWallet: !!beneficiaryWallet,
-      showFinalConfirmation,
-      visibleSection
+      visibleSection,
+      showFinalConfirmation
     });
-  }, [currentStep, donorWallet, isMultisigCreated, beneficiaryWallet, showFinalConfirmation, visibleSection]);
+  }, [currentStep, donorWallet, isMultisigCreated, beneficiaryWallet, visibleSection, showFinalConfirmation]);
   
   // Function to handle final submission
   const handleFinalSubmission = () => {
@@ -77,19 +62,19 @@ const Index = () => {
 
   // Function to move to the next step after completing donor wallet setup
   const handleDonorWalletComplete = () => {
-    console.log("Moving to multisig section after donor wallet completion");
+    console.log("Donor wallet setup complete - moving to multisig section");
     setVisibleSection("multisig");
   };
 
   // Function to move to the next step after completing multisig setup
   const handleMultisigComplete = () => {
-    console.log("Moving to beneficiary section after multisig completion");
+    console.log("Multisig wallet setup complete - moving to beneficiary section");
     setVisibleSection("beneficiary");
   };
 
   // Function to show final confirmation after completing beneficiary setup
   const handleBeneficiaryComplete = () => {
-    console.log("Showing final confirmation after beneficiary completion");
+    console.log("Beneficiary setup complete - showing final confirmation");
     setShowFinalConfirmation(true);
   };
   

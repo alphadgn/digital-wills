@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import StepIndicator, { STEP } from "./StepIndicator";
 import Progress from "./Progress";
@@ -29,6 +29,24 @@ const ContentContainer: React.FC<ContentContainerProps> = ({
   handleMultisigComplete,
   handleBeneficiaryComplete
 }) => {
+  // Set up step labels for progress display
+  const currentStepLabel = React.useMemo(() => {
+    if (currentStep === STEP.BENEFICIARY_SETUP) return "Beneficiary Setup";
+    if (currentStep === STEP.MULTISIG_WALLET) return "Multi-Sig Wallet";
+    return "Donor Information";
+  }, [currentStep]);
+
+  // Additional logging for debugging the flow
+  useEffect(() => {
+    console.log("ContentContainer rendered with:", { 
+      visibleSection,
+      currentStep,
+      hasDonorWallet: !!donorWallet,
+      isMultisigCreated,
+      hasBeneficiary: !!beneficiaryWallet
+    });
+  }, [visibleSection, currentStep, donorWallet, isMultisigCreated, beneficiaryWallet]);
+
   return (
     <div className="flex-1 py-12 px-6">
       <div className="max-w-4xl mx-auto">
@@ -36,8 +54,11 @@ const ContentContainer: React.FC<ContentContainerProps> = ({
           Digital Will Creation
         </h2>
         
-        {/* Overall Progress Bar */}
-        <Progress progressPercentage={progressPercentage} />
+        {/* Overall Progress Bar - Now with current step label */}
+        <Progress 
+          progressPercentage={progressPercentage} 
+          currentStep={currentStepLabel} 
+        />
         
         <div className="space-y-8">
           {/* Process Timeline with clearer visual indicators */}
@@ -54,7 +75,10 @@ const ContentContainer: React.FC<ContentContainerProps> = ({
             {visibleSection === "donor" && (
               <div>
                 <WalletSelectionSection 
-                  onComplete={handleDonorWalletComplete}
+                  onComplete={() => {
+                    console.log("WalletSelectionSection onComplete triggered - proceeding to multisig");
+                    handleDonorWalletComplete();
+                  }}
                 />
               </div>
             )}
@@ -67,7 +91,10 @@ const ContentContainer: React.FC<ContentContainerProps> = ({
                   Set up a multi-signature wallet and configure security settings.
                 </p>
                 <MultisigWalletSection 
-                  onComplete={handleMultisigComplete}
+                  onComplete={() => {
+                    console.log("MultisigWalletSection onComplete triggered - proceeding to beneficiary");
+                    handleMultisigComplete();
+                  }}
                 />
               </div>
             )}
@@ -80,7 +107,10 @@ const ContentContainer: React.FC<ContentContainerProps> = ({
                   Designate a beneficiary to receive your assets when conditions are met.
                 </p>
                 <MultisigWalletSection 
-                  onCompleteBeneficiary={handleBeneficiaryComplete} 
+                  onCompleteBeneficiary={() => {
+                    console.log("MultisigWalletSection onCompleteBeneficiary triggered - proceeding to final step");
+                    handleBeneficiaryComplete();
+                  }} 
                 />
               </div>
             )}
