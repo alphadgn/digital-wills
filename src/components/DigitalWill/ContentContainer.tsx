@@ -1,64 +1,16 @@
 
-import React, { useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import React from "react";
 import StepIndicator, { STEP } from "./StepIndicator";
-import Progress from "./Progress";
-import WalletSelectionSection from "@/components/WalletSelectionSection";
-import MultisigWalletSection from "@/components/MultisigWalletSection";
 
 interface ContentContainerProps {
-  currentStep: number;
-  progressPercentage: number;
-  donorWallet: string | null;
-  isMultisigCreated: boolean; 
-  beneficiaryWallet: string | null;
-  visibleSection: string | null;
-  handleDonorWalletComplete: () => void;
-  handleMultisigComplete: () => void;
-  handleBeneficiaryComplete: () => void;
+  currentStep?: number;
+  progressPercentage?: number;
 }
 
 const ContentContainer: React.FC<ContentContainerProps> = ({
-  currentStep,
-  progressPercentage,
-  donorWallet,
-  isMultisigCreated,
-  beneficiaryWallet,
-  visibleSection,
-  handleDonorWalletComplete,
-  handleMultisigComplete,
-  handleBeneficiaryComplete
+  currentStep = STEP.DONOR_WALLET,
+  progressPercentage = 0,
 }) => {
-  // Set up step labels for progress display
-  const currentStepLabel = React.useMemo(() => {
-    if (currentStep === STEP.BENEFICIARY_SETUP) return "Beneficiary Setup";
-    if (currentStep === STEP.MULTISIG_WALLET) return "Multi-Sig Wallet";
-    return "Donor Information";
-  }, [currentStep]);
-
-  // Additional logging for debugging the flow
-  useEffect(() => {
-    console.log("ContentContainer rendered with:", { 
-      visibleSection,
-      currentStep,
-      hasDonorWallet: !!donorWallet,
-      isMultisigCreated,
-      hasBeneficiary: !!beneficiaryWallet
-    });
-  }, [visibleSection, currentStep, donorWallet, isMultisigCreated, beneficiaryWallet]);
-
-  // CRITICAL: Ensure visibleSection is always valid
-  const effectiveVisibleSection = visibleSection || "donor";
-
-  // Log when callback handlers are triggered
-  useEffect(() => {
-    console.log("ContentContainer callback handlers:", {
-      handleDonorWalletComplete: !!handleDonorWalletComplete,
-      handleMultisigComplete: !!handleMultisigComplete,
-      handleBeneficiaryComplete: !!handleBeneficiaryComplete
-    });
-  }, [handleDonorWalletComplete, handleMultisigComplete, handleBeneficiaryComplete]);
-
   return (
     <div className="flex-1 py-12 px-6">
       <div className="max-w-4xl mx-auto">
@@ -66,85 +18,20 @@ const ContentContainer: React.FC<ContentContainerProps> = ({
           Digital Will Creation
         </h2>
         
-        {/* Overall Progress Bar - Now with current step label */}
-        <Progress 
-          progressPercentage={progressPercentage} 
-          currentStep={currentStepLabel} 
-        />
-        
         <div className="space-y-8">
-          {/* Process Timeline with clearer visual indicators */}
           <StepIndicator 
             currentStep={currentStep} 
-            donorWallet={donorWallet}
-            isMultisigCreated={isMultisigCreated}
-            beneficiaryWallet={beneficiaryWallet}
+            donorWallet={null}
+            isMultisigCreated={false}
+            beneficiaryWallet={null}
           />
           
-          {/* Step sections - Show sections based on visibleSection state */}
-          <div className="mt-8">
-            {/* Step 1: Donor Wallet Selection */}
-            {effectiveVisibleSection === "donor" && (
-              <div>
-                <WalletSelectionSection 
-                  onComplete={() => {
-                    console.log("WalletSelectionSection onComplete TRIGGERED - proceeding to multisig");
-                    if (handleDonorWalletComplete) {
-                      handleDonorWalletComplete();
-                    } else {
-                      console.error("handleDonorWalletComplete is undefined!");
-                    }
-                  }}
-                />
-              </div>
-            )}
-            
-            {/* Step 2: Multi-Sig Wallet */}
-            {effectiveVisibleSection === "multisig" && (
-              <div>
-                <h3 className="text-xl font-semibold text-center mb-6">Create Multi-Sig Wallet</h3>
-                <p className="text-center text-gray-600 mb-8">
-                  Set up a multi-signature wallet and configure security settings.
-                </p>
-                <MultisigWalletSection 
-                  onComplete={() => {
-                    console.log("MultisigWalletSection onComplete TRIGGERED - proceeding to beneficiary");
-                    if (handleMultisigComplete) {
-                      handleMultisigComplete();
-                    } else {
-                      console.error("handleMultisigComplete is undefined!");
-                    }
-                  }}
-                />
-              </div>
-            )}
-            
-            {/* Step 3: Beneficiary Setup */}
-            {effectiveVisibleSection === "beneficiary" && (
-              <div>
-                <h3 className="text-xl font-semibold text-center mb-6">Configure Beneficiary</h3>
-                <p className="text-center text-gray-600 mb-8">
-                  Designate a beneficiary to receive your assets when conditions are met.
-                </p>
-                <MultisigWalletSection 
-                  onCompleteBeneficiary={() => {
-                    console.log("MultisigWalletSection onCompleteBeneficiary TRIGGERED - proceeding to final step");
-                    if (handleBeneficiaryComplete) {
-                      handleBeneficiaryComplete();
-                    } else {
-                      console.error("handleBeneficiaryComplete is undefined!");
-                    }
-                  }} 
-                />
-              </div>
-            )}
-
-            {/* Loading indicator if no section is visible (shouldn't happen with our fixes) */}
-            {!effectiveVisibleSection && (
-              <div className="flex justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-digitalwill-primary" />
-              </div>
-            )}
+          <div className="mt-8 p-6 bg-white rounded-lg shadow-md">
+            <h3 className="text-xl font-semibold text-center mb-6">Application Reset</h3>
+            <p className="text-center">
+              All application logic has been removed as requested.
+              You can now build the functionality from scratch.
+            </p>
           </div>
         </div>
       </div>

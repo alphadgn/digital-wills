@@ -1,118 +1,49 @@
 
 import React from "react";
 import { useWallet } from "@/contexts/WalletContext";
-import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import CompletionBanner from "@/components/CompletionBanner";
 import Background from "@/components/DigitalWill/Background";
 import LandingPage from "@/components/DigitalWill/LandingPage";
-import ContentContainer from "@/components/DigitalWill/ContentContainer";
-import FinalConfirmation from "@/components/DigitalWill/FinalConfirmation";
-import { STEP } from "@/components/DigitalWill/StepIndicator";
+import { toast } from "sonner";
 
 const Index = () => {
-  const { 
-    address, 
-    donorWallet, 
-    showCompletionBanner,
-    setShowCompletionBanner,
-    isMultisigCreated,
-    beneficiaryWallet
-  } = useWallet();
+  const { address } = useWallet();
   
-  // State for final submission confirmation
-  const [showFinalConfirmation, setShowFinalConfirmation] = React.useState(false);
-  
-  // ALWAYS start with "donor" as the visible section, never null or undefined
-  const [visibleSection, setVisibleSection] = React.useState("donor");
-  
-  // Determine the current active step based on state
-  const currentStep = React.useMemo(() => {
-    if (!donorWallet) return STEP.DONOR_WALLET;
-    if (!isMultisigCreated) return STEP.MULTISIG_WALLET;
-    return STEP.BENEFICIARY_SETUP;
-  }, [donorWallet, isMultisigCreated]);
-
-  // Calculate progress percentage
-  const progressPercentage = React.useMemo(() => {
-    if (beneficiaryWallet) return 100;
-    if (isMultisigCreated) return 66;
-    if (donorWallet) return 33;
-    return 0;
-  }, [donorWallet, isMultisigCreated, beneficiaryWallet]);
-
-  // Debug log for tracking component state
-  React.useEffect(() => {
-    console.log("🔄 Index.tsx: Current Step:", currentStep, {
-      donorWallet: !!donorWallet,
-      isMultisigCreated,
-      beneficiaryWallet: !!beneficiaryWallet,
-      visibleSection,
-      showFinalConfirmation
-    });
-  }, [currentStep, donorWallet, isMultisigCreated, beneficiaryWallet, visibleSection, showFinalConfirmation]);
-  
-  // Function to handle final submission
-  const handleFinalSubmission = () => {
-    setShowCompletionBanner(true);
-    setShowFinalConfirmation(false);
-    toast.success("Digital Will setup completed successfully!");
-  };
-
-  // Function to move to the next step after completing donor wallet setup
-  const handleDonorWalletComplete = () => {
-    console.log("Donor wallet setup complete - MANUALLY TRIGGERING navigation to multisig section");
-    setVisibleSection("multisig");
-  };
-
-  // Function to move to the next step after completing multisig setup
-  const handleMultisigComplete = () => {
-    console.log("Multisig wallet setup complete - MANUALLY TRIGGERING navigation to beneficiary section");
-    setVisibleSection("beneficiary");
-  };
-
-  // Function to show final confirmation after completing beneficiary setup
-  const handleBeneficiaryComplete = () => {
-    console.log("Beneficiary setup complete - MANUALLY TRIGGERING final confirmation display");
-    setShowFinalConfirmation(true);
+  // Simple function to display a message
+  const handleAction = () => {
+    toast.info("Action requested");
   };
   
   return (
     <Background>
       <Header />
       
-      {/* Completion Banner */}
-      {showCompletionBanner && (
-        <CompletionBanner />
-      )}
-      
-      {/* If not connected to wallet, show landing page */}
-      {!address && !showCompletionBanner && (
+      {!address ? (
         <LandingPage />
-      )}
-      
-      {/* If connected to wallet and not showing completion banner, show the appropriate section based on state */}
-      {address && !showCompletionBanner && !showFinalConfirmation && (
-        <ContentContainer 
-          currentStep={currentStep}
-          progressPercentage={progressPercentage}
-          donorWallet={donorWallet}
-          isMultisigCreated={isMultisigCreated}
-          beneficiaryWallet={beneficiaryWallet}
-          visibleSection={visibleSection}
-          handleDonorWalletComplete={handleDonorWalletComplete}
-          handleMultisigComplete={handleMultisigComplete}
-          handleBeneficiaryComplete={handleBeneficiaryComplete}
-        />
-      )}
-      
-      {/* Final Confirmation Banner */}
-      {showFinalConfirmation && (
-        <FinalConfirmation 
-          onMakeChanges={() => setShowFinalConfirmation(false)}
-          onSubmit={handleFinalSubmission}
-        />
+      ) : (
+        <div className="flex-1 py-12 px-6">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-8">
+              Digital Will Creation
+            </h2>
+            
+            <div className="p-8 bg-white rounded-lg shadow-md">
+              <h3 className="text-xl font-semibold text-center">Application Reset</h3>
+              <p className="text-center my-4">
+                The application logic has been removed as requested. You can now rebuild the functionality.
+              </p>
+              <div className="flex justify-center mt-6">
+                <button 
+                  className="px-4 py-2 bg-digitalwill-primary text-white rounded-md"
+                  onClick={handleAction}
+                >
+                  Sample Action
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
       
       <Footer />
