@@ -1,36 +1,19 @@
 
 import React from "react";
 import { useWallet } from "@/contexts/WalletContext";
-import { Link } from "react-router-dom";
-import Header from "@/components/Header";
-import Hero from "@/components/Hero";
-import Features from "@/components/Features";
-import Footer from "@/components/Footer";
-import WalletConnectSection from "@/components/WalletConnectSection";
-import WalletSelectionSection from "@/components/WalletSelectionSection";
-import MultisigWalletSection from "@/components/MultisigWalletSection";
-import CompletionBanner from "@/components/CompletionBanner";
-import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-
-// Define constants for background configuration
-const BACKGROUND_OPACITY = 0.35; // Opacity value for background image
-const FALLBACK_BG_COLOR = "rgba(59, 76, 222, 0.05)"; // Fallback background color
-
-// Step definitions for clarity - no magic numbers
-const STEP = {
-  DONOR_WALLET: 1,
-  MULTISIG_WALLET: 2,
-  BENEFICIARY_SETUP: 3
-};
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import CompletionBanner from "@/components/CompletionBanner";
+import Background from "@/components/DigitalWill/Background";
+import LandingPage from "@/components/DigitalWill/LandingPage";
+import ContentContainer from "@/components/DigitalWill/ContentContainer";
+import FinalConfirmation from "@/components/DigitalWill/FinalConfirmation";
+import { STEP } from "@/components/DigitalWill/StepIndicator";
 
 const Index = () => {
   const { 
     address, 
-    isAuthenticated, 
     donorWallet, 
     showCompletionBanner,
     setShowCompletionBanner,
@@ -83,7 +66,7 @@ const Index = () => {
       showFinalConfirmation,
       visibleSection
     });
-  }, [currentStep]);
+  }, [currentStep, donorWallet, isMultisigCreated, beneficiaryWallet, showFinalConfirmation, visibleSection]);
   
   // Function to handle final submission
   const handleFinalSubmission = () => {
@@ -111,256 +94,44 @@ const Index = () => {
   };
   
   return (
-    <div className="min-h-screen flex flex-col relative">
-      {/* Background image */}
-      <div 
-        className="fixed inset-0 z-0 bg-center bg-cover bg-no-repeat"
-        style={{
-          backgroundImage: `url('/images/background.png')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: BACKGROUND_OPACITY,
-          backgroundColor: FALLBACK_BG_COLOR,
-        }}
-      />
+    <Background>
+      <Header />
       
-      {/* Content container */}
-      <div className="relative z-10 flex flex-col flex-1">
-        <Header />
-        
-        {/* Completion Banner */}
-        {showCompletionBanner && (
-          <CompletionBanner />
-        )}
-        
-        {/* If not connected to wallet, show landing page */}
-        {!address && !showCompletionBanner && (
-          <>
-            <Hero />
-            <Features />
-            <div className="text-center py-10">
-              <p className="text-gray-600 mb-4">Are you a beneficiary looking to recover assets?</p>
-              <Link 
-                to="/asset-recovery" 
-                className="text-digitalwill-primary hover:text-digitalwill-primary/80 underline"
-              >
-                Go to Asset Recovery
-              </Link>
-            </div>
-          </>
-        )}
-        
-        {/* If connected to wallet and not showing completion banner, show the appropriate section based on state */}
-        {address && !showCompletionBanner && !showFinalConfirmation && (
-          <div className="flex-1 py-12 px-6">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold text-center mb-8">
-                Digital Will Creation
-              </h2>
-              
-              {/* Overall Progress Bar */}
-              <div className="mb-6 max-w-md mx-auto">
-                <Progress value={progressPercentage} className="h-2" />
-                <div className="flex justify-between mt-1 text-xs text-gray-500">
-                  <span>Start</span>
-                  <span>Complete</span>
-                </div>
-              </div>
-              
-              <div className="space-y-8">
-                {/* Process Timeline with clearer visual indicators */}
-                <div className="flex justify-between items-center mb-12">
-                  {/* Step 1: Donor Wallet */}
-                  <div className={`flex flex-col items-center ${
-                    donorWallet ? 'text-green-500' : 
-                    currentStep === STEP.DONOR_WALLET ? 'text-digitalwill-primary' : 
-                    'text-gray-400'
-                  }`}>
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                      donorWallet ? 'border-green-500 bg-green-50' : 
-                      currentStep === STEP.DONOR_WALLET ? 'border-digitalwill-primary bg-digitalwill-primary/5' : 
-                      'border-gray-300'
-                    }`}>
-                      {donorWallet ? (
-                        <CheckCircle2 className="h-5 w-5" />
-                      ) : currentStep === STEP.DONOR_WALLET ? (
-                        <span className="text-lg font-bold">1</span>
-                      ) : (
-                        <span className="text-lg font-bold">1</span>
-                      )}
-                    </div>
-                    <span className="text-sm mt-2">Donor Information</span>
-                  </div>
-                  
-                  {/* Progress line 1-2 */}
-                  <div className="flex-1 h-1 mx-2 bg-gray-200">
-                    <div 
-                      className={`h-full ${donorWallet ? 'bg-green-500' : 'bg-gray-200'}`} 
-                      style={{ 
-                        width: donorWallet ? '100%' : '0%', 
-                        transition: 'width 0.5s' 
-                      }}
-                    ></div>
-                  </div>
-                  
-                  {/* Step 2: Multi-Sig Wallet */}
-                  <div className={`flex flex-col items-center ${
-                    isMultisigCreated ? 'text-green-500' : 
-                    currentStep === STEP.MULTISIG_WALLET ? 'text-digitalwill-primary' : 
-                    'text-gray-400'
-                  }`}>
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                      isMultisigCreated ? 'border-green-500 bg-green-50' : 
-                      currentStep === STEP.MULTISIG_WALLET ? 'border-digitalwill-primary bg-digitalwill-primary/5' : 
-                      'border-gray-300'
-                    }`}>
-                      {isMultisigCreated ? (
-                        <CheckCircle2 className="h-5 w-5" />
-                      ) : currentStep === STEP.MULTISIG_WALLET && donorWallet ? (
-                        <span className="text-lg font-bold">2</span>
-                      ) : (
-                        <span className="text-lg font-bold text-gray-400">2</span>
-                      )}
-                    </div>
-                    <span className="text-sm mt-2">Multi-Sig Wallet</span>
-                  </div>
-                  
-                  {/* Progress line 2-3 */}
-                  <div className="flex-1 h-1 mx-2 bg-gray-200">
-                    <div 
-                      className={`h-full ${isMultisigCreated ? 'bg-green-500' : 'bg-gray-200'}`} 
-                      style={{ 
-                        width: isMultisigCreated ? '100%' : '0%', 
-                        transition: 'width 0.5s' 
-                      }}
-                    ></div>
-                  </div>
-                  
-                  {/* Step 3: Beneficiary Setup */}
-                  <div className={`flex flex-col items-center ${
-                    beneficiaryWallet ? 'text-green-500' : 
-                    currentStep === STEP.BENEFICIARY_SETUP ? 'text-digitalwill-primary' : 
-                    'text-gray-400'
-                  }`}>
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                      beneficiaryWallet ? 'border-green-500 bg-green-50' : 
-                      currentStep === STEP.BENEFICIARY_SETUP ? 'border-digitalwill-primary bg-digitalwill-primary/5' : 
-                      'border-gray-300'
-                    }`}>
-                      {beneficiaryWallet ? (
-                        <CheckCircle2 className="h-5 w-5" />
-                      ) : currentStep === STEP.BENEFICIARY_SETUP && isMultisigCreated ? (
-                        <span className="text-lg font-bold">3</span>
-                      ) : (
-                        <span className="text-lg font-bold text-gray-400">3</span>
-                      )}
-                    </div>
-                    <span className="text-sm mt-2">Beneficiary Setup</span>
-                  </div>
-                </div>
-                
-                {/* Step sections - Show sections based on visibleSection state */}
-                <div className="mt-8">
-                  {/* Step 1: Donor Wallet Selection */}
-                  {visibleSection === "donor" && (
-                    <div>
-                      <WalletSelectionSection 
-                        onComplete={handleDonorWalletComplete}
-                      />
-                    </div>
-                  )}
-                  
-                  {/* Step 2: Multi-Sig Wallet */}
-                  {visibleSection === "multisig" && (
-                    <div>
-                      <h3 className="text-xl font-semibold text-center mb-6">Create Multi-Sig Wallet</h3>
-                      <p className="text-center text-gray-600 mb-8">
-                        Set up a multi-signature wallet and configure security settings.
-                      </p>
-                      <MultisigWalletSection 
-                        onComplete={handleMultisigComplete}
-                      />
-                    </div>
-                  )}
-                  
-                  {/* Step 3: Beneficiary Setup */}
-                  {visibleSection === "beneficiary" && (
-                    <div>
-                      <h3 className="text-xl font-semibold text-center mb-6">Configure Beneficiary</h3>
-                      <p className="text-center text-gray-600 mb-8">
-                        Designate a beneficiary to receive your assets when conditions are met.
-                      </p>
-                      <MultisigWalletSection 
-                        onCompleteBeneficiary={handleBeneficiaryComplete} 
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {/* Final Confirmation Banner */}
-        {showFinalConfirmation && (
-          <div className="flex-1 py-12 px-6">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold text-center mb-8">
-                Confirm Digital Will Setup
-              </h2>
-              
-              <Alert className="bg-amber-50 border-amber-300 my-8">
-                <AlertTriangle className="h-5 w-5 text-amber-600" />
-                <AlertTitle className="text-amber-800 text-lg">Important Notice</AlertTitle>
-                <AlertDescription className="text-amber-700">
-                  <p className="mb-4">You are about to finalize your Digital Will setup. After submission, this information cannot be changed or modified.</p>
-                  <p>Please carefully review all your information before proceeding.</p>
-                </AlertDescription>
-              </Alert>
-              
-              <div className="space-y-6 border rounded-lg p-6 bg-white shadow-sm">
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Donor Information</h3>
-                  <p className="text-sm text-gray-600">
-                    Your donor wallet and identification information has been verified.
-                  </p>
-                </div>
-                
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Multi-Signature Wallet</h3>
-                  <p className="text-sm text-gray-600">
-                    Multi-signature wallet has been created and configured successfully.
-                  </p>
-                </div>
-                
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Beneficiary Setup</h3>
-                  <p className="text-sm text-gray-600">
-                    Beneficiary wallet address has been registered and will be notified when conditions are met.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="mt-8 flex justify-center space-x-4">
-                <Button 
-                  variant="outline"
-                  onClick={() => setShowFinalConfirmation(false)}
-                >
-                  Make Changes
-                </Button>
-                <Button 
-                  onClick={handleFinalSubmission}
-                >
-                  Submit & Complete Setup
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        <Footer />
-      </div>
-    </div>
+      {/* Completion Banner */}
+      {showCompletionBanner && (
+        <CompletionBanner />
+      )}
+      
+      {/* If not connected to wallet, show landing page */}
+      {!address && !showCompletionBanner && (
+        <LandingPage />
+      )}
+      
+      {/* If connected to wallet and not showing completion banner, show the appropriate section based on state */}
+      {address && !showCompletionBanner && !showFinalConfirmation && (
+        <ContentContainer 
+          currentStep={currentStep}
+          progressPercentage={progressPercentage}
+          donorWallet={donorWallet}
+          isMultisigCreated={isMultisigCreated}
+          beneficiaryWallet={beneficiaryWallet}
+          visibleSection={visibleSection}
+          handleDonorWalletComplete={handleDonorWalletComplete}
+          handleMultisigComplete={handleMultisigComplete}
+          handleBeneficiaryComplete={handleBeneficiaryComplete}
+        />
+      )}
+      
+      {/* Final Confirmation Banner */}
+      {showFinalConfirmation && (
+        <FinalConfirmation 
+          onMakeChanges={() => setShowFinalConfirmation(false)}
+          onSubmit={handleFinalSubmission}
+        />
+      )}
+      
+      <Footer />
+    </Background>
   );
 };
 
