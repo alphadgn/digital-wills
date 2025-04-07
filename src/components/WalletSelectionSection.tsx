@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
@@ -37,6 +36,10 @@ const mockWallets = [
     name: "Beneficiary"
   }
 ];
+
+interface WalletSelectionSectionProps {
+  onComplete?: () => void;
+}
 
 const SummaryConfirmationDialog = ({ 
   open, 
@@ -109,7 +112,7 @@ const SummaryConfirmationDialog = ({
   );
 };
 
-const WalletSelectionSection = () => {
+const WalletSelectionSection: React.FC<WalletSelectionSectionProps> = ({ onComplete }) => {
   const { 
     isAuthenticated, 
     authenticateWallet, 
@@ -142,9 +145,10 @@ const WalletSelectionSection = () => {
       isMultisigCreated,
       beneficiaryWallet: !!beneficiaryWallet,
       hasBeneficiaryWallet: !!beneficiaryWallet,
-      step: isMultisigCreated ? (beneficiaryWallet ? "complete" : "beneficiary setup") : "multisig setup"
+      step: isMultisigCreated ? (beneficiaryWallet ? "complete" : "beneficiary setup") : "multisig setup",
+      donorWallet: !!donorWallet
     });
-  }, [isMultisigCreated, beneficiaryWallet]);
+  }, [isMultisigCreated, beneficiaryWallet, donorWallet]);
 
   useEffect(() => {
     if (ssnProvided && donorSSN && !communicationPreference.method && pendingWallet) {
@@ -226,6 +230,12 @@ const WalletSelectionSection = () => {
   const handleSummaryConfirm = () => {
     setShowSummaryDialog(false);
     setSteps(prev => ({...prev, finalConfirmation: true}));
+    
+    if (onComplete && donorWallet) {
+      setTimeout(() => {
+        onComplete();
+      }, 500);
+    }
   };
 
   const retryAuthentication = async (walletAddress: string, walletId: string, walletName: string) => {
@@ -238,7 +248,6 @@ const WalletSelectionSection = () => {
     return donorWallet !== null && selectedWalletId !== walletId;
   };
 
-  // Determine current step logic
   const determineCurrentStep = () => {
     if (!donorWallet) return "wallet1"; // Main Wallet
     if (!isMultisigCreated) return "wallet2"; // Multi Sig
@@ -250,7 +259,6 @@ const WalletSelectionSection = () => {
 
   return (
     <>
-      {/* Progress tracking UI */}
       <div className="mb-8 max-w-md mx-auto">
         <div className="space-y-4">
           <div className={`flex items-center p-3 border rounded-lg ${
@@ -438,14 +446,12 @@ const WalletSelectionSection = () => {
               const isSelected = selectedWalletId === wallet.id;
               const isAuthenticated = donorWallet === wallet.address;
               
-              // Determine if wallet should be highlighted as the current step
               const isCurrentStep = currentStep === wallet.id;
               
               let isDisabled = false;
               let highlightColor = ""; 
               let activeStatus = "";
               
-              // Main Wallet logic
               if (wallet.id === "wallet1") {
                 isDisabled = isWalletDisabled(wallet.id);
                 if (currentStep === "wallet1") {
@@ -458,7 +464,6 @@ const WalletSelectionSection = () => {
                   highlightColor = "border-gray-300 bg-gray-50";
                 }
               } 
-              // Multi Sig logic
               else if (wallet.id === "wallet2") {
                 isDisabled = !donorWallet || isWalletDisabled(wallet.id);
                 if (currentStep === "wallet2") {
@@ -471,7 +476,6 @@ const WalletSelectionSection = () => {
                   highlightColor = "border-gray-300 bg-gray-50";
                 }
               } 
-              // Beneficiary logic
               else if (wallet.id === "wallet3") {
                 isDisabled = !isMultisigCreated || isWalletDisabled(wallet.id);
                 if (currentStep === "wallet3") {

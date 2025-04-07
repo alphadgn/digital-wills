@@ -24,10 +24,12 @@ import {
 
 interface MultisigWalletSectionProps {
   onCompleteBeneficiary?: () => void;
+  onComplete?: () => void;
 }
 
 const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({ 
-  onCompleteBeneficiary 
+  onCompleteBeneficiary,
+  onComplete
 }) => {
   const { 
     createMultisigWallet, 
@@ -71,8 +73,10 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
       setShowBeneficiaryConfirmation(true);
       toast.success("Beneficiary wallet address has been saved");
       
-      if (beneficiaryWallet && onCompleteBeneficiary) {
-        onCompleteBeneficiary();
+      if (onComplete) {
+        setTimeout(() => {
+          onComplete();
+        }, 1000);
       }
     }
   };
@@ -102,8 +106,6 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
       toast.success("Digital Will setup completed successfully!");
     }
   };
-
-  const isMultisigDisabled = !!(communicationPreference.method && communicationPreference.value);
 
   return (
     <>
@@ -324,8 +326,6 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
                   placeholder="0x..."
                   value={beneficiaryAddress}
                   onChange={(e) => setBeneficiaryAddress(e.target.value)}
-                  className={isMultisigDisabled ? "bg-gray-100" : ""}
-                  disabled={isMultisigDisabled}
                 />
                 <p className="text-xs text-gray-500">
                   Enter the wallet address that will receive the assets when beneficiary initiates a claim request
@@ -338,17 +338,6 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
                   The beneficiary will gain access only under conditions specified in your digital will
                 </p>
               </div>
-
-              {isMultisigDisabled && (
-                <Alert className="bg-gray-100 border-gray-300">
-                  <AlertCircle className="h-4 w-4 text-gray-500" />
-                  <AlertTitle className="text-gray-700">Communication Preferences Already Set</AlertTitle>
-                  <AlertDescription className="text-gray-600">
-                    You've already set communication preferences for this donor wallet.
-                    Please continue with the current setup or start over if you need to make changes.
-                  </AlertDescription>
-                </Alert>
-              )}
             </>
           )}
         </CardContent>
@@ -358,7 +347,7 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
             <Button
               className="w-full"
               onClick={handleCreateMultisig}
-              disabled={isCreating || isMultisigDisabled}
+              disabled={isCreating}
             >
               {isCreating ? "Creating Multi Sig Wallet..." : "Create Multi Sig Wallet"}
             </Button>

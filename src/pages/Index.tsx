@@ -41,6 +41,9 @@ const Index = () => {
   // State for final submission confirmation
   const [showFinalConfirmation, setShowFinalConfirmation] = React.useState(false);
   
+  // Track the visibility of each section (improved step flow control)
+  const [visibleSection, setVisibleSection] = React.useState<string | null>(null);
+  
   // Determine the current active step based on state
   const currentStep = React.useMemo(() => {
     if (!donorWallet) return STEP.DONOR_WALLET;
@@ -56,21 +59,54 @@ const Index = () => {
     return 0;
   }, [donorWallet, isMultisigCreated, beneficiaryWallet]);
 
-  // Log the current step for debugging
+  // Update visible section whenever the current step changes
   React.useEffect(() => {
+    switch (currentStep) {
+      case STEP.DONOR_WALLET:
+        setVisibleSection("donor");
+        break;
+      case STEP.MULTISIG_WALLET:
+        setVisibleSection("multisig");
+        break;
+      case STEP.BENEFICIARY_SETUP:
+        setVisibleSection("beneficiary");
+        break;
+      default:
+        setVisibleSection("donor");
+    }
+    
     console.log("🔄 Current Step:", currentStep, {
       donorWallet: !!donorWallet,
       isMultisigCreated,
       beneficiaryWallet: !!beneficiaryWallet,
-      showFinalConfirmation
+      showFinalConfirmation,
+      visibleSection
     });
-  }, [currentStep, donorWallet, isMultisigCreated, beneficiaryWallet, showFinalConfirmation]);
+  }, [currentStep, donorWallet, isMultisigCreated, beneficiaryWallet]);
   
   // Function to handle final submission
   const handleFinalSubmission = () => {
     setShowCompletionBanner(true);
     setShowFinalConfirmation(false);
     toast.success("Digital Will setup completed successfully!");
+  };
+
+  // Function to move to the next step after completing donor wallet setup
+  const handleDonorWalletComplete = () => {
+    setVisibleSection("multisig");
+    console.log("Moving to multisig section after donor wallet completion");
+  };
+
+  // Function to move to the next step after completing multisig setup
+  const handleMultisigComplete = () => {
+    setVisibleSection("beneficiary");
+    console.log("Moving to beneficiary section after multisig completion");
+  };
+
+  // Function to show final confirmation after completing beneficiary setup
+  const handleBeneficiaryComplete = () => {
+    setShowFinalConfirmation(true);
+    console.log("Showing final confirmation after beneficiary completion");
   };
   
   return (
@@ -222,35 +258,39 @@ const Index = () => {
                   </div>
                 </div>
                 
-                {/* Step sections - Only show the current active step component */}
+                {/* Step sections - Show sections based on visibleSection state */}
                 <div className="mt-8">
-                  {/* Step 1: Donor Wallet Selection - Only show if current step is donor wallet */}
-                  {currentStep === STEP.DONOR_WALLET && (
+                  {/* Step 1: Donor Wallet Selection */}
+                  {(visibleSection === "donor" || !visibleSection) && (
                     <div>
-                      <WalletSelectionSection />
+                      <WalletSelectionSection 
+                        onComplete={handleDonorWalletComplete}
+                      />
                     </div>
                   )}
                   
-                  {/* Step 2: Multi-Sig Wallet - Only show if current step is multisig wallet */}
-                  {currentStep === STEP.MULTISIG_WALLET && (
+                  {/* Step 2: Multi-Sig Wallet */}
+                  {visibleSection === "multisig" && (
                     <div>
                       <h3 className="text-xl font-semibold text-center mb-6">Create Multi-Sig Wallet</h3>
                       <p className="text-center text-gray-600 mb-8">
                         Set up a multi-signature wallet and configure security settings.
                       </p>
-                      <MultisigWalletSection />
+                      <MultisigWalletSection 
+                        onComplete={handleMultisigComplete}
+                      />
                     </div>
                   )}
                   
-                  {/* Step 3: Beneficiary Setup - Only show if current step is beneficiary setup */}
-                  {currentStep === STEP.BENEFICIARY_SETUP && (
+                  {/* Step 3: Beneficiary Setup */}
+                  {visibleSection === "beneficiary" && (
                     <div>
                       <h3 className="text-xl font-semibold text-center mb-6">Configure Beneficiary</h3>
                       <p className="text-center text-gray-600 mb-8">
                         Designate a beneficiary to receive your assets when conditions are met.
                       </p>
                       <MultisigWalletSection 
-                        onCompleteBeneficiary={() => setShowFinalConfirmation(true)} 
+                        onCompleteBeneficiary={handleBeneficiaryComplete} 
                       />
                     </div>
                   )}
