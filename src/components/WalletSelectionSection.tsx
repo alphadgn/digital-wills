@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
@@ -442,12 +443,19 @@ const WalletSelectionSection = () => {
               
               let isDisabled = false;
               let highlightColor = ""; 
+              let activeStatus = "";
               
               // Main Wallet logic
               if (wallet.id === "wallet1") {
                 isDisabled = isWalletDisabled(wallet.id);
                 if (currentStep === "wallet1") {
                   highlightColor = "border-digitalwill-primary bg-digitalwill-primary/5";
+                  activeStatus = "Current Step";
+                } else if (donorWallet) {
+                  highlightColor = "border-green-500 bg-green-50";
+                  activeStatus = "Completed";
+                } else {
+                  highlightColor = "border-gray-300 bg-gray-50";
                 }
               } 
               // Multi Sig logic
@@ -455,6 +463,12 @@ const WalletSelectionSection = () => {
                 isDisabled = !donorWallet || isWalletDisabled(wallet.id);
                 if (currentStep === "wallet2") {
                   highlightColor = "border-digitalwill-primary bg-digitalwill-primary/5";
+                  activeStatus = "Current Step";
+                } else if (isMultisigCreated) {
+                  highlightColor = "border-green-500 bg-green-50";
+                  activeStatus = "Completed";
+                } else {
+                  highlightColor = "border-gray-300 bg-gray-50";
                 }
               } 
               // Beneficiary logic
@@ -462,29 +476,35 @@ const WalletSelectionSection = () => {
                 isDisabled = !isMultisigCreated || isWalletDisabled(wallet.id);
                 if (currentStep === "wallet3") {
                   highlightColor = "border-digitalwill-primary bg-digitalwill-primary/5";
+                  activeStatus = "Current Step";
+                } else if (beneficiaryWallet) {
+                  highlightColor = "border-green-500 bg-green-50";
+                  activeStatus = "Completed";
+                } else {
+                  highlightColor = "border-gray-300 bg-gray-50";
                 }
               }
-              
-              console.log(`🔍 Wallet ${wallet.name} - disabled: ${isDisabled}, highlight: ${highlightColor}, currentStep: ${currentStep}`);
               
               return (
                 <div 
                   key={wallet.id} 
-                  className={`p-4 border rounded-lg transition-colors ${
-                    isAuthenticated && wallet.address === donorWallet
-                      ? "border-green-500 bg-green-50"
-                      : isSelected && !isAuthenticated
-                        ? "border-digitalwill-primary bg-digitalwill-primary/5" 
-                        : highlightColor || (isDisabled
-                           ? "bg-gray-100 border-gray-200 opacity-60"
-                           : (failedWalletId === wallet.id && authFailed)
-                             ? "border-red-300 bg-red-50"
-                             : "hover:bg-gray-50")
-                  }`}
+                  className={`p-4 border rounded-lg transition-colors ${highlightColor}`}
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-medium">{wallet.name}</h3>
+                      <div className="flex items-center">
+                        <h3 className="font-medium">{wallet.name}</h3>
+                        {isCurrentStep && (
+                          <span className="ml-2 text-xs px-2 py-1 bg-digitalwill-primary/10 text-digitalwill-primary rounded-full">
+                            Active
+                          </span>
+                        )}
+                        {!isCurrentStep && activeStatus === "Completed" && (
+                          <span className="ml-2 text-xs px-2 py-1 bg-green-100 text-green-600 rounded-full">
+                            Completed
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-500 font-mono mt-1">
                         {wallet.address.substring(0, 8)}...{wallet.address.substring(wallet.address.length - 6)}
                       </p>
@@ -518,7 +538,7 @@ const WalletSelectionSection = () => {
                       <Button
                         variant={isSelected ? "default" : "outline"}
                         size="sm"
-                        disabled={isAuthenticating || isDisabled}
+                        disabled={isAuthenticating || isDisabled || (!isCurrentStep && !isAuthenticated)}
                         onClick={() => handleWalletSelect(wallet.address, wallet.id, wallet.name)}
                         className={isSelected ? "" : ""}
                       >
@@ -529,14 +549,25 @@ const WalletSelectionSection = () => {
                           </>
                         ) : isAuthenticating && pendingWallet?.id === wallet.id ? (
                           "Authenticating..."
-                        ) : isDisabled ? (
-                          "Not Available"
+                        ) : isDisabled || (!isCurrentStep && !isAuthenticated) ? (
+                          isCurrentStep ? "Select & Authenticate" : "Not Available"
                         ) : (
                           "Select & Authenticate"
                         )}
                       </Button>
                     )}
                   </div>
+                  
+                  {!isCurrentStep && !isAuthenticated && (
+                    <div className="mt-2 text-xs text-gray-500">
+                      {wallet.id === "wallet2" && !donorWallet && (
+                        "Complete Main Wallet setup first"
+                      )}
+                      {wallet.id === "wallet3" && !isMultisigCreated && (
+                        "Complete Multi-Sig setup first"
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}

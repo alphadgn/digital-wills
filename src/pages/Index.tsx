@@ -14,6 +14,7 @@ import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 
 // Define constants for background configuration
 const BACKGROUND_OPACITY = 0.35; // Opacity value for background image
@@ -46,6 +47,14 @@ const Index = () => {
     if (!isMultisigCreated) return STEP.MULTISIG_WALLET;
     return STEP.BENEFICIARY_SETUP;
   }, [donorWallet, isMultisigCreated]);
+
+  // Calculate progress percentage
+  const progressPercentage = React.useMemo(() => {
+    if (beneficiaryWallet) return 100;
+    if (isMultisigCreated) return 66;
+    if (donorWallet) return 33;
+    return 0;
+  }, [donorWallet, isMultisigCreated, beneficiaryWallet]);
 
   // Log the current step for debugging
   React.useEffect(() => {
@@ -108,9 +117,18 @@ const Index = () => {
         {address && !showCompletionBanner && !showFinalConfirmation && (
           <div className="flex-1 py-12 px-6">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold text-center mb-12">
+              <h2 className="text-3xl font-bold text-center mb-8">
                 Digital Will Creation
               </h2>
+              
+              {/* Overall Progress Bar */}
+              <div className="mb-6 max-w-md mx-auto">
+                <Progress value={progressPercentage} className="h-2" />
+                <div className="flex justify-between mt-1 text-xs text-gray-500">
+                  <span>Start</span>
+                  <span>Complete</span>
+                </div>
+              </div>
               
               <div className="space-y-8">
                 {/* Process Timeline with clearer visual indicators */}
