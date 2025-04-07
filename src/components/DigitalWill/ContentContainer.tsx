@@ -47,6 +47,18 @@ const ContentContainer: React.FC<ContentContainerProps> = ({
     });
   }, [visibleSection, currentStep, donorWallet, isMultisigCreated, beneficiaryWallet]);
 
+  // CRITICAL: Ensure visibleSection is always valid
+  const effectiveVisibleSection = visibleSection || "donor";
+
+  // Log when callback handlers are triggered
+  useEffect(() => {
+    console.log("ContentContainer callback handlers:", {
+      handleDonorWalletComplete: !!handleDonorWalletComplete,
+      handleMultisigComplete: !!handleMultisigComplete,
+      handleBeneficiaryComplete: !!handleBeneficiaryComplete
+    });
+  }, [handleDonorWalletComplete, handleMultisigComplete, handleBeneficiaryComplete]);
+
   return (
     <div className="flex-1 py-12 px-6">
       <div className="max-w-4xl mx-auto">
@@ -72,19 +84,23 @@ const ContentContainer: React.FC<ContentContainerProps> = ({
           {/* Step sections - Show sections based on visibleSection state */}
           <div className="mt-8">
             {/* Step 1: Donor Wallet Selection */}
-            {visibleSection === "donor" && (
+            {effectiveVisibleSection === "donor" && (
               <div>
                 <WalletSelectionSection 
                   onComplete={() => {
-                    console.log("WalletSelectionSection onComplete triggered - proceeding to multisig");
-                    handleDonorWalletComplete();
+                    console.log("WalletSelectionSection onComplete TRIGGERED - proceeding to multisig");
+                    if (handleDonorWalletComplete) {
+                      handleDonorWalletComplete();
+                    } else {
+                      console.error("handleDonorWalletComplete is undefined!");
+                    }
                   }}
                 />
               </div>
             )}
             
             {/* Step 2: Multi-Sig Wallet */}
-            {visibleSection === "multisig" && (
+            {effectiveVisibleSection === "multisig" && (
               <div>
                 <h3 className="text-xl font-semibold text-center mb-6">Create Multi-Sig Wallet</h3>
                 <p className="text-center text-gray-600 mb-8">
@@ -92,15 +108,19 @@ const ContentContainer: React.FC<ContentContainerProps> = ({
                 </p>
                 <MultisigWalletSection 
                   onComplete={() => {
-                    console.log("MultisigWalletSection onComplete triggered - proceeding to beneficiary");
-                    handleMultisigComplete();
+                    console.log("MultisigWalletSection onComplete TRIGGERED - proceeding to beneficiary");
+                    if (handleMultisigComplete) {
+                      handleMultisigComplete();
+                    } else {
+                      console.error("handleMultisigComplete is undefined!");
+                    }
                   }}
                 />
               </div>
             )}
             
             {/* Step 3: Beneficiary Setup */}
-            {visibleSection === "beneficiary" && (
+            {effectiveVisibleSection === "beneficiary" && (
               <div>
                 <h3 className="text-xl font-semibold text-center mb-6">Configure Beneficiary</h3>
                 <p className="text-center text-gray-600 mb-8">
@@ -108,15 +128,19 @@ const ContentContainer: React.FC<ContentContainerProps> = ({
                 </p>
                 <MultisigWalletSection 
                   onCompleteBeneficiary={() => {
-                    console.log("MultisigWalletSection onCompleteBeneficiary triggered - proceeding to final step");
-                    handleBeneficiaryComplete();
+                    console.log("MultisigWalletSection onCompleteBeneficiary TRIGGERED - proceeding to final step");
+                    if (handleBeneficiaryComplete) {
+                      handleBeneficiaryComplete();
+                    } else {
+                      console.error("handleBeneficiaryComplete is undefined!");
+                    }
                   }} 
                 />
               </div>
             )}
 
-            {/* Loading indicator if no section is visible */}
-            {!visibleSection && (
+            {/* Loading indicator if no section is visible (shouldn't happen with our fixes) */}
+            {!effectiveVisibleSection && (
               <div className="flex justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-digitalwill-primary" />
               </div>

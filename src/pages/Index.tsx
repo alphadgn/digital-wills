@@ -24,8 +24,8 @@ const Index = () => {
   // State for final submission confirmation
   const [showFinalConfirmation, setShowFinalConfirmation] = React.useState(false);
   
-  // IMPORTANT: Always start with "donor" as the visible section to ensure flow begins properly
-  const [visibleSection, setVisibleSection] = React.useState<string>("donor");
+  // ALWAYS start with "donor" as the visible section, never null or undefined
+  const [visibleSection, setVisibleSection] = React.useState("donor");
   
   // Determine the current active step based on state
   const currentStep = React.useMemo(() => {
@@ -62,19 +62,19 @@ const Index = () => {
 
   // Function to move to the next step after completing donor wallet setup
   const handleDonorWalletComplete = () => {
-    console.log("Donor wallet setup complete - moving to multisig section");
+    console.log("Donor wallet setup complete - MANUALLY TRIGGERING navigation to multisig section");
     setVisibleSection("multisig");
   };
 
   // Function to move to the next step after completing multisig setup
   const handleMultisigComplete = () => {
-    console.log("Multisig wallet setup complete - moving to beneficiary section");
+    console.log("Multisig wallet setup complete - MANUALLY TRIGGERING navigation to beneficiary section");
     setVisibleSection("beneficiary");
   };
 
   // Function to show final confirmation after completing beneficiary setup
   const handleBeneficiaryComplete = () => {
-    console.log("Beneficiary setup complete - showing final confirmation");
+    console.log("Beneficiary setup complete - MANUALLY TRIGGERING final confirmation display");
     setShowFinalConfirmation(true);
   };
   
