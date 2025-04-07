@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
@@ -53,9 +54,11 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
       isMultisigCreated,
       beneficiaryWallet: !!beneficiaryWallet,
       hasBeneficiaryAddress: !!beneficiaryAddress,
-      step: isMultisigCreated ? (beneficiaryWallet ? "complete" : "beneficiary setup") : "multisig setup"
+      step: isMultisigCreated ? (beneficiaryWallet ? "complete" : "beneficiary setup") : "multisig setup",
+      onComplete: !!onComplete,
+      onCompleteBeneficiary: !!onCompleteBeneficiary
     });
-  }, [isMultisigCreated, beneficiaryWallet, beneficiaryAddress]);
+  }, [isMultisigCreated, beneficiaryWallet, beneficiaryAddress, onComplete, onCompleteBeneficiary]);
 
   const handleCreateMultisig = async () => {
     if (!beneficiaryAddress || !beneficiaryAddress.startsWith("0x") || beneficiaryAddress.length !== 42) {
@@ -73,10 +76,15 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
       setShowBeneficiaryConfirmation(true);
       toast.success("Beneficiary wallet address has been saved");
       
+      // Call onComplete callback after a short delay to allow for UI updates
       if (onComplete) {
+        console.log("Will trigger onComplete callback to move to next section!");
         setTimeout(() => {
+          console.log("Triggering MultisigWalletSection onComplete callback now!");
           onComplete();
-        }, 1000);
+        }, 200);
+      } else {
+        console.warn("No onComplete callback provided to MultisigWalletSection");
       }
     }
   };
@@ -100,7 +108,11 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
   const handleFinalConfirmation = () => {
     setShowFinalConfirmationDialog(false);
     if (onCompleteBeneficiary) {
-      onCompleteBeneficiary();
+      console.log("Will trigger onCompleteBeneficiary callback!");
+      setTimeout(() => {
+        console.log("Triggering onCompleteBeneficiary callback now!");
+        onCompleteBeneficiary();
+      }, 200);
     } else {
       setShowCompletionBanner(true);
       toast.success("Digital Will setup completed successfully!");

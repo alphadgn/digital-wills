@@ -42,7 +42,7 @@ const Index = () => {
   const [showFinalConfirmation, setShowFinalConfirmation] = React.useState(false);
   
   // Track the visibility of each section (improved step flow control)
-  const [visibleSection, setVisibleSection] = React.useState<string | null>(null);
+  const [visibleSection, setVisibleSection] = React.useState<string | null>("donor");
   
   // Determine the current active step based on state
   const currentStep = React.useMemo(() => {
@@ -61,6 +61,7 @@ const Index = () => {
 
   // Update visible section whenever the current step changes
   React.useEffect(() => {
+    // Automatically set visible section based on current step
     switch (currentStep) {
       case STEP.DONOR_WALLET:
         setVisibleSection("donor");
@@ -82,7 +83,7 @@ const Index = () => {
       showFinalConfirmation,
       visibleSection
     });
-  }, [currentStep, donorWallet, isMultisigCreated, beneficiaryWallet]);
+  }, [currentStep]);
   
   // Function to handle final submission
   const handleFinalSubmission = () => {
@@ -93,20 +94,20 @@ const Index = () => {
 
   // Function to move to the next step after completing donor wallet setup
   const handleDonorWalletComplete = () => {
-    setVisibleSection("multisig");
     console.log("Moving to multisig section after donor wallet completion");
+    setVisibleSection("multisig");
   };
 
   // Function to move to the next step after completing multisig setup
   const handleMultisigComplete = () => {
-    setVisibleSection("beneficiary");
     console.log("Moving to beneficiary section after multisig completion");
+    setVisibleSection("beneficiary");
   };
 
   // Function to show final confirmation after completing beneficiary setup
   const handleBeneficiaryComplete = () => {
-    setShowFinalConfirmation(true);
     console.log("Showing final confirmation after beneficiary completion");
+    setShowFinalConfirmation(true);
   };
   
   return (
@@ -261,7 +262,7 @@ const Index = () => {
                 {/* Step sections - Show sections based on visibleSection state */}
                 <div className="mt-8">
                   {/* Step 1: Donor Wallet Selection */}
-                  {(visibleSection === "donor" || !visibleSection) && (
+                  {visibleSection === "donor" && (
                     <div>
                       <WalletSelectionSection 
                         onComplete={handleDonorWalletComplete}

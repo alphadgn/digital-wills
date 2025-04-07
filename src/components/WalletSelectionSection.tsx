@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
@@ -231,10 +232,15 @@ const WalletSelectionSection: React.FC<WalletSelectionSectionProps> = ({ onCompl
     setShowSummaryDialog(false);
     setSteps(prev => ({...prev, finalConfirmation: true}));
     
-    if (onComplete && donorWallet) {
+    // Important fix: Ensure we call onComplete after a short delay to allow state to update
+    if (onComplete) {
+      console.log("Will trigger onComplete callback to move to multisig section!");
       setTimeout(() => {
+        console.log("Triggering onComplete callback now!");
         onComplete();
-      }, 500);
+      }, 200);
+    } else {
+      console.warn("No onComplete callback provided to WalletSelectionSection");
     }
   };
 
