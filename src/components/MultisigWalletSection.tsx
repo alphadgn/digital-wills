@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "sonner";
-import { Wallet, CheckCircle2, ShieldCheck, ArrowLeft, ArrowRight } from "lucide-react";
+import { Wallet, CheckCircle2, ShieldCheck, ArrowLeft, ArrowRight, AlertTriangle } from "lucide-react";
 import TermsAndConditions from "@/components/TermsAndConditions";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -101,6 +101,15 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-md mb-4">
+            <p className="text-xs text-amber-800 flex items-start gap-1">
+              <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <span>
+                <strong>Important Security Notice:</strong> The multisig vault wallet will be created to securely store your digital assets. Please ensure you save all wallet details when provided.
+              </span>
+            </p>
+          </div>
+
           <Form {...form}>
             <form className="space-y-4">
               <FormField
