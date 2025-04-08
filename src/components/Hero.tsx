@@ -46,7 +46,7 @@ const Hero = () => {
             size="lg" 
             onClick={handleConnectWallet}
             disabled={isConnecting || !hasConsented || showWalletAnimation}
-            className={`${hasConsented ? 'bg-digitalwill-primary hover:bg-digitalwill-primary/90' : 'bg-gray-400 cursor-not-allowed'}`}
+            className={`${hasConsented ? 'bg-digitalwill-primary hover:bg-digitalwill-primary/90' : 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed'}`}
           >
             {showWalletAnimation ? (
               <span className="flex items-center gap-2">
