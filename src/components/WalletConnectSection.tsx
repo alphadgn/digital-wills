@@ -80,8 +80,6 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
     setTermsAccepted(true);
     setShowTerms(false);
     // Proceed with wallet connection
-    connectWallet();
-    // Scroll to top of page
     window.scrollTo(0, 0);
   };
   

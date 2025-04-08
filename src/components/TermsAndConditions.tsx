@@ -41,9 +41,9 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
     }
   }, [open]);
 
-  // Define the percentage of viewport height to use as scroll threshold
+  // Define an explicit threshold value to determine when we're close to the bottom
   // Using a named constant to avoid magic numbers
-  const SCROLL_BOTTOM_THRESHOLD_PERCENT = 5;
+  const SCROLL_BOTTOM_THRESHOLD = 0.9; // 90% visibility
   
   // Use Intersection Observer to detect when user scrolls to the bottom
   useEffect(() => {
@@ -54,7 +54,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
     const options = {
       root: scrollAreaRef.current,
       rootMargin: "0px",
-      threshold: 0.8 // Detect when 80% of the end marker is visible
+      threshold: SCROLL_BOTTOM_THRESHOLD
     };
     
     const observer = new IntersectionObserver((entries) => {
@@ -101,6 +101,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
       // Add a small delay to ensure content is rendered
       const timer = setTimeout(checkContentHeight, 250);
       
+      // Also check on window resize
       window.addEventListener('resize', checkContentHeight);
       return () => {
         clearTimeout(timer);
