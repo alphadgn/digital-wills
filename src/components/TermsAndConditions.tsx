@@ -1,5 +1,4 @@
-
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Dialog, 
@@ -28,6 +27,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
   const [hasScrolledToBottom, setHasScrolledToBottom] = React.useState(false);
   const [acceptedTerms, setAcceptedTerms] = React.useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const scrollContentRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   
   // Reset scroll state when dialog opens
@@ -36,22 +36,28 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
       setHasScrolledToBottom(false);
       setAcceptedTerms(false);
       console.log("🔄 Terms dialog opened, reset states");
+      
+      // Add a small delay to check content after rendering
+      setTimeout(checkContentHeight, 100);
     }
   }, [open]);
   
-  // Define scroll threshold as a constant rather than magic number
-  const SCROLL_BOTTOM_THRESHOLD_PX = 30;
+  // Define scroll threshold as a percentage of viewport height
+  const SCROLL_BOTTOM_THRESHOLD_PERCENT = 5;
   
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const element = e.currentTarget;
     
+    // Calculate the threshold in pixels based on percentage of viewport height
+    const thresholdPixels = (element.clientHeight * SCROLL_BOTTOM_THRESHOLD_PERCENT) / 100;
+    
     // Calculate how close we are to the bottom
     const distanceToBottom = element.scrollHeight - element.clientHeight - element.scrollTop;
     
-    console.log(`📜 Scroll metrics - Distance to bottom: ${distanceToBottom.toFixed(2)}px`);
+    console.log(`📜 Scroll metrics - Distance to bottom: ${distanceToBottom.toFixed(2)}px, Threshold: ${thresholdPixels.toFixed(2)}px`);
     
     // Check if we're close enough to the bottom based on threshold
-    const isNearBottom = distanceToBottom <= SCROLL_BOTTOM_THRESHOLD_PX;
+    const isNearBottom = distanceToBottom <= thresholdPixels;
     
     if (isNearBottom && !hasScrolledToBottom) {
       console.log("🎯 Bottom threshold reached! Enabling checkbox");
@@ -60,18 +66,31 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
   };
   
   // Check if content requires scrolling at all
-  useEffect(() => {
-    if (open && scrollAreaRef.current) {
+  const checkContentHeight = () => {
+    if (scrollAreaRef.current) {
       const element = scrollAreaRef.current;
-      const contentFitsViewport = element.scrollHeight <= element.clientHeight;
+      const contentHeight = element.scrollHeight;
+      const viewportHeight = element.clientHeight;
+      const contentFitsViewport = contentHeight <= viewportHeight;
       
-      console.log(`📏 Content metrics - ScrollHeight: ${element.scrollHeight}, ClientHeight: ${element.clientHeight}`);
+      console.log(`📏 Content metrics - ScrollHeight: ${contentHeight}, ClientHeight: ${viewportHeight}`);
       console.log(`${contentFitsViewport ? "📱 Content fits without scrolling" : "📜 Content requires scrolling"}`);
       
       if (contentFitsViewport) {
         console.log("✅ Content fits viewport, automatically enabling checkbox");
         setHasScrolledToBottom(true);
       }
+    }
+  };
+  
+  useEffect(() => {
+    if (open) {
+      // Check after component is fully rendered
+      checkContentHeight();
+      
+      // Add resize event listener to handle window size changes
+      window.addEventListener('resize', checkContentHeight);
+      return () => window.removeEventListener('resize', checkContentHeight);
     }
   }, [open]);
   
@@ -102,7 +121,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
           ref={scrollAreaRef}
           data-testid="terms-scroll-area"
         >
-          <div className="space-y-4 text-sm">
+          <div ref={scrollContentRef} className="space-y-4 text-sm">
             <h3 className="font-semibold text-base">DIGITAL WILL PLATFORM TERMS & CONDITIONS</h3>
             
             <p>By using this Digital Will Platform, you agree to the following terms and conditions:</p>
@@ -171,8 +190,9 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
               By using this Platform, you acknowledge that you have read, understood, and agree to be bound by these terms and conditions.
             </p>
             
-            {/* Add a div at the bottom to ensure scrolling reaches a clear "bottom" point */}
-            <div id="terms-end-marker" className="h-4"></div>
+            <div id="terms-end-marker" className="h-8 border-t border-gray-200 mt-4 pt-2 text-xs text-gray-400 text-center">
+              End of Terms & Conditions
+            </div>
           </div>
         </ScrollArea>
         
