@@ -6,6 +6,7 @@ import Progress from "./Progress";
 import WalletConnectSection from "@/components/WalletConnectSection";
 import MultisigWalletSection from "@/components/MultisigWalletSection";
 import BeneficiarySection from "./BeneficiarySection";
+import WillConfirmation from "./WillConfirmation";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
@@ -20,8 +21,13 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
     isMultisigCreated, 
     beneficiaryWallet,
     address,
-    isAuthenticated
+    isAuthenticated,
+    showCompletionBanner,
+    setShowCompletionBanner
   } = useWallet();
+  
+  // Add a new state for the confirmation step
+  const [showConfirmation, setShowConfirmation] = useState(false);
   
   // Determine current step based on completion status
   const determineStep = () => {
@@ -34,14 +40,17 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   
   // Update current step when wallet status changes
   useEffect(() => {
-    setCurrentStep(determineStep());
-  }, [isAuthenticated, donorWallet, isMultisigCreated, beneficiaryWallet]);
+    if (!showConfirmation) {
+      setCurrentStep(determineStep());
+    }
+  }, [isAuthenticated, donorWallet, isMultisigCreated, beneficiaryWallet, showConfirmation]);
   
   // Calculate progress percentage
   const calculateProgress = () => {
     if (!isAuthenticated) return 0;
-    if (!isMultisigCreated) return 33;
-    if (!beneficiaryWallet) return 66;
+    if (!isMultisigCreated) return 25;
+    if (!beneficiaryWallet) return 50;
+    if (!showConfirmation) return 75;
     return 100;
   };
   
@@ -61,8 +70,45 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
     setCurrentStep(STEP.BENEFICIARY_SETUP);
   };
   
+  // Handle beneficiary setup completion
+  const handleBeneficiaryComplete = () => {
+    setShowConfirmation(true);
+  };
+  
+  // Handle editing from confirmation page
+  const handleEditFromConfirmation = () => {
+    setShowConfirmation(false);
+    setCurrentStep(STEP.BENEFICIARY_SETUP);
+  };
+  
+  // Handle final submission
+  const handleFinalSubmission = () => {
+    setShowCompletionBanner(true);
+  };
+  
+  // Get current step name for progress indicator
+  const getCurrentStepName = () => {
+    if (showConfirmation) return "Final Review";
+    if (currentStep === STEP.DONOR_WALLET) return "Donor Information";
+    if (currentStep === STEP.MULTISIG_WALLET) return "Multisig Setup";
+    return "Beneficiary Setup";
+  };
+  
   // Show appropriate section based on current step
   const renderCurrentSection = () => {
+    if (showCompletionBanner) {
+      return null; // CompletionBanner will be shown by the app
+    }
+    
+    if (showConfirmation) {
+      return (
+        <WillConfirmation 
+          onEdit={handleEditFromConfirmation}
+          onComplete={handleFinalSubmission}
+        />
+      );
+    }
+    
     if (showAuthError) {
       return (
         <Alert variant="destructive" className="mb-6">
@@ -86,7 +132,9 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
         );
       case STEP.BENEFICIARY_SETUP:
         return (
-          <BeneficiarySection />
+          <BeneficiarySection 
+            onProceedToConfirmation={handleBeneficiaryComplete}
+          />
         );
       default:
         return <WalletConnectSection onComplete={handleSuccessfulAuth} />;
@@ -104,11 +152,7 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
           {/* Progress indicator */}
           <Progress 
             progressPercentage={progressPercentage} 
-            currentStep={
-              currentStep === STEP.DONOR_WALLET ? "Donor Information" :
-              currentStep === STEP.MULTISIG_WALLET ? "Multisig Setup" :
-              "Beneficiary Setup"
-            }
+            currentStep={getCurrentStepName()}
           />
           
           {/* Step indicator */}

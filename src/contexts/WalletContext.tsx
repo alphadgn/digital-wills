@@ -223,7 +223,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       
       // Check if beneficiary wallet is the same as donor wallet
       if (beneficiaryWallet === donorWallet || beneficiaryWallet === address) {
-        toast.error("Beneficiary wallet cannot be the same as any of your wallets");
+        toast.error("Beneficiary wallet cannot be the same as the donor wallet");
         return false;
       }
       
@@ -263,7 +263,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       // Increment the number of wills created
       setWillsCreated(prev => prev + 1);
       
-      // Fix the toast implementation - Sonner uses different syntax than the shadcn/ui toast
+      // Important notice about seed phrases and product keys
       toast.message(
         "Important: You are responsible for storing and/or distributing seed phrases and product keys. Digital Wills does not store and does not have access to any user specific data that grants access to assets. If you lose access to these wallets, all assets will be unrecoverable.",
         {
@@ -272,14 +272,9 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       );
       
       // Show success notification
-      toast.success("Success", {
+      toast.success("Digital Will created successfully", {
         duration: 3000,
       });
-      
-      // Show completion banner after 3 seconds
-      setTimeout(() => {
-        setShowCompletionBanner(true);
-      }, 3000);
       
       return true;
     } catch (error) {

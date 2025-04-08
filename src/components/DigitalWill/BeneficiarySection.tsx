@@ -10,6 +10,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const walletAddressSchema = z.object({
   beneficiaryAddress: z.string()
@@ -20,9 +21,14 @@ const walletAddressSchema = z.object({
 
 type WalletAddressFormValues = z.infer<typeof walletAddressSchema>;
 
-const BeneficiarySection: React.FC = () => {
-  const { setBeneficiaryWallet, createMultisigWallet } = useWallet();
+interface BeneficiarySectionProps {
+  onProceedToConfirmation?: () => void;
+}
+
+const BeneficiarySection: React.FC<BeneficiarySectionProps> = ({ onProceedToConfirmation }) => {
+  const { setBeneficiaryWallet, donorWallet, address } = useWallet();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   
   const form = useForm<WalletAddressFormValues>({
     resolver: zodResolver(walletAddressSchema),
@@ -34,17 +40,24 @@ const BeneficiarySection: React.FC = () => {
   const onSubmit = async (values: WalletAddressFormValues) => {
     try {
       setIsSubmitting(true);
+      setValidationError(null);
+      
+      // Check if beneficiary wallet is the same as donor wallet
+      if (values.beneficiaryAddress === donorWallet || values.beneficiaryAddress === address) {
+        setValidationError("Donor wallet and beneficiary wallet cannot be the same. Which would you like to change?");
+        toast.error("Donor wallet and beneficiary wallet cannot be the same");
+        setIsSubmitting(false);
+        return;
+      }
       
       // Save beneficiary wallet address
       setBeneficiaryWallet(values.beneficiaryAddress);
       
-      // Create multisig wallet
-      const success = await createMultisigWallet();
+      toast.success("Beneficiary wallet set successfully");
       
-      if (success) {
-        toast.success("Beneficiary wallet successfully set and multisig wallet created");
-      } else {
-        toast.error("Failed to create multisig wallet");
+      // Proceed to confirmation page
+      if (onProceedToConfirmation) {
+        onProceedToConfirmation();
       }
     } catch (error) {
       console.error("Error setting up beneficiary:", error);
@@ -63,6 +76,25 @@ const BeneficiarySection: React.FC = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {validationError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Validation Error</AlertTitle>
+            <AlertDescription>
+              {validationError}
+              <div className="mt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setValidationError(null)}
+                >
+                  Change Beneficiary Wallet
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -88,7 +120,7 @@ const BeneficiarySection: React.FC = () => {
                 className="w-full"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Processing..." : "Complete Digital Will Setup"}
+                {isSubmitting ? "Processing..." : "Continue to Review"}
               </Button>
             </div>
           </form>
