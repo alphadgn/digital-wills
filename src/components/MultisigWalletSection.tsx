@@ -87,7 +87,7 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-center">Donor Wallet Setup</CardTitle>
+        <CardTitle className="text-center">Create Secure Vault Wallet</CardTitle>
         <CardDescription className="text-center">
           Enter the wallet address containing assets you wish to include in your digital will
         </CardDescription>
@@ -157,7 +157,7 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
                   className="w-full"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Submitting..." : "Enter Donor Wallet"}
+                  {isSubmitting ? "Submitting..." : "Create Secure Vault"}
                 </Button>
               </div>
             </form>
