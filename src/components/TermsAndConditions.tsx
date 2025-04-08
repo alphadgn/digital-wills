@@ -20,6 +20,10 @@ interface TermsAndConditionsProps {
   onAccept: () => void;
 }
 
+// Define constants for better readability and maintainability
+const SCROLL_BOTTOM_THRESHOLD = 0.9; // 90% visibility threshold
+const CONTENT_CHECK_DELAY_MS = 250; // Delay for checking content height
+
 const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
   open,
   onOpenChange,
@@ -41,10 +45,6 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
     }
   }, [open]);
 
-  // Define an explicit threshold value to determine when we're close to the bottom
-  // Using a named constant to avoid magic numbers
-  const SCROLL_BOTTOM_THRESHOLD = 0.9; // 90% visibility
-  
   // Use Intersection Observer to detect when user scrolls to the bottom
   useEffect(() => {
     if (!open || !endMarkerRef.current) return;
@@ -59,9 +59,12 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
     
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
+        if (entry.isIntersecting && !hasScrolledToBottom) {
           console.log("🎯 Bottom reached! End marker is visible");
           setHasScrolledToBottom(true);
+          
+          // Auto-select checkbox when reaching the bottom
+          // We don't auto-select here, just enable it to be selectable
         }
       });
     }, options);
@@ -72,7 +75,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
       console.log("🧹 Cleaning up Intersection Observer");
       observer.disconnect();
     };
-  }, [open]);
+  }, [open, hasScrolledToBottom]);
   
   // Check if content requires scrolling at all
   const checkContentHeight = () => {
@@ -99,7 +102,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
   useEffect(() => {
     if (open) {
       // Add a small delay to ensure content is rendered
-      const timer = setTimeout(checkContentHeight, 250);
+      const timer = setTimeout(checkContentHeight, CONTENT_CHECK_DELAY_MS);
       
       // Also check on window resize
       window.addEventListener('resize', checkContentHeight);
@@ -119,7 +122,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
   };
   
   const handleCheckboxChange = (checked: boolean) => {
-    console.log(`🔘 Checkbox toggled: ${checked}`);
+    console.log(`🔘 Checkbox toggled: ${checked ? "accepted" : "declined"}`);
     setAcceptedTerms(checked);
   };
   
@@ -237,7 +240,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
           
           {!hasScrolledToBottom && (
             <p className="text-amber-600 text-xs">
-              Please scroll to the bottom to accept the terms
+              Please scroll to the bottom to enable the checkbox
             </p>
           )}
           
