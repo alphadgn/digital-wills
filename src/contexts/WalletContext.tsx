@@ -34,17 +34,16 @@ type WalletContextType = {
   setShowCompletionBanner: (show: boolean) => void;
   createNewWill: () => void;
   usedWallets: string[];
-  // SSN related fields
   donorSSN: string | null;
   setDonorSSN: (ssn: string) => void;
-  // New communication preference fields
   communicationPreference: {
     method: "email" | "phone" | null;
     value: string | null;
   };
   setCommunicationPreference: (method: "email" | "phone", value: string) => void;
-  // Method to notify donor of recovery attempt
   notifyDonorOfRecoveryAttempt: () => void;
+  termsAccepted: boolean;
+  setTermsAccepted: (accepted: boolean) => void;
 };
 
 // Create the initial context
@@ -92,10 +91,9 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const [willsCreated, setWillsCreated] = useState(0);
   const [showCompletionBanner, setShowCompletionBanner] = useState(false);
   const [usedWallets, setUsedWallets] = useState<string[]>([]);
-  // SSN state
   const [donorSSN, setDonorSSN] = useState<string | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   
-  // New communication preference state
   const [communicationPreference, setCommunicationPreferenceState] = useState<{
     method: "email" | "phone" | null;
     value: string | null;
@@ -104,7 +102,6 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     value: null
   });
   
-  // Create a wrapper function that matches the expected signature
   const setCommunicationPreference = (method: "email" | "phone", value: string) => {
     setCommunicationPreferenceState({
       method,
@@ -112,7 +109,6 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     });
   };
   
-  // Seed phrases and product keys for the wallets
   const [seedPhrases, setSeedPhrases] = useState({
     donor: null as string | null,
     multisig: null as string | null,
@@ -125,29 +121,23 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     beneficiary: null as string | null
   });
 
-  // Function to notify donor of recovery attempt
   const notifyDonorOfRecoveryAttempt = () => {
     if (!communicationPreference.method || !communicationPreference.value) {
       console.log("No communication preference set, cannot notify donor");
       return;
     }
     
-    // In a real app, this would send an email or SMS
     console.log(`Notifying donor via ${communicationPreference.method} to ${communicationPreference.value}`);
     toast.info(`Mock notification sent to donor via ${communicationPreference.method}`);
   };
 
-  // Simulate wallet connection (in a real app, this would connect to ApeChain)
   const connectWallet = async (): Promise<boolean> => {
     try {
       setIsConnecting(true);
-      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Mock successful connection
       const mockAddress = "0x" + Math.random().toString(16).substring(2, 42);
       
-      // Check if this wallet has been used before
       if (usedWallets.includes(mockAddress)) {
         toast.error("This wallet has already been used for a Digital Will. Please use a different wallet.");
         setIsConnecting(false);
@@ -156,7 +146,6 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       
       setAddress(mockAddress);
       
-      // Generate seed phrase and product key for the connected wallet
       const donorSeed = generateSeedPhrase();
       const donorKey = generateProductKey();
       
@@ -181,13 +170,10 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Simulate wallet authentication
   const authenticateWallet = async (): Promise<boolean> => {
     try {
-      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // 80% chance of success for demo purposes
       const isSuccess = Math.random() > 0.2;
       
       if (isSuccess) {
@@ -205,10 +191,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Create a multisig wallet
   const createMultisigWallet = async (): Promise<boolean> => {
     try {
-      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       if (!donorWallet) {
@@ -221,23 +205,19 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
-      // Check if beneficiary wallet is the same as donor wallet
       if (beneficiaryWallet === donorWallet || beneficiaryWallet === address) {
         toast.error("Beneficiary wallet cannot be the same as the donor wallet");
         return false;
       }
       
-      // Check if donor wallet has been used before
       if (usedWallets.includes(donorWallet)) {
         toast.error("This donor wallet has already been used for a Digital Will. Please use a different wallet.");
         return false;
       }
       
-      // Generate a new multisig wallet address
       const newMultisigWallet = "0x" + Math.random().toString(16).substring(2, 42);
       setMultisigWallet(newMultisigWallet);
       
-      // Generate seed phrases and product keys for multisig and beneficiary wallets
       const multisigSeed = generateSeedPhrase();
       const multisigKey = generateProductKey();
       const beneficiarySeed = generateSeedPhrase();
@@ -257,13 +237,10 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       
       setIsMultisigCreated(true);
       
-      // Add the donor wallet to the list of used wallets
       setUsedWallets(prev => [...prev, donorWallet]);
       
-      // Increment the number of wills created
       setWillsCreated(prev => prev + 1);
       
-      // Important notice about seed phrases and product keys
       toast.message(
         "Important: You are responsible for storing and/or distributing seed phrases and product keys. Digital Wills does not store and does not have access to any user specific data that grants access to assets. If you lose access to these wallets, all assets will be unrecoverable.",
         {
@@ -271,7 +248,6 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         }
       );
       
-      // Show success notification
       toast.success("Digital Will created successfully", {
         duration: 3000,
       });
@@ -284,46 +260,35 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Simulate death certificate verification
   const verifyDeathCertificate = async (name: string): Promise<boolean> => {
-    // In a real implementation, this would call an AI service to search for death certificates
-    // For demo purposes, we'll randomly determine if the person is deceased
     await new Promise(resolve => setTimeout(resolve, 3000));
     
-    // 50% chance the person is found to be deceased (for demo)
     return Math.random() > 0.5;
   };
 
-  // Initiate asset recovery process
   const initiateAssetRecovery = async (beneficiaryAddress: string, organizerSSN: string): Promise<boolean> => {
     try {
       setUserHasAttemptedRecovery(true);
       
-      // Validate SSN format (simple check for demo)
       if (!/^\d{9}$|^\d{3}-\d{2}-\d{4}$/.test(organizerSSN)) {
         toast.error("Invalid Social Security Number format");
         return false;
       }
       
-      // Compare the entered SSN with the stored donor SSN
       const formattedOrganizerSSN = organizerSSN.replace(/-/g, "");
       if (donorSSN && formattedOrganizerSSN !== donorSSN) {
-        // Notify the donor about failed recovery attempt
         notifyDonorOfRecoveryAttempt();
         
         toast.error("Social Security Number verification failed");
         return false;
       }
       
-      // Verify death certificate
-      const isDonorDeceased = await verifyDeathCertificate("John Doe"); // In real app, would use actual name
+      const isDonorDeceased = await verifyDeathCertificate("John Doe");
       
       if (isDonorDeceased) {
-        // Both votes have been received (death certificate + beneficiary request)
         toast.success("Assets have been transferred to your wallet");
         return true;
       } else {
-        // Notify the original donor that someone tried to access the assets
         notifyDonorOfRecoveryAttempt();
         
         toast.error("Death certificate verification failed. The original account owner has been notified of this attempt.");
@@ -336,7 +301,6 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Reset the entire process
   const resetProcess = () => {
     setAddress(null);
     setIsAuthenticated(false);
@@ -361,9 +325,9 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       method: null,
       value: null
     });
+    setTermsAccepted(false);
   };
   
-  // Start creating a new will
   const createNewWill = () => {
     resetProcess();
   };
@@ -399,6 +363,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         communicationPreference,
         setCommunicationPreference,
         notifyDonorOfRecoveryAttempt,
+        termsAccepted,
+        setTermsAccepted,
       }}
     >
       {children}
@@ -406,7 +372,6 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Custom hook to use the wallet context
 export const useWallet = () => {
   const context = useContext(WalletContext);
   if (context === undefined) {
