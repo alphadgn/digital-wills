@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface TermsAndConditionsProps {
   open: boolean;
@@ -26,6 +27,8 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
 }) => {
   const [hasScrolledToBottom, setHasScrolledToBottom] = React.useState(false);
   const [acceptedTerms, setAcceptedTerms] = React.useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   
   // Reset scroll state when dialog opens
   useEffect(() => {
@@ -37,13 +40,29 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
   
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const element = e.currentTarget;
-    const scrolledToBottom = 
-      Math.abs(element.scrollHeight - element.clientHeight - element.scrollTop) < 1;
     
-    if (scrolledToBottom) {
+    // Check if we're close to the bottom (within 20px)
+    // This is more forgiving than the exact bottom check
+    const isNearBottom = 
+      element.scrollHeight - element.clientHeight - element.scrollTop <= 20;
+    
+    if (isNearBottom && !hasScrolledToBottom) {
       setHasScrolledToBottom(true);
+      console.log("Scrolled to bottom detected!");
     }
   };
+  
+  // An additional check to ensure scrolling is detected properly
+  useEffect(() => {
+    // For very short content or small screens where scrolling might not be needed
+    if (scrollAreaRef.current) {
+      const element = scrollAreaRef.current;
+      // If content height is less than or equal to viewport height, enable checkbox
+      if (element.scrollHeight <= element.clientHeight) {
+        setHasScrolledToBottom(true);
+      }
+    }
+  }, [open]);
   
   const handleAccept = () => {
     onAccept();
@@ -52,7 +71,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] md:max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Terms & Conditions</DialogTitle>
           <DialogDescription>
@@ -60,7 +79,11 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 h-[400px] pr-4" onScroll={handleScroll}>
+        <ScrollArea 
+          className="flex-1 h-[300px] sm:h-[350px] md:h-[400px] pr-4" 
+          onScroll={handleScroll}
+          ref={scrollAreaRef}
+        >
           <div className="space-y-4 text-sm">
             <h3 className="font-semibold text-base">DIGITAL WILL PLATFORM TERMS & CONDITIONS</h3>
             
@@ -137,7 +160,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
             <Checkbox 
               id="terms" 
               checked={acceptedTerms}
-              onCheckedChange={(checked) => hasScrolledToBottom && setAcceptedTerms(checked as boolean)}
+              onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
               disabled={!hasScrolledToBottom}
               className={!hasScrolledToBottom ? "cursor-not-allowed opacity-50" : ""}
             />
