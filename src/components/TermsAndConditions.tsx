@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -63,8 +62,9 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
           console.log("🎯 Bottom reached! End marker is visible");
           setHasScrolledToBottom(true);
           
-          // Auto-select checkbox when reaching the bottom
-          // We don't auto-select here, just enable it to be selectable
+          // Auto-check the checkbox when reaching the bottom
+          setAcceptedTerms(true);
+          console.log("✅ Auto-checked terms acceptance checkbox");
         }
       });
     }, options);
@@ -95,6 +95,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
     if (contentFitsWithoutScrolling) {
       console.log("✅ Content fits viewport, automatically enabling checkbox");
       setHasScrolledToBottom(true);
+      setAcceptedTerms(true);
     }
   };
   
@@ -226,23 +227,15 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
               id="terms" 
               checked={acceptedTerms}
               onCheckedChange={handleCheckboxChange}
-              disabled={!hasScrolledToBottom}
-              className={!hasScrolledToBottom ? "cursor-not-allowed opacity-50" : ""}
               data-testid="terms-checkbox"
             />
             <label 
               htmlFor="terms" 
-              className={`text-sm ${!hasScrolledToBottom ? "text-gray-400" : "text-gray-700"}`}
+              className="text-sm text-gray-700"
             >
               I have read and agree to the terms and conditions
             </label>
           </div>
-          
-          {!hasScrolledToBottom && (
-            <p className="text-amber-600 text-xs">
-              Please scroll to the bottom to enable the checkbox
-            </p>
-          )}
           
           <Button 
             onClick={handleAccept} 
