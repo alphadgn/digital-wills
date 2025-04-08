@@ -35,38 +35,55 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
     if (open) {
       setHasScrolledToBottom(false);
       setAcceptedTerms(false);
+      console.log("🔄 Terms dialog opened, reset states");
     }
   }, [open]);
+  
+  // Define scroll threshold as a constant rather than magic number
+  const SCROLL_BOTTOM_THRESHOLD_PX = 30;
   
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const element = e.currentTarget;
     
-    // Check if we're close to the bottom (within 20px)
-    // This is more forgiving than the exact bottom check
-    const isNearBottom = 
-      element.scrollHeight - element.clientHeight - element.scrollTop <= 20;
+    // Calculate how close we are to the bottom
+    const distanceToBottom = element.scrollHeight - element.clientHeight - element.scrollTop;
+    
+    console.log(`📜 Scroll metrics - Distance to bottom: ${distanceToBottom.toFixed(2)}px`);
+    
+    // Check if we're close enough to the bottom based on threshold
+    const isNearBottom = distanceToBottom <= SCROLL_BOTTOM_THRESHOLD_PX;
     
     if (isNearBottom && !hasScrolledToBottom) {
+      console.log("🎯 Bottom threshold reached! Enabling checkbox");
       setHasScrolledToBottom(true);
-      console.log("Scrolled to bottom detected!");
     }
   };
   
-  // An additional check to ensure scrolling is detected properly
+  // Check if content requires scrolling at all
   useEffect(() => {
-    // For very short content or small screens where scrolling might not be needed
-    if (scrollAreaRef.current) {
+    if (open && scrollAreaRef.current) {
       const element = scrollAreaRef.current;
-      // If content height is less than or equal to viewport height, enable checkbox
-      if (element.scrollHeight <= element.clientHeight) {
+      const contentFitsViewport = element.scrollHeight <= element.clientHeight;
+      
+      console.log(`📏 Content metrics - ScrollHeight: ${element.scrollHeight}, ClientHeight: ${element.clientHeight}`);
+      console.log(`${contentFitsViewport ? "📱 Content fits without scrolling" : "📜 Content requires scrolling"}`);
+      
+      if (contentFitsViewport) {
+        console.log("✅ Content fits viewport, automatically enabling checkbox");
         setHasScrolledToBottom(true);
       }
     }
   }, [open]);
   
   const handleAccept = () => {
+    console.log("✅ Terms accepted, calling onAccept callback");
     onAccept();
     onOpenChange(false);
+  };
+  
+  const handleCheckboxChange = (checked: boolean) => {
+    console.log(`🔘 Checkbox toggled: ${checked}`);
+    setAcceptedTerms(checked);
   };
   
   return (
@@ -83,6 +100,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
           className="flex-1 h-[300px] sm:h-[350px] md:h-[400px] pr-4" 
           onScroll={handleScroll}
           ref={scrollAreaRef}
+          data-testid="terms-scroll-area"
         >
           <div className="space-y-4 text-sm">
             <h3 className="font-semibold text-base">DIGITAL WILL PLATFORM TERMS & CONDITIONS</h3>
@@ -152,6 +170,9 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
             <p className="mt-8">
               By using this Platform, you acknowledge that you have read, understood, and agree to be bound by these terms and conditions.
             </p>
+            
+            {/* Add a div at the bottom to ensure scrolling reaches a clear "bottom" point */}
+            <div id="terms-end-marker" className="h-4"></div>
           </div>
         </ScrollArea>
         
@@ -160,9 +181,10 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
             <Checkbox 
               id="terms" 
               checked={acceptedTerms}
-              onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+              onCheckedChange={handleCheckboxChange}
               disabled={!hasScrolledToBottom}
               className={!hasScrolledToBottom ? "cursor-not-allowed opacity-50" : ""}
+              data-testid="terms-checkbox"
             />
             <label 
               htmlFor="terms" 
@@ -182,6 +204,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
             onClick={handleAccept} 
             disabled={!acceptedTerms}
             className="w-full sm:w-auto"
+            data-testid="accept-terms-button"
           >
             Accept Terms
           </Button>
