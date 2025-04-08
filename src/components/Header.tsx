@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Wallet } from "lucide-react";
 
 const Header = () => {
-  const { address, connectWallet, isConnecting } = useWallet();
+  const { address, connectWallet, isConnecting, termsAccepted } = useWallet();
 
   return (
     <header className="w-full py-4 px-6 flex justify-between items-center border-b">
@@ -27,12 +27,13 @@ const Header = () => {
         ) : (
           <Button 
             onClick={() => connectWallet()} 
-            disabled={isConnecting}
+            disabled={isConnecting || !termsAccepted}
             variant="outline"
-            className="flex items-center gap-2"
+            className={`flex items-center gap-2 ${!termsAccepted ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <Wallet className="h-4 w-4" />
             {isConnecting ? "Connecting..." : "Connect Wallet"}
+            {!termsAccepted && <span className="text-xs text-red-500 ml-1">(Accept Terms First)</span>}
           </Button>
         )}
       </div>

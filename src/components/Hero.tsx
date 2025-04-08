@@ -1,11 +1,11 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/contexts/WalletContext";
 import TermsAndConditions from "./TermsAndConditions";
 
 const Hero = () => {
-  const { connectWallet, isConnecting } = useWallet();
+  const { connectWallet, isConnecting, setTermsAccepted } = useWallet();
   const [hasConsented, setHasConsented] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const [showWalletAnimation, setShowWalletAnimation] = useState(false);
@@ -16,6 +16,8 @@ const Hero = () => {
   
   const handleAcceptTerms = () => {
     setHasConsented(true);
+    // Update the global terms acceptance state
+    setTermsAccepted(true);
   };
   
   const handleConnectWallet = async () => {
