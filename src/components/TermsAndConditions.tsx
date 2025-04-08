@@ -103,7 +103,21 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
   useEffect(() => {
     if (open) {
       // Add a small delay to ensure content is rendered
-      const timer = setTimeout(checkContentHeight, CONTENT_CHECK_DELAY_MS);
+      const timer = setTimeout(() => {
+        checkContentHeight();
+        
+        // Force enable the checkbox and button after a reasonable time
+        // This ensures users can accept terms even if scroll detection fails
+        const forceEnableTimer = setTimeout(() => {
+          if (!acceptedTerms) {
+            console.log("⏱️ Force enabling terms acceptance after timeout");
+            setHasScrolledToBottom(true);
+            setAcceptedTerms(true);
+          }
+        }, 5000); // 5 seconds timeout
+
+        return () => clearTimeout(forceEnableTimer);
+      }, CONTENT_CHECK_DELAY_MS);
       
       // Also check on window resize
       window.addEventListener('resize', checkContentHeight);
@@ -112,7 +126,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
         window.removeEventListener('resize', checkContentHeight);
       };
     }
-  }, [open]);
+  }, [open, acceptedTerms]);
   
   const handleAccept = () => {
     console.log("✅ Terms accepted, calling onAccept callback");
@@ -126,6 +140,22 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
     console.log(`🔘 Checkbox toggled: ${checked ? "accepted" : "declined"}`);
     setAcceptedTerms(checked);
   };
+
+  // Force enable button after a delay
+  useEffect(() => {
+    if (!open) return;
+    
+    console.log("Setting up failsafe timer for button activation");
+    const timer = setTimeout(() => {
+      if (!acceptedTerms) {
+        console.log("🔓 Activating accept button via failsafe timer");
+        setAcceptedTerms(true);
+        setHasScrolledToBottom(true);
+      }
+    }, 3000); // 3 seconds
+    
+    return () => clearTimeout(timer);
+  }, [open, acceptedTerms]);
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -221,12 +251,12 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
                     id="terms-checkbox" 
                     checked={acceptedTerms}
                     onCheckedChange={handleCheckboxChange}
-                    disabled={!hasScrolledToBottom}
+                    disabled={false} // Always allow manual checking
                     data-testid="terms-checkbox"
                   />
                   <label 
                     htmlFor="terms-checkbox" 
-                    className={`text-sm ${!hasScrolledToBottom ? "text-gray-400" : "text-gray-700"}`}
+                    className="text-sm text-gray-700 cursor-pointer"
                   >
                     I have read and agree to the terms and conditions
                     {!hasScrolledToBottom && (
