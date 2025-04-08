@@ -2,20 +2,22 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wallet, Check, X } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Wallet, Check, X, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SSNInputDialog from "./SSNInputDialog";
 import CommunicationPreferenceDialog from "./CommunicationPreferenceDialog";
 
 interface WalletConnectSectionProps {
   onComplete?: () => void;
+  onNext?: () => void;
 }
 
-const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete }) => {
+const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete, onNext }) => {
   const { address, connectWallet, isConnecting, donorSSN, communicationPreference, authenticateWallet, isAuthenticated } = useWallet();
   const [showSSNDialog, setShowSSNDialog] = useState(false);
   const [showCommunicationDialog, setShowCommunicationDialog] = useState(false);
+  const [hasPreviouslyAdvanced, setHasPreviouslyAdvanced] = useState(false);
 
   // Show SSN dialog when wallet is connected
   useEffect(() => {
@@ -46,14 +48,23 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete 
     if (address && donorSSN && communicationPreference.method && communicationPreference.value) {
       const performAuth = async () => {
         const success = await authenticateWallet();
-        if (success && onComplete) {
-          onComplete();
+        if (success) {
+          setHasPreviouslyAdvanced(true);
+          if (onComplete) {
+            onComplete();
+          }
         }
       };
       
       performAuth();
     }
   }, [address, donorSSN, communicationPreference, authenticateWallet, onComplete]);
+
+  const handleNext = () => {
+    if (hasPreviouslyAdvanced && onNext) {
+      onNext();
+    }
+  };
 
   return (
     <>
@@ -102,6 +113,17 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete 
             </Button>
           )}
         </CardContent>
+        <CardFooter className="flex justify-end">
+          <Button
+            variant="ghost"
+            onClick={handleNext}
+            disabled={!hasPreviouslyAdvanced}
+            className="flex items-center gap-1"
+          >
+            Next
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </CardFooter>
       </Card>
 
       {/* SSN Dialog */}
@@ -109,7 +131,7 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete 
         open={showSSNDialog} 
         onOpenChange={setShowSSNDialog} 
         title="Complete Your Wallet Connection"
-        description="Please provide your Social Security Number to complete the wallet connection process."
+        description="Please provide <strong>your</strong> Social Security Number to complete the wallet connection process."
         buttonText="Complete Connection"
       />
 

@@ -27,12 +27,13 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
   const [hasScrolledToBottom, setHasScrolledToBottom] = React.useState(false);
   const [acceptedTerms, setAcceptedTerms] = React.useState(false);
   
-  // Auto-check the box when scrolled to bottom
+  // Reset scroll state when dialog opens
   useEffect(() => {
-    if (hasScrolledToBottom) {
-      setAcceptedTerms(true);
+    if (open) {
+      setHasScrolledToBottom(false);
+      setAcceptedTerms(false);
     }
-  }, [hasScrolledToBottom]);
+  }, [open]);
   
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const element = e.currentTarget;
@@ -136,15 +137,23 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
             <Checkbox 
               id="terms" 
               checked={acceptedTerms}
-              onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+              onCheckedChange={(checked) => hasScrolledToBottom && setAcceptedTerms(checked as boolean)}
+              disabled={!hasScrolledToBottom}
+              className={!hasScrolledToBottom ? "cursor-not-allowed opacity-50" : ""}
             />
             <label 
               htmlFor="terms" 
-              className="text-sm text-gray-700"
+              className={`text-sm ${!hasScrolledToBottom ? "text-gray-400" : "text-gray-700"}`}
             >
               I have read and agree to the terms and conditions
             </label>
           </div>
+          
+          {!hasScrolledToBottom && (
+            <p className="text-amber-600 text-xs">
+              Please scroll to the bottom to accept the terms
+            </p>
+          )}
           
           <Button 
             onClick={handleAccept} 

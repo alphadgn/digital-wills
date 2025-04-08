@@ -8,6 +8,7 @@ const Hero = () => {
   const { connectWallet, isConnecting } = useWallet();
   const [hasConsented, setHasConsented] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
+  const [showWalletAnimation, setShowWalletAnimation] = useState(false);
   
   const handleOpenTerms = () => {
     setTermsOpen(true);
@@ -15,6 +16,20 @@ const Hero = () => {
   
   const handleAcceptTerms = () => {
     setHasConsented(true);
+  };
+  
+  const handleConnectWallet = async () => {
+    if (hasConsented) {
+      // Show wallet connection animation
+      setShowWalletAnimation(true);
+      
+      // Simulate wallet connection animation for 2 seconds before actual connection
+      setTimeout(() => {
+        connectWallet().finally(() => {
+          setShowWalletAnimation(false);
+        });
+      }, 2000);
+    }
   };
   
   return (
@@ -29,16 +44,25 @@ const Hero = () => {
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Button 
             size="lg" 
-            onClick={() => connectWallet()}
-            disabled={isConnecting || !hasConsented}
+            onClick={handleConnectWallet}
+            disabled={isConnecting || !hasConsented || showWalletAnimation}
             className={`${hasConsented ? 'bg-digitalwill-primary hover:bg-digitalwill-primary/90' : 'bg-gray-400 cursor-not-allowed'}`}
           >
-            {isConnecting ? "Connecting..." : "Sign Up & Connect Wallet"}
+            {showWalletAnimation ? (
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Connecting Web3 Wallet...
+              </span>
+            ) : isConnecting ? "Connecting..." : "Sign Up & Connect Wallet"}
           </Button>
           <Button 
             size="lg" 
             variant="outline"
             onClick={handleOpenTerms}
+            className="text-blue-600 border-blue-600 hover:bg-blue-50"
           >
             Terms & Conditions Consent
           </Button>

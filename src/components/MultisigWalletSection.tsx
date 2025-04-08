@@ -2,18 +2,19 @@
 import React, { useState } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "sonner";
-import { Wallet, CheckCircle2, AlertCircle, ShieldCheck } from "lucide-react";
+import { Wallet, CheckCircle2, AlertCircle, ShieldCheck, ArrowLeft, ArrowRight } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface MultisigWalletSectionProps {
   onComplete?: () => void;
+  onBack?: () => void;
 }
 
 const walletAddressSchema = z.object({
@@ -26,11 +27,13 @@ const walletAddressSchema = z.object({
 type WalletAddressFormValues = z.infer<typeof walletAddressSchema>;
 
 const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({ 
-  onComplete 
+  onComplete,
+  onBack
 }) => {
   const { setDonorWallet, authenticateWallet, address } = useWallet();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState(false);
+  const [hasUnderstandingConfirmed, setHasUnderstandingConfirmed] = useState(false);
   
   const form = useForm<WalletAddressFormValues>({
     resolver: zodResolver(walletAddressSchema),
@@ -76,6 +79,11 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
     setAuthError(false);
   };
 
+  // Handler for understanding confirmation
+  const handleUnderstandingConfirmation = () => {
+    setHasUnderstandingConfirmed(true);
+  };
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
@@ -103,7 +111,27 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
           </Alert>
         )}
         
-        {!authError && (
+        {!authError && !hasUnderstandingConfirmed && (
+          <Alert className="bg-amber-50 border-amber-300">
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertTitle className="text-amber-800">Important Information</AlertTitle>
+            <AlertDescription className="text-amber-700">
+              <p className="mb-3">You are creating a multi signature wallet that you will be given the private keys to. Your belongings will be stored there for safe transfer directly to your beneficiary upon authentication.</p>
+              <p className="mb-3">If at any time you wish to change anything concerning this multi signature vault wallet you are required to authenticate using the private keys and your donor wallet.</p>
+              <p className="mb-3">If you fail to authenticate you will not be able to change, abrogate, reverse nor retain any of the contents thereof.</p>
+              <p className="font-bold">Do you understand?</p>
+              <Button 
+                onClick={handleUnderstandingConfirmation}
+                className="mt-3"
+                variant="outline"
+              >
+                Yes, I Understand
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {!authError && hasUnderstandingConfirmed && (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -129,20 +157,34 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
                   className="w-full"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Authenticating..." : "Authenticate Donor Wallet"}
+                  {isSubmitting ? "Submitting..." : "Enter Donor Wallet"}
                 </Button>
               </div>
             </form>
           </Form>
         )}
-        
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-          <p className="text-xs text-blue-800">
-            This wallet will contain the assets you wish to pass on to your beneficiary. You must authenticate 
-            ownership of this wallet to proceed with the digital will creation process.
-          </p>
-        </div>
       </CardContent>
+      <CardFooter className="flex justify-between">
+        <Button 
+          variant="outline" 
+          onClick={onBack}
+          className="flex items-center gap-1"
+          disabled={isSubmitting}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+        
+        <Button
+          variant="ghost"
+          onClick={onComplete}
+          className="flex items-center gap-1"
+          disabled={isSubmitting || !form.formState.isValid}
+        >
+          Next
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      </CardFooter>
     </Card>
   );
 };

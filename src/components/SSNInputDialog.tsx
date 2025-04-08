@@ -36,7 +36,7 @@ const SSNInputDialog = ({
   onOpenChange,
   onConfirm,
   title = "Secure Identity Verification",
-  description = "Please provide your Social Security Number for future beneficiary verification of your Digital Will.",
+  description = "Please provide <strong>your</strong> Social Security Number for future beneficiary verification of your Digital Will.",
   buttonText = "Save Identity Information"
 }: SSNInputDialogProps) => {
   const { setDonorSSN } = useWallet();
@@ -88,9 +88,7 @@ const SSNInputDialog = ({
             <Shield className="h-5 w-5 text-digitalwill-primary" />
             {title}
           </DialogTitle>
-          <DialogDescription>
-            {description}
-          </DialogDescription>
+          <DialogDescription dangerouslySetInnerHTML={{ __html: description }} />
         </DialogHeader>
         
         <Form {...form}>

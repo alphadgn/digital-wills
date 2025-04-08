@@ -29,6 +29,9 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   // Add a new state for the confirmation step
   const [showConfirmation, setShowConfirmation] = useState(false);
   
+  // Track user's navigation history to enable/disable next button
+  const [visitedSteps, setVisitedSteps] = useState<Set<STEP>>(new Set([STEP.DONOR_WALLET]));
+  
   // Determine current step based on completion status
   const determineStep = () => {
     if (!isAuthenticated) return STEP.DONOR_WALLET;
@@ -41,7 +44,11 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   // Update current step when wallet status changes
   useEffect(() => {
     if (!showConfirmation) {
-      setCurrentStep(determineStep());
+      const newStep = determineStep();
+      setCurrentStep(newStep);
+      
+      // Mark this step as visited
+      setVisitedSteps(prev => new Set(prev).add(newStep));
     }
   }, [isAuthenticated, donorWallet, isMultisigCreated, beneficiaryWallet, showConfirmation]);
   
@@ -62,12 +69,12 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   // Handle successful authentication
   const handleSuccessfulAuth = () => {
     setShowAuthError(false);
-    setCurrentStep(STEP.MULTISIG_WALLET);
+    goToStep(STEP.MULTISIG_WALLET);
   };
 
   // Handle multisig wallet creation completion
   const handleMultisigComplete = () => {
-    setCurrentStep(STEP.BENEFICIARY_SETUP);
+    goToStep(STEP.BENEFICIARY_SETUP);
   };
   
   // Handle beneficiary setup completion
@@ -78,12 +85,40 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   // Handle editing from confirmation page
   const handleEditFromConfirmation = () => {
     setShowConfirmation(false);
-    setCurrentStep(STEP.BENEFICIARY_SETUP);
+    goToStep(STEP.BENEFICIARY_SETUP);
   };
   
   // Handle final submission
   const handleFinalSubmission = () => {
     setShowCompletionBanner(true);
+  };
+  
+  // Navigation functions
+  const goToStep = (step: STEP) => {
+    setCurrentStep(step);
+    setVisitedSteps(prev => new Set(prev).add(step));
+  };
+  
+  const goBack = () => {
+    if (currentStep === STEP.MULTISIG_WALLET) {
+      setCurrentStep(STEP.DONOR_WALLET);
+    } else if (currentStep === STEP.BENEFICIARY_SETUP) {
+      setCurrentStep(STEP.MULTISIG_WALLET);
+    }
+  };
+  
+  const goNext = () => {
+    // Only allow going next if the user has previously visited the next step
+    const nextStep = currentStep + 1;
+    if (visitedSteps.has(nextStep as STEP)) {
+      setCurrentStep(nextStep as STEP);
+    }
+  };
+  
+  // Check if next button should be enabled
+  const isNextEnabled = () => {
+    const nextStep = currentStep + 1;
+    return visitedSteps.has(nextStep as STEP);
   };
   
   // Get current step name for progress indicator
@@ -123,11 +158,15 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
     
     switch (currentStep) {
       case STEP.DONOR_WALLET:
-        return <WalletConnectSection onComplete={handleSuccessfulAuth} />;
+        return <WalletConnectSection 
+          onComplete={handleSuccessfulAuth} 
+          onNext={() => isNextEnabled() && goNext()}
+        />;
       case STEP.MULTISIG_WALLET:
         return (
           <MultisigWalletSection 
             onComplete={handleMultisigComplete}
+            onBack={goBack}
           />
         );
       case STEP.BENEFICIARY_SETUP:
