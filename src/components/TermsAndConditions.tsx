@@ -29,6 +29,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const scrollContentRef = useRef<HTMLDivElement>(null);
+  const endMarkerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   
   // Reset scroll state when dialog opens
@@ -37,61 +38,74 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
       setHasScrolledToBottom(false);
       setAcceptedTerms(false);
       console.log("🔄 Terms dialog opened, reset states");
-      
-      // Add a small delay to check content after rendering
-      setTimeout(checkContentHeight, 100);
     }
   }, [open]);
-  
-  // Define scroll threshold as a percentage of viewport height
+
+  // Define the percentage of viewport height to use as scroll threshold
+  // Using a named constant to avoid magic numbers
   const SCROLL_BOTTOM_THRESHOLD_PERCENT = 5;
   
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const element = e.currentTarget;
+  // Use Intersection Observer to detect when user scrolls to the bottom
+  useEffect(() => {
+    if (!open || !endMarkerRef.current) return;
     
-    // Calculate the threshold in pixels based on percentage of viewport height
-    const thresholdPixels = (element.clientHeight * SCROLL_BOTTOM_THRESHOLD_PERCENT) / 100;
+    console.log("👀 Setting up Intersection Observer for scroll detection");
     
-    // Calculate how close we are to the bottom
-    const distanceToBottom = element.scrollHeight - element.clientHeight - element.scrollTop;
+    const options = {
+      root: scrollAreaRef.current,
+      rootMargin: "0px",
+      threshold: 0.8 // Detect when 80% of the end marker is visible
+    };
     
-    console.log(`📜 Scroll metrics - Distance to bottom: ${distanceToBottom.toFixed(2)}px, Threshold: ${thresholdPixels.toFixed(2)}px`);
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          console.log("🎯 Bottom reached! End marker is visible");
+          setHasScrolledToBottom(true);
+        }
+      });
+    }, options);
     
-    // Check if we're close enough to the bottom based on threshold
-    const isNearBottom = distanceToBottom <= thresholdPixels;
+    observer.observe(endMarkerRef.current);
     
-    if (isNearBottom && !hasScrolledToBottom) {
-      console.log("🎯 Bottom threshold reached! Enabling checkbox");
+    return () => {
+      console.log("🧹 Cleaning up Intersection Observer");
+      observer.disconnect();
+    };
+  }, [open]);
+  
+  // Check if content requires scrolling at all
+  const checkContentHeight = () => {
+    if (!scrollAreaRef.current || !scrollContentRef.current) return;
+    
+    const scrollArea = scrollAreaRef.current;
+    const contentArea = scrollContentRef.current;
+    
+    // Compare the scroll container height with content height
+    const contentHeight = contentArea.scrollHeight;
+    const containerHeight = scrollArea.clientHeight;
+    const contentFitsWithoutScrolling = contentHeight <= containerHeight;
+    
+    console.log(`📏 Content metrics - Content height: ${contentHeight}px, Container height: ${containerHeight}px`);
+    console.log(`${contentFitsWithoutScrolling ? "📱 Content fits without scrolling" : "📜 Content requires scrolling"}`);
+    
+    if (contentFitsWithoutScrolling) {
+      console.log("✅ Content fits viewport, automatically enabling checkbox");
       setHasScrolledToBottom(true);
     }
   };
   
-  // Check if content requires scrolling at all
-  const checkContentHeight = () => {
-    if (scrollAreaRef.current) {
-      const element = scrollAreaRef.current;
-      const contentHeight = element.scrollHeight;
-      const viewportHeight = element.clientHeight;
-      const contentFitsViewport = contentHeight <= viewportHeight;
-      
-      console.log(`📏 Content metrics - ScrollHeight: ${contentHeight}, ClientHeight: ${viewportHeight}`);
-      console.log(`${contentFitsViewport ? "📱 Content fits without scrolling" : "📜 Content requires scrolling"}`);
-      
-      if (contentFitsViewport) {
-        console.log("✅ Content fits viewport, automatically enabling checkbox");
-        setHasScrolledToBottom(true);
-      }
-    }
-  };
-  
+  // Check content height when component mounts or window resizes
   useEffect(() => {
     if (open) {
-      // Check after component is fully rendered
-      checkContentHeight();
+      // Add a small delay to ensure content is rendered
+      const timer = setTimeout(checkContentHeight, 250);
       
-      // Add resize event listener to handle window size changes
       window.addEventListener('resize', checkContentHeight);
-      return () => window.removeEventListener('resize', checkContentHeight);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('resize', checkContentHeight);
+      };
     }
   }, [open]);
   
@@ -120,7 +134,6 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
         
         <ScrollArea 
           className="flex-1 h-[300px] sm:h-[350px] md:h-[400px] pr-4" 
-          onScroll={handleScroll}
           ref={scrollAreaRef}
           data-testid="terms-scroll-area"
         >
@@ -193,7 +206,11 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
               By using this Platform, you acknowledge that you have read, understood, and agree to be bound by these terms and conditions.
             </p>
             
-            <div id="terms-end-marker" className="h-8 border-t border-gray-200 mt-4 pt-2 text-xs text-gray-400 text-center">
+            <div 
+              ref={endMarkerRef}
+              id="terms-end-marker" 
+              className="h-12 border-t border-gray-200 mt-4 pt-2 text-xs text-gray-400 text-center"
+            >
               End of Terms & Conditions
             </div>
           </div>

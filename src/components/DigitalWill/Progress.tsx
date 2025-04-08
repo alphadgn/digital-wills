@@ -14,7 +14,7 @@ const Progress: React.FC<ProgressProps> = ({ progressPercentage, currentStep }) 
     <div className="mb-6 max-w-md mx-auto">
       <ProgressBar 
         value={progressPercentage} 
-        className="h-2 bg-digitalwill-blue" 
+        className="h-2 bg-blue-600" 
         indicatorClassName="bg-yellow-400" 
       />
       <div className="flex justify-between mt-1 text-xs">
