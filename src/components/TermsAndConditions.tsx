@@ -62,6 +62,8 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
         if (entry.isIntersecting && !hasScrolledToBottom) {
           console.log("🎯 Bottom reached! End marker is visible");
           setHasScrolledToBottom(true);
+          // Automatically check the checkbox when scrolled to bottom
+          setAcceptedTerms(true);
         }
       });
     }, options);
@@ -92,6 +94,8 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
     if (contentFitsWithoutScrolling) {
       console.log("✅ Content fits viewport, automatically enabling checkbox");
       setHasScrolledToBottom(true);
+      // Automatically check the checkbox if content fits without scrolling
+      setAcceptedTerms(true);
     }
   };
   
