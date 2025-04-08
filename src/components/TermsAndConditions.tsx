@@ -199,8 +199,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
             
             <h4 className="font-semibold mt-4">9. TERMINATION</h4>
             <p>
-              9.1 Digital Wills created on the Platform are permanent blockchain records.<br />
-              9.2 Access to the Platform may be terminated at any time without notice.
+              9.1 Digital Wills created on the Platform are permanent blockchain records.
             </p>
             
             <p className="mt-8">
