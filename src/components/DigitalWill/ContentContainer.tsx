@@ -30,7 +30,7 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   
   // Track user's navigation history to enable/disable next button
-  const [visitedSteps, setVisitedSteps] = useState<Set<STEP>>(new Set([STEP.DONOR_WALLET]));
+  const [visitedSteps, setVisitedSteps] = useState<Set<number>>(new Set([STEP.DONOR_WALLET]));
   
   // Determine current step based on completion status
   const determineStep = () => {
@@ -94,7 +94,7 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   };
   
   // Navigation functions
-  const goToStep = (step: STEP) => {
+  const goToStep = (step: number) => {
     setCurrentStep(step);
     setVisitedSteps(prev => new Set(prev).add(step));
   };
@@ -110,15 +110,15 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   const goNext = () => {
     // Only allow going next if the user has previously visited the next step
     const nextStep = currentStep + 1;
-    if (visitedSteps.has(nextStep as STEP)) {
-      setCurrentStep(nextStep as STEP);
+    if (visitedSteps.has(nextStep)) {
+      setCurrentStep(nextStep);
     }
   };
   
   // Check if next button should be enabled
   const isNextEnabled = () => {
     const nextStep = currentStep + 1;
-    return visitedSteps.has(nextStep as STEP);
+    return visitedSteps.has(nextStep);
   };
   
   // Get current step name for progress indicator
