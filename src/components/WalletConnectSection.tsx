@@ -51,12 +51,16 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
   useEffect(() => {
     if (address && donorSSN && communicationPreference.method && communicationPreference.value) {
       const performAuth = async () => {
+        console.log("🔐 Attempting wallet authentication");
         const success = await authenticateWallet();
         if (success) {
+          console.log("✅ Authentication successful, proceeding to next step");
           setHasPreviouslyAdvanced(true);
           if (onComplete) {
             onComplete();
           }
+        } else {
+          console.log("❌ Authentication failed");
         }
       };
       
@@ -66,11 +70,13 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
 
   const handleNext = () => {
     if (hasPreviouslyAdvanced && onNext) {
+      console.log("➡️ Moving to next step via button click");
       onNext();
     }
   };
   
   const handleTermsAccept = () => {
+    console.log("📝 Terms and conditions accepted");
     setTermsAccepted(true);
     setShowTerms(false);
     // Proceed with wallet connection
@@ -81,10 +87,12 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
   
   const handleConnectWallet = () => {
     if (!termsAccepted) {
+      console.log("⚠️ Attempted wallet connection without accepting terms");
       setShowTerms(true);
       toast.warning("You must accept the terms and conditions before connecting your wallet");
       return;
     }
+    console.log("🔗 Initiating wallet connection");
     connectWallet();
   };
 
@@ -153,7 +161,8 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
             </>
           )}
         </CardContent>
-        <CardFooter className="flex justify-end">
+        <CardFooter className="flex justify-between">
+          <div></div> {/* Empty div for spacing */}
           <Button
             variant="ghost"
             onClick={handleNext}

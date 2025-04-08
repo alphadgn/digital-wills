@@ -33,6 +33,7 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   const [visitedSteps, setVisitedSteps] = useState<Set<number>>(new Set([STEP.DONOR_WALLET]));
   
   const determineStep = () => {
+    console.log("🧭 Determining current step based on application state");
     if (!isAuthenticated) return STEP.DONOR_WALLET;
     if (!isMultisigCreated) return STEP.MULTISIG_WALLET;
     return STEP.BENEFICIARY_SETUP;
@@ -42,12 +43,14 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   
   // Scroll to top whenever step changes
   useEffect(() => {
+    console.log("⬆️ Scrolling to top of page on step change");
     window.scrollTo(0, 0);
   }, [currentStep, showConfirmation, showCongratulations]);
   
   useEffect(() => {
     if (!showConfirmation && !showCongratulations) {
       const newStep = determineStep();
+      console.log(`🔄 Updating current step to ${newStep}`);
       setCurrentStep(newStep);
       
       setVisitedSteps(prev => new Set(prev).add(newStep));
@@ -64,33 +67,40 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   };
   
   const progressPercentage = calculateProgress();
+  console.log(`📊 Current progress: ${progressPercentage}%`);
 
   const [showAuthError, setShowAuthError] = useState(false);
   
   const handleSuccessfulAuth = () => {
+    console.log("✅ Authentication successful");
     setShowAuthError(false);
     goToStep(STEP.MULTISIG_WALLET);
   };
 
   const handleMultisigComplete = () => {
+    console.log("✅ Multisig wallet setup complete");
     goToStep(STEP.BENEFICIARY_SETUP);
   };
   
   const handleBeneficiaryComplete = () => {
+    console.log("✅ Beneficiary setup complete");
     setShowConfirmation(true);
   };
   
   const handleEditFromConfirmation = () => {
+    console.log("🔄 Editing from confirmation");
     setShowConfirmation(false);
     goToStep(STEP.BENEFICIARY_SETUP);
   };
   
   const handleFinalSubmission = () => {
+    console.log("🎉 Final submission complete");
     setShowConfirmation(false);
     setShowCongratulations(true);
   };
   
   const goToStep = (step: number) => {
+    console.log(`🔄 Moving to step ${step}`);
     setCurrentStep(step);
     setVisitedSteps(prev => new Set(prev).add(step));
     // Scroll to top of page when changing steps
@@ -99,8 +109,10 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   
   const goBack = () => {
     if (currentStep === STEP.MULTISIG_WALLET) {
+      console.log("⬅️ Going back to donor wallet step");
       setCurrentStep(STEP.DONOR_WALLET);
     } else if (currentStep === STEP.BENEFICIARY_SETUP) {
+      console.log("⬅️ Going back to multisig wallet step");
       setCurrentStep(STEP.MULTISIG_WALLET);
     }
     // Scroll to top of page when going back
@@ -110,6 +122,7 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   const goNext = () => {
     const nextStep = currentStep + 1;
     if (visitedSteps.has(nextStep)) {
+      console.log(`➡️ Going to next step ${nextStep}`);
       setCurrentStep(nextStep);
       // Scroll to top of page when going to next step
       window.scrollTo(0, 0);

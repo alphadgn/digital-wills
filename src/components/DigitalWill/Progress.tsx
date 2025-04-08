@@ -8,9 +8,15 @@ interface ProgressProps {
 }
 
 const Progress: React.FC<ProgressProps> = ({ progressPercentage, currentStep }) => {
+  console.log(`📊 Rendering progress bar with ${progressPercentage}% completion`);
+  
   return (
     <div className="mb-6 max-w-md mx-auto">
-      <ProgressBar value={progressPercentage} className="h-2" />
+      <ProgressBar 
+        value={progressPercentage} 
+        className="h-2 bg-digitalwill-blue" 
+        indicatorClassName="bg-yellow-400" 
+      />
       <div className="flex justify-between mt-1 text-xs">
         <span className="text-gray-500">Start</span>
         <span className="text-center font-medium text-digitalwill-primary">{currentStep}</span>

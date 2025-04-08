@@ -47,12 +47,14 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
 
   const onSubmit = async (values: WalletAddressFormValues) => {
     if (!termsAccepted) {
+      console.log("⚠️ Attempted to create vault without accepting terms");
       setShowTerms(true);
       toast.warning("You must accept the terms and conditions to proceed.");
       return;
     }
 
     try {
+      console.log("🔒 Submitting wallet address for vault creation");
       setIsSubmitting(true);
       setAuthError(false);
       
@@ -60,22 +62,25 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
       const isAuthenticated = await authenticateWallet();
       
       if (!isAuthenticated) {
+        console.log("❌ Authentication failed");
         setAuthError(true);
         toast.error("Failed to authenticate wallet");
         return;
       }
       
       // Set donor wallet
+      console.log("💼 Setting donor wallet address");
       setDonorWallet(values.donorAddress);
       
       toast.success("Wallet authenticated successfully");
       
       // Call onComplete callback after successful authentication
       if (onComplete) {
+        console.log("✅ Multisig setup completed, proceeding to next step");
         onComplete();
       }
     } catch (error) {
-      console.error("Error authenticating wallet:", error);
+      console.error("❌ Error authenticating wallet:", error);
       toast.error("An error occurred during wallet authentication");
       setAuthError(true);
     } finally {
@@ -85,16 +90,19 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
 
   // Handler for retry authentication
   const handleRetryAuth = () => {
+    console.log("🔄 Retrying authentication");
     setAuthError(false);
   };
 
   // Handler for understanding confirmation
   const handleUnderstandingConfirmation = () => {
+    console.log("👍 User confirmed understanding of vault information");
     setHasUnderstandingConfirmed(true);
   };
 
   // Handler for terms acceptance
   const handleTermsAccept = () => {
+    console.log("📝 Terms and conditions accepted");
     setTermsAccepted(true);
     setShowTerms(false);
     window.scrollTo(0, 0); // Scroll to top after accepting terms
@@ -103,9 +111,11 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
   // Check terms before proceeding
   const handleCreateVault = () => {
     if (!termsAccepted) {
+      console.log("⚠️ Showing terms before vault creation");
       setShowTerms(true);
       return;
     }
+    console.log("🚀 Proceeding with vault creation");
     form.handleSubmit(onSubmit)();
   };
 
