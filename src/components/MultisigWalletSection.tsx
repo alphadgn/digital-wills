@@ -9,9 +9,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "sonner";
-import { Wallet, CheckCircle2, AlertCircle, ShieldCheck, ArrowLeft, ArrowRight } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Wallet, CheckCircle2, ShieldCheck, ArrowLeft, ArrowRight } from "lucide-react";
 import TermsAndConditions from "@/components/TermsAndConditions";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MultisigWalletSectionProps {
   onComplete?: () => void;
@@ -31,11 +31,10 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
   onComplete,
   onBack
 }) => {
-  const { setDonorWallet, authenticateWallet, address, termsAccepted } = useWallet();
+  const { setDonorWallet, address, termsAccepted } = useWallet();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [authError, setAuthError] = useState(false);
-  const [hasUnderstandingConfirmed, setHasUnderstandingConfirmed] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const isMobile = useIsMobile();
   
   const form = useForm<WalletAddressFormValues>({
     resolver: zodResolver(walletAddressSchema),
@@ -55,48 +54,24 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
     try {
       console.log("🔒 Submitting wallet address for vault creation");
       setIsSubmitting(true);
-      setAuthError(false);
-      
-      // Authenticate wallet
-      const isAuthenticated = await authenticateWallet();
-      
-      if (!isAuthenticated) {
-        console.log("❌ Authentication failed");
-        setAuthError(true);
-        toast.error("Failed to authenticate wallet");
-        return;
-      }
       
       // Set donor wallet
       console.log("💼 Setting donor wallet address");
       setDonorWallet(values.donorAddress);
       
-      toast.success("Wallet authenticated successfully");
+      toast.success("Wallet set successfully");
       
-      // Call onComplete callback after successful authentication
+      // Call onComplete callback after successful setting of wallet
       if (onComplete) {
         console.log("✅ Multisig setup completed, proceeding to next step");
         onComplete();
       }
     } catch (error) {
-      console.error("❌ Error authenticating wallet:", error);
-      toast.error("An error occurred during wallet authentication");
-      setAuthError(true);
+      console.error("❌ Error setting wallet:", error);
+      toast.error("An error occurred setting the wallet");
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Handler for retry authentication
-  const handleRetryAuth = () => {
-    console.log("🔄 Retrying authentication");
-    setAuthError(false);
-  };
-
-  // Handler for understanding confirmation
-  const handleUnderstandingConfirmation = () => {
-    console.log("👍 User confirmed understanding of vault information");
-    setHasUnderstandingConfirmed(true);
   };
 
   // Handler for terms acceptance
@@ -106,7 +81,6 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
     window.scrollTo(0, 0); // Scroll to top after accepting terms
   };
 
-  // Check terms before proceeding
   const handleCreateVault = () => {
     if (!termsAccepted) {
       console.log("⚠️ Showing terms before vault creation");
@@ -127,99 +101,59 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {authError && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Authentication Failed</AlertTitle>
-              <AlertDescription className="flex flex-col gap-2">
-                <p>Failed to authenticate wallet. Would you like to authenticate again?</p>
+          <Form {...form}>
+            <form className="space-y-4">
+              <FormField
+                control={form.control}
+                name="donorAddress"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-digitalwill-primary" />
+                      Donor Wallet Address
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="0x..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="pt-3">
                 <Button 
-                  variant="outline" 
-                  onClick={handleRetryAuth}
-                  size="sm"
-                  className="self-start"
+                  type="button" 
+                  onClick={handleCreateVault}
+                  className="w-full"
+                  disabled={isSubmitting || !termsAccepted}
                 >
-                  Try Again
+                  {isSubmitting ? "Submitting..." : "Create Secure Vault"}
                 </Button>
-              </AlertDescription>
-            </Alert>
-          )}
-          
-          {!authError && !hasUnderstandingConfirmed && (
-            <Alert className="bg-amber-50 border-amber-300">
-              <AlertCircle className="h-4 w-4 text-amber-600" />
-              <AlertTitle className="text-amber-800">Important Information</AlertTitle>
-              <AlertDescription className="text-amber-700">
-                <p className="mb-3">You are creating a multi signature wallet that you will be given the private keys to. Your belongings will be stored there for safe transfer directly to your beneficiary upon authentication.</p>
-                <p className="mb-3">If at any time you wish to change anything concerning this multi signature vault wallet you are required to authenticate using the private keys and your donor wallet.</p>
-                <p className="mb-3">If you fail to authenticate you will not be able to change, abrogate, reverse nor retain any of the contents thereof.</p>
-                <p className="font-bold">Do you understand?</p>
-                <Button 
-                  onClick={handleUnderstandingConfirmation}
-                  className="mt-3"
-                  variant="outline"
-                >
-                  Yes, I Understand
-                </Button>
-              </AlertDescription>
-            </Alert>
-          )}
-          
-          {!authError && hasUnderstandingConfirmed && (
-            <Form {...form}>
-              <form className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="donorAddress"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <ShieldCheck className="h-4 w-4 text-digitalwill-primary" />
-                        Donor Wallet Address
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="0x..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="pt-3">
-                  <Button 
-                    type="button" 
-                    onClick={handleCreateVault}
-                    className="w-full"
-                    disabled={isSubmitting || !termsAccepted}
-                  >
-                    {isSubmitting ? "Submitting..." : "Create Secure Vault"}
-                  </Button>
+              </div>
+              
+              <div className="flex items-center justify-center mt-4 text-sm">
+                <div className={`flex items-center ${termsAccepted ? 'text-green-600' : 'text-gray-500'}`}>
+                  {termsAccepted ? (
+                    <CheckCircle2 className="h-4 w-4 mr-1" />
+                  ) : null}
+                  <span>
+                    {termsAccepted ? 
+                      "Terms and conditions accepted" : 
+                      <Button variant="link" className="p-0 h-auto text-sm" onClick={() => setShowTerms(true)}>
+                        View terms and conditions
+                      </Button>
+                    }
+                  </span>
                 </div>
-                
-                <div className="flex items-center justify-center mt-4 text-sm">
-                  <div className={`flex items-center ${termsAccepted ? 'text-green-600' : 'text-gray-500'}`}>
-                    {termsAccepted ? (
-                      <CheckCircle2 className="h-4 w-4 mr-1" />
-                    ) : null}
-                    <span>
-                      {termsAccepted ? 
-                        "Terms and conditions accepted" : 
-                        <Button variant="link" className="p-0 h-auto text-sm" onClick={() => setShowTerms(true)}>
-                          View terms and conditions
-                        </Button>
-                      }
-                    </span>
-                  </div>
-                </div>
-              </form>
-            </Form>
-          )}
+              </div>
+            </form>
+          </Form>
         </CardContent>
-        <CardFooter className="flex justify-between">
+        <CardFooter className={`flex ${isMobile ? 'flex-col space-y-2' : 'justify-between'}`}>
           <Button 
             variant="outline" 
             onClick={onBack}
-            className="flex items-center gap-1"
+            className={`flex items-center gap-1 ${isMobile ? 'w-full' : ''}`}
             disabled={isSubmitting}
           >
             <ArrowLeft className="h-4 w-4" />
@@ -229,7 +163,7 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
           <Button
             variant="ghost"
             onClick={onComplete}
-            className="flex items-center gap-1"
+            className={`flex items-center gap-1 ${isMobile ? 'w-full' : ''}`}
             disabled={isSubmitting || !form.formState.isValid || !termsAccepted}
           >
             Next

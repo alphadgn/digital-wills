@@ -9,6 +9,7 @@ import SSNInputDialog from "./SSNInputDialog";
 import CommunicationPreferenceDialog from "./CommunicationPreferenceDialog";
 import TermsAndConditions from "./TermsAndConditions";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface WalletConnectSectionProps {
   onComplete?: () => void;
@@ -21,10 +22,11 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
   const [showCommunicationDialog, setShowCommunicationDialog] = useState(false);
   const [hasPreviouslyAdvanced, setHasPreviouslyAdvanced] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const isMobile = useIsMobile();
 
   // Show SSN dialog when wallet is connected
   useEffect(() => {
-    if (address) {
+    if (address && !donorSSN) {
       // Add a slight delay so the connection success is registered first
       const timer = setTimeout(() => {
         setShowSSNDialog(true);
@@ -32,7 +34,7 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
       
       return () => clearTimeout(timer);
     }
-  }, [address]);
+  }, [address, donorSSN]);
 
   // Show communication preference dialog after SSN is provided
   useEffect(() => {
@@ -58,11 +60,10 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
           if (onComplete) {
             onComplete();
           }
-        } else {
-          console.log("❌ Authentication failed");
         }
       };
       
+      // Automatically perform authentication
       performAuth();
     }
   }, [address, donorSSN, communicationPreference, authenticateWallet, onComplete]);
@@ -80,6 +81,8 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
     setShowTerms(false);
     // Proceed with wallet connection
     window.scrollTo(0, 0);
+    // Automatically connect wallet after accepting terms
+    connectWallet();
   };
   
   const handleConnectWallet = () => {
@@ -104,11 +107,11 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
           <div className={cn(
-            "w-16 h-16 rounded-full flex items-center justify-center",
+            "w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center",
             address ? "bg-green-100" : "bg-gray-100"
           )}>
             <Wallet className={cn(
-              "h-8 w-8",
+              "h-7 w-7 md:h-8 md:w-8",
               address ? "text-green-500" : "text-gray-400"
             )} />
           </div>
@@ -127,8 +130,11 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
           </div>
           
           {address ? (
-            <div className="p-3 bg-gray-100 rounded-md text-sm font-mono">
-              {address.substring(0, 16)}...{address.substring(address.length - 6)}
+            <div className="p-3 bg-gray-100 rounded-md text-sm font-mono break-all">
+              {isMobile ? 
+                `${address.substring(0, 10)}...${address.substring(address.length - 6)}` : 
+                `${address.substring(0, 16)}...${address.substring(address.length - 6)}`
+              }
             </div>
           ) : (
             <>
@@ -161,8 +167,7 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
             </>
           )}
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <div></div> {/* Empty div for spacing */}
+        <CardFooter className="flex justify-end">
           <Button
             variant="ghost"
             onClick={handleNext}
