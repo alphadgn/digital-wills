@@ -135,8 +135,8 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
             <>
               <Button 
                 onClick={handleConnectWallet} 
-                disabled={isConnecting}
-                className="w-full"
+                disabled={isConnecting || !termsAccepted}
+                className={`w-full ${!termsAccepted ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 {isConnecting ? "Connecting..." : "Connect ApeChain Wallet"}
               </Button>

@@ -192,7 +192,7 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
                     type="button" 
                     onClick={handleCreateVault}
                     className="w-full"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !termsAccepted}
                   >
                     {isSubmitting ? "Submitting..." : "Create Secure Vault"}
                   </Button>
