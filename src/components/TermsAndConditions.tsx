@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -61,10 +62,6 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
         if (entry.isIntersecting && !hasScrolledToBottom) {
           console.log("🎯 Bottom reached! End marker is visible");
           setHasScrolledToBottom(true);
-          
-          // Auto-check the checkbox when reaching the bottom
-          setAcceptedTerms(true);
-          console.log("✅ Auto-checked terms acceptance checkbox");
         }
       });
     }, options);
@@ -95,7 +92,6 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
     if (contentFitsWithoutScrolling) {
       console.log("✅ Content fits viewport, automatically enabling checkbox");
       setHasScrolledToBottom(true);
-      setAcceptedTerms(true);
     }
   };
   
@@ -227,13 +223,19 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
               id="terms" 
               checked={acceptedTerms}
               onCheckedChange={handleCheckboxChange}
+              disabled={!hasScrolledToBottom}
               data-testid="terms-checkbox"
             />
             <label 
               htmlFor="terms" 
-              className="text-sm text-gray-700"
+              className={`text-sm ${!hasScrolledToBottom ? "text-gray-400" : "text-gray-700"}`}
             >
               I have read and agree to the terms and conditions
+              {!hasScrolledToBottom && (
+                <span className="block text-amber-500 text-xs mt-1">
+                  Please scroll to the bottom first
+                </span>
+              )}
             </label>
           </div>
           

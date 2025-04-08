@@ -16,12 +16,11 @@ interface WalletConnectSectionProps {
 }
 
 const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete, onNext }) => {
-  const { address, connectWallet, isConnecting, donorSSN, communicationPreference, authenticateWallet, isAuthenticated } = useWallet();
+  const { address, connectWallet, isConnecting, donorSSN, communicationPreference, authenticateWallet, isAuthenticated, termsAccepted, setTermsAccepted } = useWallet();
   const [showSSNDialog, setShowSSNDialog] = useState(false);
   const [showCommunicationDialog, setShowCommunicationDialog] = useState(false);
   const [hasPreviouslyAdvanced, setHasPreviouslyAdvanced] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Show SSN dialog when wallet is connected
   useEffect(() => {

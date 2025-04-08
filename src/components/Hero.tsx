@@ -1,12 +1,11 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/contexts/WalletContext";
 import TermsAndConditions from "./TermsAndConditions";
 
 const Hero = () => {
-  const { connectWallet, isConnecting, setTermsAccepted } = useWallet();
-  const [hasConsented, setHasConsented] = useState(false);
+  const { connectWallet, isConnecting, termsAccepted, setTermsAccepted } = useWallet();
   const [termsOpen, setTermsOpen] = useState(false);
   const [showWalletAnimation, setShowWalletAnimation] = useState(false);
   
@@ -15,13 +14,12 @@ const Hero = () => {
   };
   
   const handleAcceptTerms = () => {
-    setHasConsented(true);
     // Update the global terms acceptance state
     setTermsAccepted(true);
   };
   
   const handleConnectWallet = async () => {
-    if (hasConsented) {
+    if (termsAccepted) {
       // Show wallet connection animation
       setShowWalletAnimation(true);
       
@@ -47,8 +45,8 @@ const Hero = () => {
           <Button 
             size="lg" 
             onClick={handleConnectWallet}
-            disabled={isConnecting || !hasConsented || showWalletAnimation}
-            className={`${hasConsented ? 'bg-digitalwill-primary hover:bg-digitalwill-primary/90' : 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed'}`}
+            disabled={isConnecting || !termsAccepted || showWalletAnimation}
+            className={`${termsAccepted ? 'bg-digitalwill-primary hover:bg-digitalwill-primary/90' : 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed'}`}
           >
             {showWalletAnimation ? (
               <span className="flex items-center gap-2">
@@ -70,7 +68,7 @@ const Hero = () => {
           </Button>
         </div>
         
-        {!hasConsented && (
+        {!termsAccepted && (
           <p className="text-amber-600 mt-4 text-sm">
             Please review and accept the Terms & Conditions before connecting your wallet
           </p>

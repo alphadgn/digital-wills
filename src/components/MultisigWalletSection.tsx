@@ -31,12 +31,11 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
   onComplete,
   onBack
 }) => {
-  const { setDonorWallet, authenticateWallet, address } = useWallet();
+  const { setDonorWallet, authenticateWallet, address, termsAccepted } = useWallet();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState(false);
   const [hasUnderstandingConfirmed, setHasUnderstandingConfirmed] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
   
   const form = useForm<WalletAddressFormValues>({
     resolver: zodResolver(walletAddressSchema),
@@ -103,7 +102,6 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
   // Handler for terms acceptance
   const handleTermsAccept = () => {
     console.log("📝 Terms and conditions accepted");
-    setTermsAccepted(true);
     setShowTerms(false);
     window.scrollTo(0, 0); // Scroll to top after accepting terms
   };
