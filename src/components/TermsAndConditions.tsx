@@ -209,43 +209,47 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
             <div 
               ref={endMarkerRef}
               id="terms-end-marker" 
-              className="h-12 border-t border-gray-200 mt-4 pt-2 text-xs text-gray-400 text-center"
+              className="mt-8 pt-2"
             >
-              End of Terms & Conditions
+              <div className="flex flex-col space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="terms-checkbox" 
+                    checked={acceptedTerms}
+                    onCheckedChange={handleCheckboxChange}
+                    disabled={!hasScrolledToBottom}
+                    data-testid="terms-checkbox"
+                  />
+                  <label 
+                    htmlFor="terms-checkbox" 
+                    className={`text-sm ${!hasScrolledToBottom ? "text-gray-400" : "text-gray-700"}`}
+                  >
+                    I have read and agree to the terms and conditions
+                    {!hasScrolledToBottom && (
+                      <span className="block text-amber-500 text-xs mt-1">
+                        Please scroll to the bottom first
+                      </span>
+                    )}
+                  </label>
+                </div>
+                
+                <Button 
+                  onClick={handleAccept} 
+                  disabled={!acceptedTerms}
+                  className="w-full"
+                  data-testid="accept-terms-button"
+                >
+                  Accept Terms
+                </Button>
+              </div>
             </div>
           </div>
         </ScrollArea>
         
-        <DialogFooter className="flex flex-col sm:flex-row gap-2 items-center pt-4">
-          <div className="flex items-center space-x-2 mb-4 sm:mb-0">
-            <Checkbox 
-              id="terms" 
-              checked={acceptedTerms}
-              onCheckedChange={handleCheckboxChange}
-              disabled={!hasScrolledToBottom}
-              data-testid="terms-checkbox"
-            />
-            <label 
-              htmlFor="terms" 
-              className={`text-sm ${!hasScrolledToBottom ? "text-gray-400" : "text-gray-700"}`}
-            >
-              I have read and agree to the terms and conditions
-              {!hasScrolledToBottom && (
-                <span className="block text-amber-500 text-xs mt-1">
-                  Please scroll to the bottom first
-                </span>
-              )}
-            </label>
-          </div>
-          
-          <Button 
-            onClick={handleAccept} 
-            disabled={!acceptedTerms}
-            className="w-full sm:w-auto"
-            data-testid="accept-terms-button"
-          >
-            Accept Terms
-          </Button>
+        <DialogFooter className="pt-4">
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
