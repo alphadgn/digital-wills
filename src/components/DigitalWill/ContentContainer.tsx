@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import StepIndicator, { STEP } from "./StepIndicator";
@@ -38,6 +39,11 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   };
   
   const [currentStep, setCurrentStep] = useState(determineStep());
+  
+  // Scroll to top whenever step changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentStep, showConfirmation, showCongratulations]);
   
   useEffect(() => {
     if (!showConfirmation && !showCongratulations) {
@@ -87,6 +93,8 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   const goToStep = (step: number) => {
     setCurrentStep(step);
     setVisitedSteps(prev => new Set(prev).add(step));
+    // Scroll to top of page when changing steps
+    window.scrollTo(0, 0);
   };
   
   const goBack = () => {
@@ -95,12 +103,16 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
     } else if (currentStep === STEP.BENEFICIARY_SETUP) {
       setCurrentStep(STEP.MULTISIG_WALLET);
     }
+    // Scroll to top of page when going back
+    window.scrollTo(0, 0);
   };
   
   const goNext = () => {
     const nextStep = currentStep + 1;
     if (visitedSteps.has(nextStep)) {
       setCurrentStep(nextStep);
+      // Scroll to top of page when going to next step
+      window.scrollTo(0, 0);
     }
   };
   

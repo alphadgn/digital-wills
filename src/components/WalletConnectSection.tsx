@@ -7,6 +7,8 @@ import { Wallet, Check, X, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SSNInputDialog from "./SSNInputDialog";
 import CommunicationPreferenceDialog from "./CommunicationPreferenceDialog";
+import TermsAndConditions from "./TermsAndConditions";
+import { toast } from "sonner";
 
 interface WalletConnectSectionProps {
   onComplete?: () => void;
@@ -18,6 +20,8 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
   const [showSSNDialog, setShowSSNDialog] = useState(false);
   const [showCommunicationDialog, setShowCommunicationDialog] = useState(false);
   const [hasPreviouslyAdvanced, setHasPreviouslyAdvanced] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Show SSN dialog when wallet is connected
   useEffect(() => {
@@ -65,6 +69,24 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
       onNext();
     }
   };
+  
+  const handleTermsAccept = () => {
+    setTermsAccepted(true);
+    setShowTerms(false);
+    // Proceed with wallet connection
+    connectWallet();
+    // Scroll to top of page
+    window.scrollTo(0, 0);
+  };
+  
+  const handleConnectWallet = () => {
+    if (!termsAccepted) {
+      setShowTerms(true);
+      toast.warning("You must accept the terms and conditions before connecting your wallet");
+      return;
+    }
+    connectWallet();
+  };
 
   return (
     <>
@@ -104,13 +126,31 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
               {address.substring(0, 16)}...{address.substring(address.length - 6)}
             </div>
           ) : (
-            <Button 
-              onClick={() => connectWallet()} 
-              disabled={isConnecting}
-              className="w-full"
-            >
-              {isConnecting ? "Connecting..." : "Connect ApeChain Wallet"}
-            </Button>
+            <>
+              <Button 
+                onClick={handleConnectWallet} 
+                disabled={isConnecting}
+                className="w-full"
+              >
+                {isConnecting ? "Connecting..." : "Connect ApeChain Wallet"}
+              </Button>
+              
+              <div className="text-xs text-gray-500 text-center">
+                {termsAccepted ? (
+                  <span className="flex items-center justify-center gap-1 text-green-600">
+                    <Check className="h-3 w-3" /> Terms accepted
+                  </span>
+                ) : (
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto text-xs"
+                    onClick={() => setShowTerms(true)}
+                  >
+                    View terms and conditions
+                  </Button>
+                )}
+              </div>
+            </>
           )}
         </CardContent>
         <CardFooter className="flex justify-end">
@@ -140,6 +180,13 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
         open={showCommunicationDialog}
         onOpenChange={setShowCommunicationDialog}
         onConfirm={() => setShowCommunicationDialog(false)}
+      />
+      
+      {/* Terms and Conditions Dialog */}
+      <TermsAndConditions 
+        open={showTerms}
+        onOpenChange={setShowTerms}
+        onAccept={handleTermsAccept}
       />
     </>
   );

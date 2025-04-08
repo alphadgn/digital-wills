@@ -25,8 +25,8 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
   onOpenChange,
   onAccept
 }) => {
-  const [hasScrolledToBottom, setHasScrolledToBottom] = React.useState(false);
-  const [acceptedTerms, setAcceptedTerms] = React.useState(false);
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const scrollContentRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
@@ -99,6 +99,8 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
     console.log("✅ Terms accepted, calling onAccept callback");
     onAccept();
     onOpenChange(false);
+    // Scroll to top of page
+    window.scrollTo(0, 0);
   };
   
   const handleCheckboxChange = (checked: boolean) => {
