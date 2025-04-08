@@ -62,8 +62,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
         if (entry.isIntersecting && !hasScrolledToBottom) {
           console.log("🎯 Bottom reached! End marker is visible");
           setHasScrolledToBottom(true);
-          // Automatically check the checkbox when scrolled to bottom
-          setAcceptedTerms(true);
+          // Removed automatic checkbox selection
         }
       });
     }, options);
@@ -92,10 +91,9 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
     console.log(`${contentFitsWithoutScrolling ? "📱 Content fits without scrolling" : "📜 Content requires scrolling"}`);
     
     if (contentFitsWithoutScrolling) {
-      console.log("✅ Content fits viewport, automatically enabling checkbox");
+      console.log("✅ Content fits viewport, marking as scrolled to bottom");
       setHasScrolledToBottom(true);
-      // Automatically check the checkbox if content fits without scrolling
-      setAcceptedTerms(true);
+      // Removed automatic checkbox selection
     }
   };
   
@@ -105,18 +103,6 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
       // Add a small delay to ensure content is rendered
       const timer = setTimeout(() => {
         checkContentHeight();
-        
-        // Force enable the checkbox and button after a reasonable time
-        // This ensures users can accept terms even if scroll detection fails
-        const forceEnableTimer = setTimeout(() => {
-          if (!acceptedTerms) {
-            console.log("⏱️ Force enabling terms acceptance after timeout");
-            setHasScrolledToBottom(true);
-            setAcceptedTerms(true);
-          }
-        }, 5000); // 5 seconds timeout
-
-        return () => clearTimeout(forceEnableTimer);
       }, CONTENT_CHECK_DELAY_MS);
       
       // Also check on window resize
@@ -126,7 +112,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
         window.removeEventListener('resize', checkContentHeight);
       };
     }
-  }, [open, acceptedTerms]);
+  }, [open]);
   
   const handleAccept = () => {
     console.log("✅ Terms accepted, calling onAccept callback");
@@ -141,21 +127,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
     setAcceptedTerms(checked);
   };
 
-  // Force enable button after a delay
-  useEffect(() => {
-    if (!open) return;
-    
-    console.log("Setting up failsafe timer for button activation");
-    const timer = setTimeout(() => {
-      if (!acceptedTerms) {
-        console.log("🔓 Activating accept button via failsafe timer");
-        setAcceptedTerms(true);
-        setHasScrolledToBottom(true);
-      }
-    }, 3000); // 3 seconds
-    
-    return () => clearTimeout(timer);
-  }, [open, acceptedTerms]);
+  // Removed failsafe timer that automatically enables the checkbox
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -251,12 +223,12 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
                     id="terms-checkbox" 
                     checked={acceptedTerms}
                     onCheckedChange={handleCheckboxChange}
-                    disabled={false} // Always allow manual checking
+                    disabled={!hasScrolledToBottom} // Only allow checking after scrolling to bottom
                     data-testid="terms-checkbox"
                   />
                   <label 
                     htmlFor="terms-checkbox" 
-                    className="text-sm text-gray-700 cursor-pointer"
+                    className={`text-sm ${!hasScrolledToBottom ? "text-gray-400" : "text-gray-700 cursor-pointer"}`}
                   >
                     I have read and agree to the terms and conditions
                     {!hasScrolledToBottom && (
