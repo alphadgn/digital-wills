@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import StepIndicator, { STEP } from "./StepIndicator";
@@ -9,6 +8,7 @@ import BeneficiarySection from "./BeneficiarySection";
 import WillConfirmation from "./WillConfirmation";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import CongratulationsScreen from "../CongratulationsScreen";
 
 interface ContentContainerProps {
   currentStep?: number;
@@ -26,13 +26,11 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
     setShowCompletionBanner
   } = useWallet();
   
-  // Add a new state for the confirmation step
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showCongratulations, setShowCongratulations] = useState(false);
   
-  // Track user's navigation history to enable/disable next button
   const [visitedSteps, setVisitedSteps] = useState<Set<number>>(new Set([STEP.DONOR_WALLET]));
   
-  // Determine current step based on completion status
   const determineStep = () => {
     if (!isAuthenticated) return STEP.DONOR_WALLET;
     if (!isMultisigCreated) return STEP.MULTISIG_WALLET;
@@ -41,59 +39,51 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   
   const [currentStep, setCurrentStep] = useState(determineStep());
   
-  // Update current step when wallet status changes
   useEffect(() => {
-    if (!showConfirmation) {
+    if (!showConfirmation && !showCongratulations) {
       const newStep = determineStep();
       setCurrentStep(newStep);
       
-      // Mark this step as visited
       setVisitedSteps(prev => new Set(prev).add(newStep));
     }
-  }, [isAuthenticated, donorWallet, isMultisigCreated, beneficiaryWallet, showConfirmation]);
+  }, [isAuthenticated, donorWallet, isMultisigCreated, beneficiaryWallet, showConfirmation, showCongratulations]);
   
-  // Calculate progress percentage
   const calculateProgress = () => {
     if (!isAuthenticated) return 0;
     if (!isMultisigCreated) return 25;
     if (!beneficiaryWallet) return 50;
     if (!showConfirmation) return 75;
+    if (!showCongratulations) return 90;
     return 100;
   };
   
   const progressPercentage = calculateProgress();
 
-  // Authentication error handling
   const [showAuthError, setShowAuthError] = useState(false);
   
-  // Handle successful authentication
   const handleSuccessfulAuth = () => {
     setShowAuthError(false);
     goToStep(STEP.MULTISIG_WALLET);
   };
 
-  // Handle multisig wallet creation completion
   const handleMultisigComplete = () => {
     goToStep(STEP.BENEFICIARY_SETUP);
   };
   
-  // Handle beneficiary setup completion
   const handleBeneficiaryComplete = () => {
     setShowConfirmation(true);
   };
   
-  // Handle editing from confirmation page
   const handleEditFromConfirmation = () => {
     setShowConfirmation(false);
     goToStep(STEP.BENEFICIARY_SETUP);
   };
   
-  // Handle final submission
   const handleFinalSubmission = () => {
-    setShowCompletionBanner(true);
+    setShowConfirmation(false);
+    setShowCongratulations(true);
   };
   
-  // Navigation functions
   const goToStep = (step: number) => {
     setCurrentStep(step);
     setVisitedSteps(prev => new Set(prev).add(step));
@@ -108,31 +98,32 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   };
   
   const goNext = () => {
-    // Only allow going next if the user has previously visited the next step
     const nextStep = currentStep + 1;
     if (visitedSteps.has(nextStep)) {
       setCurrentStep(nextStep);
     }
   };
   
-  // Check if next button should be enabled
   const isNextEnabled = () => {
     const nextStep = currentStep + 1;
     return visitedSteps.has(nextStep);
   };
   
-  // Get current step name for progress indicator
   const getCurrentStepName = () => {
+    if (showCongratulations) return "Completed";
     if (showConfirmation) return "Final Review";
     if (currentStep === STEP.DONOR_WALLET) return "Donor Information";
     if (currentStep === STEP.MULTISIG_WALLET) return "Multisig Setup";
     return "Beneficiary Setup";
   };
   
-  // Show appropriate section based on current step
   const renderCurrentSection = () => {
     if (showCompletionBanner) {
-      return null; // CompletionBanner will be shown by the app
+      return null;
+    }
+    
+    if (showCongratulations) {
+      return <CongratulationsScreen />;
     }
     
     if (showConfirmation) {
@@ -188,21 +179,20 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
         </h2>
         
         <div className="space-y-8">
-          {/* Progress indicator */}
           <Progress 
             progressPercentage={progressPercentage} 
             currentStep={getCurrentStepName()}
           />
           
-          {/* Step indicator */}
-          <StepIndicator 
-            currentStep={currentStep} 
-            donorWallet={donorWallet}
-            isMultisigCreated={isMultisigCreated}
-            beneficiaryWallet={beneficiaryWallet}
-          />
+          {!showCongratulations && (
+            <StepIndicator 
+              currentStep={currentStep} 
+              donorWallet={donorWallet}
+              isMultisigCreated={isMultisigCreated}
+              beneficiaryWallet={beneficiaryWallet}
+            />
+          )}
           
-          {/* Current section content */}
           <div className="mt-8">
             {renderCurrentSection()}
           </div>

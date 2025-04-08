@@ -73,7 +73,7 @@ const WillConfirmation: React.FC<WillConfirmationProps> = ({ onEdit, onComplete 
 
   if (showPrivateKeys) {
     if (dismissCount === 0) {
-      // First screen: Show private keys
+      // First screen: Show multisig wallet details only (no beneficiary keys)
       return (
         <Card className="w-full max-w-3xl mx-auto">
           <CardHeader>
@@ -135,38 +135,6 @@ const WillConfirmation: React.FC<WillConfirmationProps> = ({ onEdit, onComplete 
                     variant="outline" 
                     size="sm"
                     onClick={() => handleCopyToClipboard(productKeys.multisig)}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="flex items-center gap-2 text-lg font-semibold border-b pb-2 mb-2">
-                  <Key className="h-5 w-5 text-digitalwill-primary" /> Beneficiary Seed Phrase
-                </h3>
-                <div className="flex justify-between items-center p-2 bg-white border rounded-md">
-                  <span className="text-sm font-mono break-all">{seedPhrases.beneficiary}</span>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleCopyToClipboard(seedPhrases.beneficiary)}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="flex items-center gap-2 text-lg font-semibold border-b pb-2 mb-2">
-                  <Key className="h-5 w-5 text-digitalwill-primary" /> Beneficiary Product Key
-                </h3>
-                <div className="flex justify-between items-center p-2 bg-white border rounded-md font-mono">
-                  <span className="text-sm break-all">{productKeys.beneficiary}</span>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleCopyToClipboard(productKeys.beneficiary)}
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
