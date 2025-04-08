@@ -8,8 +8,12 @@ import { cn } from "@/lib/utils";
 import SSNInputDialog from "./SSNInputDialog";
 import CommunicationPreferenceDialog from "./CommunicationPreferenceDialog";
 
-const WalletConnectSection = () => {
-  const { address, connectWallet, isConnecting, donorSSN, communicationPreference } = useWallet();
+interface WalletConnectSectionProps {
+  onComplete?: () => void;
+}
+
+const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete }) => {
+  const { address, connectWallet, isConnecting, donorSSN, communicationPreference, authenticateWallet, isAuthenticated } = useWallet();
   const [showSSNDialog, setShowSSNDialog] = useState(false);
   const [showCommunicationDialog, setShowCommunicationDialog] = useState(false);
 
@@ -36,6 +40,20 @@ const WalletConnectSection = () => {
       return () => clearTimeout(timer);
     }
   }, [donorSSN, communicationPreference.method]);
+
+  // Trigger authentication and completion when communication preferences are set
+  useEffect(() => {
+    if (address && donorSSN && communicationPreference.method && communicationPreference.value) {
+      const performAuth = async () => {
+        const success = await authenticateWallet();
+        if (success && onComplete) {
+          onComplete();
+        }
+      };
+      
+      performAuth();
+    }
+  }, [address, donorSSN, communicationPreference, authenticateWallet, onComplete]);
 
   return (
     <>

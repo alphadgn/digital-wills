@@ -58,6 +58,7 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
       
       toast.success("Wallet authenticated successfully");
       
+      // Call onComplete callback after successful authentication
       if (onComplete) {
         onComplete();
       }

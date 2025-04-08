@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import StepIndicator, { STEP } from "./StepIndicator";
 import Progress from "./Progress";
@@ -25,16 +25,21 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   
   // Determine current step based on completion status
   const determineStep = () => {
-    if (!donorWallet) return STEP.DONOR_WALLET;
+    if (!isAuthenticated) return STEP.DONOR_WALLET;
     if (!isMultisigCreated) return STEP.MULTISIG_WALLET;
     return STEP.BENEFICIARY_SETUP;
   };
   
-  const currentStep = determineStep();
+  const [currentStep, setCurrentStep] = useState(determineStep());
+  
+  // Update current step when wallet status changes
+  useEffect(() => {
+    setCurrentStep(determineStep());
+  }, [isAuthenticated, donorWallet, isMultisigCreated, beneficiaryWallet]);
   
   // Calculate progress percentage
   const calculateProgress = () => {
-    if (!donorWallet) return 0;
+    if (!isAuthenticated) return 0;
     if (!isMultisigCreated) return 33;
     if (!beneficiaryWallet) return 66;
     return 100;
@@ -44,6 +49,17 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
 
   // Authentication error handling
   const [showAuthError, setShowAuthError] = useState(false);
+  
+  // Handle successful authentication
+  const handleSuccessfulAuth = () => {
+    setShowAuthError(false);
+    setCurrentStep(STEP.MULTISIG_WALLET);
+  };
+
+  // Handle multisig wallet creation completion
+  const handleMultisigComplete = () => {
+    setCurrentStep(STEP.BENEFICIARY_SETUP);
+  };
   
   // Show appropriate section based on current step
   const renderCurrentSection = () => {
@@ -61,11 +77,11 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
     
     switch (currentStep) {
       case STEP.DONOR_WALLET:
-        return <WalletConnectSection />;
+        return <WalletConnectSection onComplete={handleSuccessfulAuth} />;
       case STEP.MULTISIG_WALLET:
         return (
           <MultisigWalletSection 
-            onComplete={() => {}}
+            onComplete={handleMultisigComplete}
           />
         );
       case STEP.BENEFICIARY_SETUP:
@@ -73,7 +89,7 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
           <BeneficiarySection />
         );
       default:
-        return <WalletConnectSection />;
+        return <WalletConnectSection onComplete={handleSuccessfulAuth} />;
     }
   };
 
