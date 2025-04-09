@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
@@ -131,8 +130,7 @@ const BeneficiarySection: React.FC<BeneficiarySectionProps> = ({ onProceedToConf
             <span className="flex items-center gap-1">
               <AlertCircle className="h-4 w-4" /> Important:
             </span>
-            Assets will be transferred to this beneficiary wallet only after verification of: (1) death certificate matching your SSN, 
-            (2) beneficiary SSN verification, and (3) beneficiary wallet authentication.
+            Assets will be transferred to this beneficiary wallet only after authentication of required sensitive information.
           </p>
         </div>
       </CardContent>

@@ -88,7 +88,7 @@ const CommunicationPreferenceDialog = ({
             <p>How would you like to be notified in case someone attempts to recover your assets?</p>
             <p className="text-amber-600 flex items-center gap-2">
               <AlertCircle className="h-4 w-4" />
-              <span>Required for donor wallet authentication</span>
+              <span>Required for premature incident communication only.</span>
             </p>
           </DialogDescription>
         </DialogHeader>
