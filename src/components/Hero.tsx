@@ -70,7 +70,7 @@ const Hero = () => {
         
         {!termsAccepted && (
           <p className="text-amber-600 mt-4 text-sm">
-            Please review and accept the Terms & Conditions before connecting your wallet
+            Please review and accept the Terms & Conditions to continue
           </p>
         )}
       </div>

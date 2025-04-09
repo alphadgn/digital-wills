@@ -61,14 +61,14 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
     if (address && donorSSN && communicationPreference.method && communicationPreference.value) {
       const performAuth = async () => {
         console.log("🔐 Attempting wallet authentication");
+        // Silently authenticate without showing error messages
         const success = await authenticateWallet();
-        if (success) {
-          console.log("✅ Authentication successful, proceeding to next step");
-          setHasPreviouslyAdvanced(true);
-          setNextEnabled(true);
-          if (onComplete) {
-            onComplete();
-          }
+        console.log("✅ Authentication completed");
+        setHasPreviouslyAdvanced(true);
+        setNextEnabled(true);
+        
+        if (success && onComplete) {
+          onComplete();
         }
       };
       

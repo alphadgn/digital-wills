@@ -3,6 +3,7 @@ import React from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Wallet } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const { address } = useWallet();
@@ -21,11 +22,17 @@ const Header = () => {
         )}
       </div>
       
-      <div className="flex items-center gap-2 flex-1 justify-center">
+      <div className="flex items-center gap-2 flex-1 justify-center relative">
         <Wallet className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-digitalwill-primary`} />
         <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold bg-gradient-to-r from-digitalwill-primary to-digitalwill-secondary bg-clip-text text-transparent`}>
           DigitalWills.io
         </h1>
+        <Link 
+          to="/sign-in"
+          className="absolute right-0 top-1/2 transform -translate-y-1/2 text-xs text-blue-600 hover:text-blue-800 font-medium"
+        >
+          Sign In
+        </Link>
       </div>
       
       <div className="flex-1"></div>
