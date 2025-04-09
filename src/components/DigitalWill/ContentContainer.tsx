@@ -162,9 +162,6 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
     if (showConfirmation) {
       return (
         <div className="relative">
-          <div className="absolute top-0 right-0 z-10">
-            <RestartButton />
-          </div>
           <WillConfirmation 
             onEdit={handleEditFromConfirmation}
             onComplete={handleFinalSubmission}
@@ -189,9 +186,6 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
       case STEP.BENEFICIARY_SETUP:
         return (
           <div className="relative">
-            <div className="absolute top-0 right-0 z-10">
-              <RestartButton />
-            </div>
             <BeneficiarySection 
               onProceedToConfirmation={handleBeneficiaryComplete}
             />
@@ -209,12 +203,6 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
           <h2 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-center`}>
             Digital Will Creation
           </h2>
-          
-          {!showCongratulations && currentStep > STEP.DONOR_WALLET && (
-            <div className="hidden sm:block">
-              <RestartButton />
-            </div>
-          )}
         </div>
         
         <div className="space-y-6 sm:space-y-8">
@@ -235,6 +223,15 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
           <div className="mt-6 sm:mt-8">
             {renderCurrentSection()}
           </div>
+          
+          {!showCongratulations && currentStep > STEP.DONOR_WALLET && (
+            <div className="flex justify-center mt-12">
+              <RestartButton 
+                variant="outline"
+                className="text-gray-500"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -3,11 +3,14 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/contexts/WalletContext";
 import TermsAndConditions from "./TermsAndConditions";
+import { Badge, Award } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
   const { connectWallet, isConnecting, termsAccepted, setTermsAccepted } = useWallet();
   const [termsOpen, setTermsOpen] = useState(false);
   const [showWalletAnimation, setShowWalletAnimation] = useState(false);
+  const navigate = useNavigate();
   
   const handleOpenTerms = () => {
     setTermsOpen(true);
@@ -30,6 +33,10 @@ const Hero = () => {
         });
       }, 2000);
     }
+  };
+
+  const handleInitiateClaim = () => {
+    navigate('/asset-recovery');
   };
   
   return (
@@ -73,6 +80,18 @@ const Hero = () => {
             Please review and accept the Terms & Conditions to continue
           </p>
         )}
+
+        <div className="mt-8 flex justify-center">
+          <Button 
+            size="lg" 
+            variant="secondary"
+            onClick={handleInitiateClaim}
+            className="bg-amber-500 hover:bg-amber-600 text-white"
+          >
+            <Award className="mr-2 h-5 w-5" />
+            Initiate Asset Claim
+          </Button>
+        </div>
       </div>
       
       <TermsAndConditions 

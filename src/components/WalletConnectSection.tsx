@@ -9,7 +9,6 @@ import CommunicationPreferenceDialog from "./CommunicationPreferenceDialog";
 import TermsAndConditions from "./TermsAndConditions";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
-import RestartButton from "./RestartButton";
 
 interface WalletConnectSectionProps {
   onComplete?: () => void;
@@ -25,7 +24,6 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
   const [nextEnabled, setNextEnabled] = useState(false);
   const isMobile = useIsMobile();
 
-  // Show SSN dialog when wallet is connected
   useEffect(() => {
     if (address && !donorSSN) {
       const timer = setTimeout(() => {
@@ -36,7 +34,6 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
     }
   }, [address, donorSSN]);
 
-  // Show communication preference dialog after SSN is provided
   useEffect(() => {
     if (donorSSN && !communicationPreference.method) {
       const timer = setTimeout(() => {
@@ -47,14 +44,12 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
     }
   }, [donorSSN, communicationPreference.method]);
 
-  // Enable Next button when wallet is connected
   useEffect(() => {
     if (address) {
       setNextEnabled(true);
     }
   }, [address]);
 
-  // Trigger authentication and completion when communication preferences are set
   useEffect(() => {
     if (address && donorSSN && communicationPreference.method && communicationPreference.value) {
       const performAuth = async () => {
@@ -101,10 +96,7 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
 
   return (
     <>
-      <Card className="w-full max-w-md mx-auto relative">
-        <div className="absolute top-4 right-4">
-          <RestartButton size="sm" />
-        </div>
+      <Card className="w-full max-w-md mx-auto">
         <CardHeader>
           <CardTitle className="text-center">Connect Your Wallet</CardTitle>
           <CardDescription className="text-center">
