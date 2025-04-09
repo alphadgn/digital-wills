@@ -11,16 +11,44 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+const walletSchema = z.object({
+  walletAddress: z.string()
+    .min(42, "Wallet address must be at least 42 characters")
+    .max(44, "Wallet address must not exceed 44 characters")
+    .regex(/^0x[a-fA-F0-9]{40}$/, "Must be a valid Ethereum wallet address starting with 0x")
+});
+
+type WalletFormValues = z.infer<typeof walletSchema>;
 
 const SignIn = () => {
-  const { connectWallet, isConnecting, usedWallets, address } = useWallet();
+  const { connectWallet, isConnecting, usedWallets, address, setAddress } = useWallet();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [showError, setShowError] = useState(false);
   const navigate = useNavigate();
   
-  const handleSignIn = async () => {
-    if (!address) {
-      toast.error("Please connect your wallet first");
+  const form = useForm<WalletFormValues>({
+    resolver: zodResolver(walletSchema),
+    defaultValues: {
+      walletAddress: ""
+    }
+  });
+
+  const handleSubmitWallet = (values: WalletFormValues) => {
+    setAddress(values.walletAddress);
+    handleSignIn(values.walletAddress);
+  };
+  
+  const handleSignIn = async (walletAddress?: string) => {
+    const addressToCheck = walletAddress || address;
+    
+    if (!addressToCheck) {
+      toast.error("Please enter a wallet address first");
       return;
     }
     
@@ -30,7 +58,7 @@ const SignIn = () => {
     // Simulate checking the database for the wallet
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    if (usedWallets.includes(address)) {
+    if (usedWallets.includes(addressToCheck)) {
       toast.success("Successfully signed in");
       navigate("/dashboard");
     } else {
@@ -49,7 +77,7 @@ const SignIn = () => {
           <CardHeader>
             <CardTitle className="text-center">Sign In</CardTitle>
             <CardDescription className="text-center">
-              Connect your ApeChain wallet to sign in to your account
+              Enter your ApeChain wallet address to sign in to your account
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-6">
@@ -66,28 +94,36 @@ const SignIn = () => {
               <Wallet className="h-8 w-8 text-gray-400" />
             </div>
             
-            {!address ? (
-              <Button
-                onClick={connectWallet}
-                disabled={isConnecting}
-                className="w-full"
-              >
-                {isConnecting ? "Connecting..." : "Connect Wallet"}
-              </Button>
-            ) : (
-              <>
-                <div className="p-3 bg-gray-100 rounded-md text-sm font-mono w-full text-center break-all">
-                  {address}
-                </div>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSubmitWallet)} className="w-full space-y-4">
+                <FormField
+                  control={form.control}
+                  name="walletAddress"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Wallet Address</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="0x..." 
+                          {...field} 
+                          className="font-mono"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
                 <Button
-                  onClick={handleSignIn}
-                  disabled={isAuthenticating}
+                  type="submit"
+                  disabled={isAuthenticating || !form.formState.isValid}
                   className="w-full"
                 >
-                  {isAuthenticating ? "Authenticating..." : "Sign In"}
+                  {isAuthenticating ? "Authenticating..." : "Sign In with Wallet"}
                 </Button>
-              </>
-            )}
+              </form>
+            </Form>
+            
           </CardContent>
           <CardFooter className="flex justify-center">
             <p className="text-sm text-gray-500">
