@@ -4,6 +4,7 @@ import { toast } from "sonner";
 // Define the wallet context type
 type WalletContextType = {
   address: string | null;
+  setAddress: (address: string) => void;
   isConnecting: boolean;
   isAuthenticated: boolean;
   connectWallet: () => Promise<boolean>;
@@ -334,6 +335,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     <WalletContext.Provider
       value={{
         address,
+        setAddress,
         isConnecting,
         isAuthenticated,
         connectWallet,
