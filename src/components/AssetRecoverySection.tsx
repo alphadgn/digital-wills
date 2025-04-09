@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
@@ -28,7 +27,7 @@ const recoveryFormSchema = z.object({
 type RecoveryFormValues = z.infer<typeof recoveryFormSchema>;
 
 const AssetRecoverySection = () => {
-  const { initiateAssetRecovery, userHasAttemptedRecovery, notifyDonorOfRecoveryAttempt, beneficiaryWallet, donorSSN } = useWallet();
+  const { initiateAssetRecovery, userHasAttemptedRecovery, notifyDonorOfRecoveryAttempt, beneficiaryWallet, donorSSN, resetProcess } = useWallet();
   const [isProcessing, setIsProcessing] = useState(false);
   const [recoverySuccess, setRecoverySuccess] = useState(false);
   const [showRecoveryForm, setShowRecoveryForm] = useState(false);
@@ -73,7 +72,9 @@ const AssetRecoverySection = () => {
   };
 
   const handleNoClick = () => {
+    resetProcess();
     navigate('/');
+    toast.info("Application has been reset");
   };
 
   // Format SSN as user types (add dashes)

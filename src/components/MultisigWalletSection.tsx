@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import { toast } from "sonner";
 import { Wallet, CheckCircle2, ShieldCheck, ArrowLeft, ArrowRight, AlertTriangle } from "lucide-react";
 import TermsAndConditions from "@/components/TermsAndConditions";
 import { useIsMobile } from "@/hooks/use-mobile";
+import RestartButton from "./RestartButton";
 
 interface MultisigWalletSectionProps {
   onComplete?: () => void;
@@ -93,7 +93,10 @@ const MultisigWalletSection: React.FC<MultisigWalletSectionProps> = ({
 
   return (
     <>
-      <Card className="w-full max-w-md mx-auto">
+      <Card className="w-full max-w-md mx-auto relative">
+        <div className="absolute top-4 right-4">
+          <RestartButton size="sm" />
+        </div>
         <CardHeader>
           <CardTitle className="text-center">Create Secure Vault Wallet</CardTitle>
           <CardDescription className="text-center">

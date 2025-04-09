@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import CommunicationPreferenceDialog from "./CommunicationPreferenceDialog";
 import TermsAndConditions from "./TermsAndConditions";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import RestartButton from "./RestartButton";
 
 interface WalletConnectSectionProps {
   onComplete?: () => void;
@@ -28,7 +28,6 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
   // Show SSN dialog when wallet is connected
   useEffect(() => {
     if (address && !donorSSN) {
-      // Add a slight delay so the connection success is registered first
       const timer = setTimeout(() => {
         setShowSSNDialog(true);
       }, 1000);
@@ -40,7 +39,6 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
   // Show communication preference dialog after SSN is provided
   useEffect(() => {
     if (donorSSN && !communicationPreference.method) {
-      // Add a slight delay after SSN dialog closes
       const timer = setTimeout(() => {
         setShowCommunicationDialog(true);
       }, 500);
@@ -61,7 +59,6 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
     if (address && donorSSN && communicationPreference.method && communicationPreference.value) {
       const performAuth = async () => {
         console.log("🔐 Attempting wallet authentication");
-        // Silently authenticate without showing error messages
         await authenticateWallet();
         console.log("✅ Authentication completed");
         setHasPreviouslyAdvanced(true);
@@ -72,7 +69,6 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
         }
       };
       
-      // Automatically perform authentication
       performAuth();
     }
   }, [address, donorSSN, communicationPreference, authenticateWallet, onComplete]);
@@ -88,9 +84,7 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
     console.log("📝 Terms and conditions accepted");
     setTermsAccepted(true);
     setShowTerms(false);
-    // Proceed with wallet connection
     window.scrollTo(0, 0);
-    // Automatically connect wallet after accepting terms
     connectWallet();
   };
   
@@ -107,7 +101,10 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
 
   return (
     <>
-      <Card className="w-full max-w-md mx-auto">
+      <Card className="w-full max-w-md mx-auto relative">
+        <div className="absolute top-4 right-4">
+          <RestartButton size="sm" />
+        </div>
         <CardHeader>
           <CardTitle className="text-center">Connect Your Wallet</CardTitle>
           <CardDescription className="text-center">
@@ -189,7 +186,6 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
         </CardFooter>
       </Card>
 
-      {/* SSN Dialog */}
       <SSNInputDialog 
         open={showSSNDialog} 
         onOpenChange={setShowSSNDialog} 
@@ -198,14 +194,12 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
         buttonText="Complete Connection"
       />
 
-      {/* Communication Preference Dialog */}
       <CommunicationPreferenceDialog
         open={showCommunicationDialog}
         onOpenChange={setShowCommunicationDialog}
         onConfirm={() => setShowCommunicationDialog(false)}
       />
       
-      {/* Terms and Conditions Dialog */}
       <TermsAndConditions 
         open={showTerms}
         onOpenChange={setShowTerms}

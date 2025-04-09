@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import StepIndicator, { STEP } from "./StepIndicator";
@@ -11,6 +10,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import CongratulationsScreen from "../CongratulationsScreen";
 import { useIsMobile } from "@/hooks/use-mobile";
+import RestartButton from "../RestartButton";
 
 interface ContentContainerProps {
   currentStep?: number;
@@ -35,12 +35,10 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   const [processedSteps, setProcessedSteps] = useState<Set<number>>(new Set());
   const isMobile = useIsMobile();
   
-  // Always start at the top of the page
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
   
-  // Scroll to top whenever step changes
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentStep, showConfirmation, showCongratulations]);
@@ -48,19 +46,14 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   const determineStep = () => {
     console.log("🧭 Determining current step based on application state");
     
-    // If we've processed the donor wallet step and haven't yet processed multisig,
-    // move to multisig step
     if (processedSteps.has(STEP.DONOR_WALLET) && !processedSteps.has(STEP.MULTISIG_WALLET)) {
       return STEP.MULTISIG_WALLET;
     }
     
-    // If we've processed the multisig wallet step and haven't processed beneficiary,
-    // move to beneficiary step
     if (processedSteps.has(STEP.MULTISIG_WALLET) && !processedSteps.has(STEP.BENEFICIARY_SETUP)) {
       return STEP.BENEFICIARY_SETUP;
     }
     
-    // Default to the current step if no progression is determined
     return currentStep;
   };
   
@@ -121,7 +114,6 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
     console.log(`🔄 Moving to step ${step}`);
     setCurrentStep(step);
     setVisitedSteps(prev => new Set(prev).add(step));
-    // Scroll to top of page when changing steps
     window.scrollTo(0, 0);
   };
   
@@ -133,7 +125,6 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
       console.log("⬅️ Going back to multisig wallet step");
       setCurrentStep(STEP.MULTISIG_WALLET);
     }
-    // Scroll to top of page when going back
     window.scrollTo(0, 0);
   };
   
@@ -142,7 +133,6 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
     if (visitedSteps.has(nextStep)) {
       console.log(`➡️ Going to next step ${nextStep}`);
       setCurrentStep(nextStep);
-      // Scroll to top of page when going to next step
       window.scrollTo(0, 0);
     }
   };
@@ -171,10 +161,15 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
     
     if (showConfirmation) {
       return (
-        <WillConfirmation 
-          onEdit={handleEditFromConfirmation}
-          onComplete={handleFinalSubmission}
-        />
+        <div className="relative">
+          <div className="absolute top-0 right-0 z-10">
+            <RestartButton />
+          </div>
+          <WillConfirmation 
+            onEdit={handleEditFromConfirmation}
+            onComplete={handleFinalSubmission}
+          />
+        </div>
       );
     }
     
@@ -193,9 +188,14 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
         );
       case STEP.BENEFICIARY_SETUP:
         return (
-          <BeneficiarySection 
-            onProceedToConfirmation={handleBeneficiaryComplete}
-          />
+          <div className="relative">
+            <div className="absolute top-0 right-0 z-10">
+              <RestartButton />
+            </div>
+            <BeneficiarySection 
+              onProceedToConfirmation={handleBeneficiaryComplete}
+            />
+          </div>
         );
       default:
         return <WalletConnectSection onComplete={handleSuccessfulAuth} />;
@@ -205,13 +205,21 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   return (
     <div className="flex-1 py-8 px-4 sm:py-12 sm:px-6 md:px-8">
       <div className="max-w-4xl mx-auto">
-        <h2 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-center mb-6 sm:mb-8`}>
-          Digital Will Creation
-        </h2>
+        <div className="flex justify-between items-center mb-6 sm:mb-8">
+          <h2 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-center`}>
+            Digital Will Creation
+          </h2>
+          
+          {!showCongratulations && (
+            <div className="hidden sm:block">
+              <RestartButton />
+            </div>
+          )}
+        </div>
         
         <div className="space-y-6 sm:space-y-8">
           <Progress 
-            progressPercentage={progressPercentage} 
+            progressPercentage={calculateProgress()} 
             currentStep={getCurrentStepName()}
           />
           

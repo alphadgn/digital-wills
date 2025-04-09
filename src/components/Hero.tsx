@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/contexts/WalletContext";
 import TermsAndConditions from "./TermsAndConditions";
+import RestartButton from "./RestartButton";
 
 const Hero = () => {
   const { connectWallet, isConnecting, termsAccepted, setTermsAccepted } = useWallet();
@@ -33,7 +34,11 @@ const Hero = () => {
   };
   
   return (
-    <section className="py-20 px-6">
+    <section className="py-20 px-6 relative">
+      <div className="absolute top-6 right-6">
+        <RestartButton />
+      </div>
+      
       <div className="max-w-4xl mx-auto text-center">
         <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-digitalwill-primary to-digitalwill-secondary bg-clip-text text-transparent mb-6">
           Secure Your Digital Legacy
