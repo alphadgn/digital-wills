@@ -9,10 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const SignIn = () => {
   const { connectWallet, isConnecting, usedWallets, address } = useWallet();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [showError, setShowError] = useState(false);
   const navigate = useNavigate();
   
   const handleSignIn = async () => {
@@ -22,6 +25,7 @@ const SignIn = () => {
     }
     
     setIsAuthenticating(true);
+    setShowError(false);
     
     // Simulate checking the database for the wallet
     await new Promise(resolve => setTimeout(resolve, 1500));
@@ -30,7 +34,7 @@ const SignIn = () => {
       toast.success("Successfully signed in");
       navigate("/dashboard");
     } else {
-      toast.error("User not found. This wallet is not associated with any account.");
+      setShowError(true);
     }
     
     setIsAuthenticating(false);
@@ -49,6 +53,15 @@ const SignIn = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-6">
+            {showError && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  This address is not associated with any existing accounts.
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
               <Wallet className="h-8 w-8 text-gray-400" />
             </div>
