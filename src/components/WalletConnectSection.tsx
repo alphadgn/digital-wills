@@ -22,6 +22,7 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
   const [showCommunicationDialog, setShowCommunicationDialog] = useState(false);
   const [hasPreviouslyAdvanced, setHasPreviouslyAdvanced] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [nextEnabled, setNextEnabled] = useState(false);
   const isMobile = useIsMobile();
 
   // Show SSN dialog when wallet is connected
@@ -48,6 +49,13 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
     }
   }, [donorSSN, communicationPreference.method]);
 
+  // Enable Next button when wallet is connected
+  useEffect(() => {
+    if (address) {
+      setNextEnabled(true);
+    }
+  }, [address]);
+
   // Trigger authentication and completion when communication preferences are set
   useEffect(() => {
     if (address && donorSSN && communicationPreference.method && communicationPreference.value) {
@@ -57,6 +65,7 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
         if (success) {
           console.log("✅ Authentication successful, proceeding to next step");
           setHasPreviouslyAdvanced(true);
+          setNextEnabled(true);
           if (onComplete) {
             onComplete();
           }
@@ -69,7 +78,7 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
   }, [address, donorSSN, communicationPreference, authenticateWallet, onComplete]);
 
   const handleNext = () => {
-    if (hasPreviouslyAdvanced && onNext) {
+    if (nextEnabled && onNext) {
       console.log("➡️ Moving to next step via button click");
       onNext();
     }
@@ -171,7 +180,7 @@ const WalletConnectSection: React.FC<WalletConnectSectionProps> = ({ onComplete,
           <Button
             variant="ghost"
             onClick={handleNext}
-            disabled={!hasPreviouslyAdvanced}
+            disabled={!nextEnabled}
             className="flex items-center gap-1"
           >
             Next

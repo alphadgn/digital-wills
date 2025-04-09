@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -259,11 +258,6 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
                     className="text-sm text-gray-700 cursor-pointer"
                   >
                     I have read and agree to the terms and conditions
-                    {!hasScrolledToBottom && (
-                      <span className="block text-amber-500 text-xs mt-1">
-                        Please scroll to the bottom first
-                      </span>
-                    )}
                   </label>
                 </div>
                 
