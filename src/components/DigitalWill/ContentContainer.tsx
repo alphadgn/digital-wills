@@ -210,7 +210,7 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
             Digital Will Creation
           </h2>
           
-          {!showCongratulations && (
+          {!showCongratulations && currentStep > STEP.DONOR_WALLET && (
             <div className="hidden sm:block">
               <RestartButton />
             </div>
