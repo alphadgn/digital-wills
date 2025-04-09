@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/contexts/WalletContext";
@@ -17,16 +16,12 @@ const Hero = () => {
   };
   
   const handleAcceptTerms = () => {
-    // Update the global terms acceptance state
     setTermsAccepted(true);
   };
   
   const handleConnectWallet = async () => {
     if (termsAccepted) {
-      // Show wallet connection animation
       setShowWalletAnimation(true);
-      
-      // Simulate wallet connection animation for 2 seconds before actual connection
       setTimeout(() => {
         connectWallet().finally(() => {
           setShowWalletAnimation(false);
@@ -77,7 +72,7 @@ const Hero = () => {
         
         {!termsAccepted && (
           <p className="text-amber-600 mt-4 text-sm">
-            Please review and accept the Terms & Conditions to continue
+            Please review and accept the Terms & Conditions to create an account
           </p>
         )}
 
