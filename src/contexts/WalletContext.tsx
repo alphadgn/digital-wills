@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { toast } from "sonner";
+import { updateUser } from "@/data/userDatabase";
 
 // Define the wallet context type
 type WalletContextType = {
@@ -45,6 +46,8 @@ type WalletContextType = {
   notifyDonorOfRecoveryAttempt: () => void;
   termsAccepted: boolean;
   setTermsAccepted: (accepted: boolean) => void;
+  allClaimsProcessed: boolean;
+  setAllClaimsProcessed: (processed: boolean) => void;
 };
 
 // Create the initial context
@@ -94,6 +97,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const [usedWallets, setUsedWallets] = useState<string[]>([]);
   const [donorSSN, setDonorSSN] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [allClaimsProcessed, setAllClaimsProcessed] = useState(false);
   
   const [communicationPreference, setCommunicationPreferenceState] = useState<{
     method: "email" | "phone" | null;
@@ -285,6 +289,40 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       const isDonorDeceased = await verifyDeathCertificate("John Doe");
       
       if (isDonorDeceased) {
+        // Update the user's record in the database to mark claim as processed
+        if (donorWallet) {
+          updateUser(donorWallet, { claimProcessed: true });
+        }
+        
+        // Clean up all sensitive data
+        setDonorWallet(null);
+        setBeneficiaryWallet(null);
+        setMultisigWallet(null);
+        setDonorSSN(null);
+        setCommunicationPreferenceState({
+          method: null,
+          value: null
+        });
+        
+        // Clear all seed phrases and product keys
+        setSeedPhrases({
+          donor: null,
+          multisig: null,
+          beneficiary: null
+        });
+        
+        setProductKeys({
+          donor: null,
+          multisig: null, 
+          beneficiary: null
+        });
+        
+        // Show completion banner
+        setShowCompletionBanner(true);
+        
+        // Check if all claims are processed
+        setAllClaimsProcessed(true);
+        
         toast.success("Assets have been transferred to your wallet");
         return true;
       } else {
@@ -325,6 +363,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       value: null
     });
     setTermsAccepted(false);
+    setAllClaimsProcessed(false);
   };
   
   const createNewWill = () => {
@@ -365,6 +404,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         notifyDonorOfRecoveryAttempt,
         termsAccepted,
         setTermsAccepted,
+        allClaimsProcessed,
+        setAllClaimsProcessed,
       }}
     >
       {children}
