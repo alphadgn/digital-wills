@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import AssetRecovery from "./pages/AssetRecovery";
 import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
+import UserProfile from "./pages/UserProfile";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/asset-recovery" element={<AssetRecovery />} />
             <Route path="/sign-in" element={<SignIn />} />
+            <Route path="/profile" element={<UserProfile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

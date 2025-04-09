@@ -16,6 +16,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { findUserByWallet } from "@/data/userDatabase";
 
 const walletSchema = z.object({
   walletAddress: z.string()
@@ -27,7 +28,7 @@ const walletSchema = z.object({
 type WalletFormValues = z.infer<typeof walletSchema>;
 
 const SignIn = () => {
-  const { connectWallet, isConnecting, usedWallets, address, setAddress } = useWallet();
+  const { connectWallet, isConnecting, usedWallets, address, setAddress, setDonorWallet } = useWallet();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [showError, setShowError] = useState(false);
   const navigate = useNavigate();
@@ -55,12 +56,14 @@ const SignIn = () => {
     setIsAuthenticating(true);
     setShowError(false);
     
-    // Simulate checking the database for the wallet
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Check if wallet exists in our database
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    const user = findUserByWallet(addressToCheck);
     
-    if (usedWallets.includes(addressToCheck)) {
+    if (user) {
       toast.success("Successfully signed in");
-      navigate("/dashboard");
+      setDonorWallet(addressToCheck);
+      navigate("/profile");
     } else {
       setShowError(true);
     }
