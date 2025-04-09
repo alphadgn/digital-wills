@@ -178,15 +178,13 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       
       if (isSuccess) {
         setIsAuthenticated(true);
-        toast.success("Wallet authenticated successfully!");
         return true;
       } else {
-        toast.error("Failed to authenticate wallet. Would you like to authenticate?");
+        console.log("Authentication failed silently");
         return false;
       }
     } catch (error) {
       console.error("Authentication error:", error);
-      toast.error("Authentication error. Please try again.");
       return false;
     }
   };

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -162,7 +163,7 @@ const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({
         <DialogHeader>
           <DialogTitle>Terms & Conditions</DialogTitle>
           <DialogDescription>
-            Please scroll to the bottom to review the terms and conditions.
+            Please review and accept the Terms & Conditions to continue.
           </DialogDescription>
         </DialogHeader>
         
