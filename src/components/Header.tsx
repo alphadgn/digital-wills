@@ -21,11 +21,16 @@ const Header = ({ hideWalletConnect = false }: { hideWalletConnect?: boolean }) 
 
   return (
     <header className="w-full border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50 transition-all duration-300">
-      <div className="py-3 px-6 flex justify-between items-center">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 transition-opacity duration-200 hover:opacity-80">
+      <div className="py-3 px-6 flex justify-between items-center relative">
+        {/* Left spacer for centering */}
+        <div className="flex-1 flex justify-start">
+          <ThemeToggle />
+        </div>
+
+        {/* Centered Logo */}
+        <Link to="/" className="flex items-center gap-2 transition-opacity duration-200 hover:opacity-80 absolute left-1/2 -translate-x-1/2">
           <Wallet className={`${isMobile ? "h-5 w-5" : "h-6 w-6"} text-primary transition-colors duration-200`} />
-          <h1 className={`${isMobile ? "text-lg" : "text-xl"} font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent`}>
+          <h1 className={`${isMobile ? "text-lg" : "text-xl"} font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap`}>
             DigitalWills.io
           </h1>
         </Link>
@@ -47,9 +52,8 @@ const Header = ({ hideWalletConnect = false }: { hideWalletConnect?: boolean }) 
           </nav>
         )}
 
-        {/* Right side: Theme toggle + Auth + Mobile menu trigger */}
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
+        {/* Right side: Auth + Mobile menu trigger */}
+        <div className="flex-1 flex items-center justify-end gap-2">
           {isAuthenticated && !isMobile && (
             <>
               <span className="flex items-center gap-2 text-sm text-muted-foreground font-mono transition-colors duration-200">

@@ -108,8 +108,8 @@ const Claims = () => {
           <ArrowLeft className="h-4 w-4" /> Back
         </Button>
 
-        <h1 className="text-3xl font-bold text-foreground mb-2">Claims</h1>
-        <p className="text-muted-foreground mb-8">Track and manage inheritance claims and oracle verification status.</p>
+        <h1 className="text-3xl font-bold text-foreground mb-2 text-center">Claims</h1>
+        <p className="text-muted-foreground mb-8 text-center">Track and manage inheritance claims and oracle verification status.</p>
 
         {allExecuted && (
           <Alert className="mb-6 border-emerald-500/30 bg-emerald-500/5">
