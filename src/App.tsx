@@ -42,6 +42,7 @@ const App = () => (
                   <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
                   <Route path="/vaults" element={<ProtectedRoute><VaultDashboard /></ProtectedRoute>} />
                   <Route path="/create-vault" element={<ProtectedRoute><CreateVault /></ProtectedRoute>} />
+                  <Route path="/vault/:vaultId" element={<ProtectedRoute><VaultDetail /></ProtectedRoute>} />
                   <Route path="/vault/:vaultId/beneficiaries" element={<ProtectedRoute><ManageBeneficiaries /></ProtectedRoute>} />
                   <Route path="/claims" element={<ProtectedRoute><Claims /></ProtectedRoute>} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
