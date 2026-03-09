@@ -33,6 +33,7 @@ function AuthInner({ children }: { children: ReactNode }) {
   const { ready, authenticated, user, login, logout } = usePrivy();
   const { wallets } = useWallets();
   const walletAddress = wallets[0]?.address ?? user?.wallet?.address ?? null;
+  const email = user?.email?.address ?? null;
 
   return (
     <AuthContext.Provider
@@ -40,6 +41,7 @@ function AuthInner({ children }: { children: ReactNode }) {
         isAuthenticated: authenticated,
         isLoading: !ready,
         walletAddress,
+        email,
         privyUserId: user?.id ?? null,
         login,
         logout,
