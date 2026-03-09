@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         config={{
           appearance: { theme: "light", accentColor: "#3B4CDE" },
           loginMethods: ["wallet", "email"],
-          embeddedWallets: { createOnLogin: "users-without-wallets" },
+          embeddedWallets: { createOnLogin: "off" },
         }}
       >
         <AuthInner>{children}</AuthInner>
