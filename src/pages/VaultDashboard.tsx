@@ -3,11 +3,12 @@ import { useAuth } from "@/contexts/PrivyAuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, Shield, ArrowRight, ArrowLeft } from "lucide-react";
+import { Wallet, Shield, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Background from "@/components/DigitalWill/Background";
+import { useAutoVault } from "@/hooks/useAutoVault";
 
 // Mock data until backend connected
 const MOCK_VAULTS = [
