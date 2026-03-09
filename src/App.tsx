@@ -20,6 +20,7 @@ import VaultDetail from "./pages/VaultDetail";
 import CreateVault from "./pages/CreateVault";
 import ManageBeneficiaries from "./pages/ManageBeneficiaries";
 import Claims from "./pages/Claims";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/asset-recovery" element={<AssetRecovery />} />
                   <Route path="/sign-in" element={<SignIn />} />
+                  <Route path="/payment-success" element={<PaymentSuccess />} />
                   <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
                   <Route path="/vaults" element={<ProtectedRoute><VaultDashboard /></ProtectedRoute>} />
                   <Route path="/create-vault" element={<ProtectedRoute><CreateVault /></ProtectedRoute>} />
