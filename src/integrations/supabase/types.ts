@@ -14,7 +14,121 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      deposit_history: {
+        Row: {
+          amount_eth: number
+          created_at: string
+          from_address: string
+          id: string
+          tx_hash: string
+          vault_id: string
+        }
+        Insert: {
+          amount_eth: number
+          created_at?: string
+          from_address: string
+          id?: string
+          tx_hash: string
+          vault_id: string
+        }
+        Update: {
+          amount_eth?: number
+          created_at?: string
+          from_address?: string
+          id?: string
+          tx_hash?: string
+          vault_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposit_history_vault_id_fkey"
+            columns: ["vault_id"]
+            isOneToOne: false
+            referencedRelation: "vaults"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vault_beneficiaries: {
+        Row: {
+          allocation_percent: number
+          created_at: string
+          id: string
+          invite_accepted: boolean
+          invite_sent: boolean
+          name: string
+          vault_id: string
+          wallet_address: string
+        }
+        Insert: {
+          allocation_percent: number
+          created_at?: string
+          id?: string
+          invite_accepted?: boolean
+          invite_sent?: boolean
+          name: string
+          vault_id: string
+          wallet_address: string
+        }
+        Update: {
+          allocation_percent?: number
+          created_at?: string
+          id?: string
+          invite_accepted?: boolean
+          invite_sent?: boolean
+          name?: string
+          vault_id?: string
+          wallet_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vault_beneficiaries_vault_id_fkey"
+            columns: ["vault_id"]
+            isOneToOne: false
+            referencedRelation: "vaults"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vaults: {
+        Row: {
+          chain_id: number
+          created_at: string
+          id: string
+          inactivity_period_days: number
+          status: string
+          total_value_eth: number
+          updated_at: string
+          vault_contract_address: string | null
+          vault_name: string
+          wallet_address: string
+        }
+        Insert: {
+          chain_id?: number
+          created_at?: string
+          id?: string
+          inactivity_period_days?: number
+          status?: string
+          total_value_eth?: number
+          updated_at?: string
+          vault_contract_address?: string | null
+          vault_name?: string
+          wallet_address: string
+        }
+        Update: {
+          chain_id?: number
+          created_at?: string
+          id?: string
+          inactivity_period_days?: number
+          status?: string
+          total_value_eth?: number
+          updated_at?: string
+          vault_contract_address?: string | null
+          vault_name?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
