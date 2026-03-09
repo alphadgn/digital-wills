@@ -6,7 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-const Header = () => {
+const Header = ({ hideWalletConnect = false }: { hideWalletConnect?: boolean }) => {
   const { isAuthenticated, walletAddress, login, logout } = useAuth();
   const isMobile = useIsMobile();
   const location = useLocation();
