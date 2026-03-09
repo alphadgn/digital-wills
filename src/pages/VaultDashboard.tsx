@@ -82,17 +82,17 @@ const VaultDashboard = () => {
     <Background>
       <Header />
       <div className="min-h-screen py-12 px-4 max-w-5xl mx-auto w-full">
-        {/* Top bar */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Vault Dashboard</h1>
-            <p className="text-muted-foreground mt-1 font-mono text-sm">
-              {walletAddress?.substring(0, 6)}...{walletAddress?.substring((walletAddress?.length ?? 0) - 4)}
-            </p>
-          </div>
-          <Button onClick={() => navigate("/create-vault")} className="gap-2">
-            <Plus className="h-4 w-4" /> Create Vault
-          </Button>
+        {/* Back button */}
+        <Button variant="ghost" className="mb-4 gap-2 text-muted-foreground" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-4 w-4" /> Back
+        </Button>
+
+        {/* Top bar - centered */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-foreground">Vault Dashboard</h1>
+          <p className="text-muted-foreground mt-1 font-mono text-sm">
+            {walletAddress?.substring(0, 6)}...{walletAddress?.substring((walletAddress?.length ?? 0) - 4)}
+          </p>
         </div>
 
         {/* Stats row */}
