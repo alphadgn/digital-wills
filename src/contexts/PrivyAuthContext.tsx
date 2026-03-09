@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         appId={PRIVY_APP_ID}
         config={{
           appearance: { theme: "light", accentColor: "#3B4CDE" },
-          loginMethods: ["wallet"],
+          loginMethods: ["wallet", "email"],
           embeddedWallets: { createOnLogin: "users-without-wallets" },
         }}
       >
