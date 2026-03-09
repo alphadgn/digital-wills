@@ -22,6 +22,10 @@ const Hero = () => {
   };
   
   const handleConnectWallet = () => {
+    if (isAuthenticated) {
+      navigate("/profile");
+      return;
+    }
     if (termsAccepted) {
       login();
     }
