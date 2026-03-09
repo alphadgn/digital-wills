@@ -8,6 +8,7 @@ import { WagmiProvider } from "wagmi";
 import { WalletProvider } from "./contexts/WalletContext";
 import { AuthProvider } from "./contexts/PrivyAuthContext";
 import { wagmiConfig } from "./config/wagmi";
+import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import AssetRecovery from "./pages/AssetRecovery";
@@ -23,33 +24,35 @@ import ProtectedRoute from "./components/ProtectedRoute";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <WagmiProvider config={wagmiConfig}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <AuthProvider>
-          <WalletProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/asset-recovery" element={<AssetRecovery />} />
-                <Route path="/sign-in" element={<SignIn />} />
-                <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
-                <Route path="/vaults" element={<ProtectedRoute><VaultDashboard /></ProtectedRoute>} />
-                <Route path="/create-vault" element={<ProtectedRoute><CreateVault /></ProtectedRoute>} />
-                <Route path="/vault/:vaultId/beneficiaries" element={<ProtectedRoute><ManageBeneficiaries /></ProtectedRoute>} />
-                <Route path="/claims" element={<ProtectedRoute><Claims /></ProtectedRoute>} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </WalletProvider>
-        </AuthProvider>
-      </TooltipProvider>
-    </WagmiProvider>
-  </QueryClientProvider>
+  <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+    <QueryClientProvider client={queryClient}>
+      <WagmiProvider config={wagmiConfig}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <AuthProvider>
+            <WalletProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/asset-recovery" element={<AssetRecovery />} />
+                  <Route path="/sign-in" element={<SignIn />} />
+                  <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+                  <Route path="/vaults" element={<ProtectedRoute><VaultDashboard /></ProtectedRoute>} />
+                  <Route path="/create-vault" element={<ProtectedRoute><CreateVault /></ProtectedRoute>} />
+                  <Route path="/vault/:vaultId/beneficiaries" element={<ProtectedRoute><ManageBeneficiaries /></ProtectedRoute>} />
+                  <Route path="/claims" element={<ProtectedRoute><Claims /></ProtectedRoute>} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </WalletProvider>
+          </AuthProvider>
+        </TooltipProvider>
+      </WagmiProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

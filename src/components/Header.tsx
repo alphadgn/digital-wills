@@ -5,6 +5,7 @@ import { Wallet, LayoutDashboard, FileCheck, LogOut } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const Header = ({ hideWalletConnect = false }: { hideWalletConnect?: boolean }) => {
   const { isAuthenticated, walletAddress, login, logout } = useAuth();
