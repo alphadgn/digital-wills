@@ -64,7 +64,11 @@ const Hero = () => {
             size="lg" 
             variant="outline"
             onClick={handleOpenTerms}
-            className="text-blue-600 border-blue-600 hover:bg-blue-50"
+            className={`text-primary border-primary hover:bg-primary/10 ${
+              !termsAccepted 
+                ? "animate-pulse-slow ring-2 ring-primary/40 ring-offset-2 ring-offset-background shadow-[0_0_15px_hsl(var(--primary)/0.3)]" 
+                : ""
+            }`}
           >
             Terms & Conditions Consent
           </Button>
