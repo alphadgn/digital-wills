@@ -22,6 +22,7 @@ const fallbackValue: AuthContextType = {
   isAuthenticated: false,
   isLoading: false,
   walletAddress: null,
+  email: null,
   privyUserId: null,
   login: () => console.warn("Privy app ID is not configured or invalid. Set a valid VITE_PRIVY_APP_ID."),
   logout: async () => {},
