@@ -20,6 +20,9 @@ export type Database = {
           created_at: string
           from_address: string
           id: string
+          token_address: string | null
+          token_id: string | null
+          token_type: string
           tx_hash: string
           vault_id: string
         }
@@ -28,6 +31,9 @@ export type Database = {
           created_at?: string
           from_address: string
           id?: string
+          token_address?: string | null
+          token_id?: string | null
+          token_type?: string
           tx_hash: string
           vault_id: string
         }
@@ -36,12 +42,50 @@ export type Database = {
           created_at?: string
           from_address?: string
           id?: string
+          token_address?: string | null
+          token_id?: string | null
+          token_type?: string
           tx_hash?: string
           vault_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "deposit_history_vault_id_fkey"
+            columns: ["vault_id"]
+            isOneToOne: false
+            referencedRelation: "vaults"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emergency_attempts: {
+        Row: {
+          attempt_number: number
+          created_at: string
+          id: string
+          success: boolean
+          vault_id: string
+          wallet_address: string
+        }
+        Insert: {
+          attempt_number?: number
+          created_at?: string
+          id?: string
+          success?: boolean
+          vault_id: string
+          wallet_address: string
+        }
+        Update: {
+          attempt_number?: number
+          created_at?: string
+          id?: string
+          success?: boolean
+          vault_id?: string
+          wallet_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_attempts_vault_id_fkey"
             columns: ["vault_id"]
             isOneToOne: false
             referencedRelation: "vaults"
@@ -56,6 +100,7 @@ export type Database = {
           id: string
           invite_accepted: boolean
           invite_sent: boolean
+          invite_token: string | null
           name: string
           vault_id: string
           wallet_address: string
@@ -66,6 +111,7 @@ export type Database = {
           id?: string
           invite_accepted?: boolean
           invite_sent?: boolean
+          invite_token?: string | null
           name: string
           vault_id: string
           wallet_address: string
@@ -76,6 +122,7 @@ export type Database = {
           id?: string
           invite_accepted?: boolean
           invite_sent?: boolean
+          invite_token?: string | null
           name?: string
           vault_id?: string
           wallet_address?: string
@@ -94,6 +141,8 @@ export type Database = {
         Row: {
           chain_id: number
           created_at: string
+          donor_email: string | null
+          donor_phone: string | null
           id: string
           inactivity_period_days: number
           status: string
@@ -106,6 +155,8 @@ export type Database = {
         Insert: {
           chain_id?: number
           created_at?: string
+          donor_email?: string | null
+          donor_phone?: string | null
           id?: string
           inactivity_period_days?: number
           status?: string
@@ -118,6 +169,8 @@ export type Database = {
         Update: {
           chain_id?: number
           created_at?: string
+          donor_email?: string | null
+          donor_phone?: string | null
           id?: string
           inactivity_period_days?: number
           status?: string
