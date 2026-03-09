@@ -32,8 +32,8 @@ export function useDeployVault() {
           abi: VAULT_FACTORY_ABI,
           data: log.data,
           topics: log.topics,
-        });
-        if (decoded.eventName === "VaultCreated" && "vault" in decoded.args) {
+        }) as { eventName: string; args: Record<string, unknown> };
+        if (decoded.eventName === "VaultCreated" && decoded.args.vault) {
           setVaultAddress(decoded.args.vault as `0x${string}`);
           break;
         }
