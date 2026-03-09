@@ -20,6 +20,7 @@ export interface BeneficiaryRow {
   vault_id: string;
   name: string;
   wallet_address: string;
+  email: string | null;
   allocation_percent: number;
   invite_sent: boolean;
   invite_accepted: boolean;
