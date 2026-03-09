@@ -97,10 +97,35 @@ const VaultDashboard = () => {
           </p>
         </div>
 
+        {/* Auto-vault creation status */}
+        {isCreating && (
+          <Card className="mb-8 border-primary/30 bg-primary/5">
+            <CardContent className="flex items-center gap-4 py-5">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <div>
+                <p className="font-medium text-foreground">Creating your vault...</p>
+                <p className="text-sm text-muted-foreground">Please confirm the transaction in your wallet.</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {hasVault && autoVaultAddress && (
+          <Card className="mb-8 border-emerald-500/30 bg-emerald-500/5">
+            <CardContent className="flex items-center gap-4 py-5">
+              <Shield className="h-6 w-6 text-emerald-600" />
+              <div>
+                <p className="font-medium text-foreground">Your Vault</p>
+                <p className="text-sm font-mono text-muted-foreground">{autoVaultAddress}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Stats row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {[
-            { label: "Total Vaults", value: MOCK_VAULTS.length },
+            { label: "Total Vaults", value: MOCK_VAULTS.length + (hasVault ? 1 : 0) },
             { label: "Total Value Locked", value: `${MOCK_VAULTS.reduce((s, v) => s + parseFloat(v.totalValueEth), 0).toFixed(2)} ETH` },
             { label: "Active Claims", value: MOCK_VAULTS.filter((v) => v.status === "CLAIMED").length },
           ].map((stat) => (
