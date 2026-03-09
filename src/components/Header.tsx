@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useAuth } from "@/contexts/PrivyAuthContext";
-import { Wallet, LayoutDashboard, FileCheck, LogOut } from "lucide-react";
+import { Wallet, LayoutDashboard, FileCheck, LogOut, UserCircle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ const Header = ({ hideWalletConnect = false }: { hideWalletConnect?: boolean }) 
   const navLinks = [
     { to: "/vaults", label: "Vaults", icon: LayoutDashboard },
     { to: "/claims", label: "Claims", icon: FileCheck },
+    { to: "/profile", label: "Profile", icon: UserCircle },
   ];
 
   return (
