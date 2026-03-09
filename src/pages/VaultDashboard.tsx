@@ -39,6 +39,7 @@ const statusColor: Record<string, string> = {
 
 const VaultDashboard = () => {
   const { isAuthenticated, walletAddress, login, isLoading } = useAuth();
+  const { vaultAddress: autoVaultAddress, isCreating, hasVault } = useAutoVault();
   const navigate = useNavigate();
 
   if (isLoading) {
