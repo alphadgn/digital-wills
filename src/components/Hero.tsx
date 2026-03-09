@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/contexts/WalletContext";
+import { useAuth } from "@/contexts/PrivyAuthContext";
 import TermsAndConditions from "./TermsAndConditions";
 import { Badge, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
-  const { connectWallet, isConnecting, termsAccepted, setTermsAccepted } = useWallet();
+  const { isConnecting, termsAccepted, setTermsAccepted } = useWallet();
+  const { login } = useAuth();
   const [termsOpen, setTermsOpen] = useState(false);
   const [showWalletAnimation, setShowWalletAnimation] = useState(false);
   const navigate = useNavigate();
@@ -19,14 +21,9 @@ const Hero = () => {
     setTermsAccepted(true);
   };
   
-  const handleConnectWallet = async () => {
+  const handleConnectWallet = () => {
     if (termsAccepted) {
-      setShowWalletAnimation(true);
-      setTimeout(() => {
-        connectWallet().finally(() => {
-          setShowWalletAnimation(false);
-        });
-      }, 2000);
+      login();
     }
   };
 
