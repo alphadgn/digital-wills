@@ -112,7 +112,8 @@ export async function addBeneficiary(
   vaultId: string,
   name: string,
   beneficiaryWallet: string,
-  allocationPercent: number
+  allocationPercent: number,
+  email?: string
 ): Promise<BeneficiaryRow> {
   const inviteToken = crypto.randomUUID();
   const res = await fetch(`${getRestUrl()}/vault_beneficiaries`, {
@@ -124,6 +125,7 @@ export async function addBeneficiary(
       wallet_address: beneficiaryWallet.toLowerCase(),
       allocation_percent: allocationPercent,
       invite_token: inviteToken,
+      email: email || null,
     }),
   });
   if (!res.ok) throw new Error(await res.text());
