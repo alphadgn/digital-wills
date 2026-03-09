@@ -11,10 +11,10 @@ interface BackgroundProps {
 
 const Background: React.FC<BackgroundProps> = ({ children }) => {
   return (
-    <div className="min-h-screen flex flex-col relative">
+    <div className="min-h-screen flex flex-col relative transition-colors duration-300">
       {/* Background image */}
       <div 
-        className="fixed inset-0 z-0 bg-center bg-cover bg-no-repeat"
+        className="fixed inset-0 z-0 bg-center bg-cover bg-no-repeat transition-opacity duration-500"
         style={{
           backgroundImage: `url('/images/background.png')`,
           backgroundSize: 'cover',
