@@ -2,7 +2,8 @@ import React, { createContext, useContext, ReactNode } from "react";
 import { PrivyProvider, usePrivy, useWallets } from "@privy-io/react-auth";
 
 const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID || "cmmim4tyh01d90dl8bz0khyjt";
-const isPrivyReady = Boolean(PRIVY_APP_ID && PRIVY_APP_ID.length > 10);
+// Privy app IDs start with "cl" or "cm"
+const isPrivyReady = Boolean(PRIVY_APP_ID && /^c[lm][a-z0-9]{10,}$/i.test(PRIVY_APP_ID));
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -21,7 +22,7 @@ const fallbackValue: AuthContextType = {
   isLoading: false,
   walletAddress: null,
   privyUserId: null,
-  login: () => console.warn("Set VITE_PRIVY_APP_ID to enable wallet auth."),
+  login: () => console.warn("Privy app ID is not configured or invalid. Set a valid VITE_PRIVY_APP_ID."),
   logout: async () => {},
   isPrivyConfigured: false,
 };
@@ -48,6 +49,26 @@ function AuthInner({ children }: { children: ReactNode }) {
   );
 }
 
+class PrivyErrorBoundary extends React.Component<
+  { children: ReactNode; fallback: ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode; fallback: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error) {
+    console.warn("[PrivyAuth] Failed to initialize Privy:", error.message);
+  }
+  render() {
+    if (this.state.hasError) return this.props.fallback;
+    return this.props.children;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   if (!isPrivyReady) {
     return (
@@ -57,17 +78,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
   }
 
+  const fallbackUI = (
+    <AuthContext.Provider value={fallbackValue}>
+      {children}
+    </AuthContext.Provider>
+  );
+
   return (
-    <PrivyProvider
-      appId={PRIVY_APP_ID}
-      config={{
-        appearance: { theme: "light", accentColor: "#3B4CDE" },
-        loginMethods: ["wallet"],
-        embeddedWallets: { createOnLogin: "users-without-wallets" },
-      }}
-    >
-      <AuthInner>{children}</AuthInner>
-    </PrivyProvider>
+    <PrivyErrorBoundary fallback={fallbackUI}>
+      <PrivyProvider
+        appId={PRIVY_APP_ID}
+        config={{
+          appearance: { theme: "light", accentColor: "#3B4CDE" },
+          loginMethods: ["wallet"],
+          embeddedWallets: { createOnLogin: "users-without-wallets" },
+        }}
+      >
+        <AuthInner>{children}</AuthInner>
+      </PrivyProvider>
+    </PrivyErrorBoundary>
   );
 }
 
