@@ -1,0 +1,1 @@
+ALTER TABLE public.vault_beneficiaries ADD COLUMN IF NOT EXISTS email TEXT;

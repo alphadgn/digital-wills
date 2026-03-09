@@ -97,6 +97,7 @@ export type Database = {
         Row: {
           allocation_percent: number
           created_at: string
+          email: string | null
           id: string
           invite_accepted: boolean
           invite_sent: boolean
@@ -108,6 +109,7 @@ export type Database = {
         Insert: {
           allocation_percent: number
           created_at?: string
+          email?: string | null
           id?: string
           invite_accepted?: boolean
           invite_sent?: boolean
@@ -119,6 +121,7 @@ export type Database = {
         Update: {
           allocation_percent?: number
           created_at?: string
+          email?: string | null
           id?: string
           invite_accepted?: boolean
           invite_sent?: boolean
