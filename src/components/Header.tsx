@@ -15,6 +15,7 @@ const Header = ({ hideWalletConnect = false }: { hideWalletConnect?: boolean }) 
   const navLinks = [
     { to: "/vaults", label: "Vaults", icon: LayoutDashboard },
     { to: "/claims", label: "Claims", icon: FileCheck },
+    { to: "/profile", label: "Profile", icon: UserCircle },
   ];
 
   return (
