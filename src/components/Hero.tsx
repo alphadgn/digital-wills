@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
   const { isConnecting, termsAccepted, setTermsAccepted } = useWallet();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const [termsOpen, setTermsOpen] = useState(false);
   const [showWalletAnimation, setShowWalletAnimation] = useState(false);
   const navigate = useNavigate();
@@ -22,6 +22,10 @@ const Hero = () => {
   };
   
   const handleConnectWallet = () => {
+    if (isAuthenticated) {
+      navigate("/profile");
+      return;
+    }
     if (termsAccepted) {
       login();
     }
