@@ -21,14 +21,9 @@ const Hero = () => {
     setTermsAccepted(true);
   };
   
-  const handleConnectWallet = async () => {
+  const handleConnectWallet = () => {
     if (termsAccepted) {
-      setShowWalletAnimation(true);
-      setTimeout(() => {
-        connectWallet().finally(() => {
-          setShowWalletAnimation(false);
-        });
-      }, 2000);
+      login();
     }
   };
 
