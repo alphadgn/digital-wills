@@ -36,11 +36,11 @@ const App = () => (
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/asset-recovery" element={<AssetRecovery />} />
                 <Route path="/sign-in" element={<SignIn />} />
-                <Route path="/profile" element={<UserProfile />} />
-                <Route path="/vaults" element={<VaultDashboard />} />
-                <Route path="/create-vault" element={<CreateVault />} />
-                <Route path="/vault/:vaultId/beneficiaries" element={<ManageBeneficiaries />} />
-                <Route path="/claims" element={<Claims />} />
+                <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+                <Route path="/vaults" element={<ProtectedRoute><VaultDashboard /></ProtectedRoute>} />
+                <Route path="/create-vault" element={<ProtectedRoute><CreateVault /></ProtectedRoute>} />
+                <Route path="/vault/:vaultId/beneficiaries" element={<ProtectedRoute><ManageBeneficiaries /></ProtectedRoute>} />
+                <Route path="/claims" element={<ProtectedRoute><Claims /></ProtectedRoute>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
