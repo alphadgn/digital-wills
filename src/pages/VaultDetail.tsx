@@ -1,14 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/PrivyAuthContext";
-import { getVaultById, getVaultBeneficiaries, getDepositHistory, type VaultRow } from "@/lib/supabaseVault";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { getVaultById, getVaultBeneficiaries, getDepositHistory, type VaultRow, type BeneficiaryRow, type DepositRow } from "@/lib/supabaseVault";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Shield, Users, Coins, ExternalLink, Clock, Loader2 } from "lucide-react";
+import { ArrowLeft, Shield, ExternalLink, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Background from "@/components/DigitalWill/Background";
+import BeneficiaryManager from "@/components/vault/BeneficiaryManager";
+import DepositManager from "@/components/vault/DepositManager";
+import EmergencySection from "@/components/vault/EmergencySection";
 import { apechain } from "@/config/wagmi";
 
 const statusColor: Record<string, string> = {
@@ -16,6 +19,7 @@ const statusColor: Record<string, string> = {
   CLAIMED: "bg-amber-500/10 text-amber-600 border-amber-500/20",
   DISTRIBUTED: "bg-primary/10 text-primary border-primary/20",
   PAUSED: "bg-muted text-muted-foreground border-border",
+  CANCELLED: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
 const VaultDetail = () => {
@@ -23,34 +27,32 @@ const VaultDetail = () => {
   const { walletAddress } = useAuth();
   const navigate = useNavigate();
   const [vault, setVault] = useState<VaultRow | null>(null);
-  const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
-  const [deposits, setDeposits] = useState<any[]>([]);
+  const [beneficiaries, setBeneficiaries] = useState<BeneficiaryRow[]>([]);
+  const [deposits, setDeposits] = useState<DepositRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadData = useCallback(async () => {
     if (!walletAddress || !vaultId) return;
-
-    const load = async () => {
-      try {
-        setLoading(true);
-        const [v, b, d] = await Promise.all([
-          getVaultById(walletAddress, vaultId),
-          getVaultBeneficiaries(walletAddress, vaultId),
-          getDepositHistory(walletAddress, vaultId),
-        ]);
-        setVault(v);
-        setBeneficiaries(b);
-        setDeposits(d);
-      } catch (e: any) {
-        setError(e.message || "Failed to load vault");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
+    try {
+      setLoading(true);
+      const [v, b, d] = await Promise.all([
+        getVaultById(walletAddress, vaultId),
+        getVaultBeneficiaries(walletAddress, vaultId),
+        getDepositHistory(walletAddress, vaultId),
+      ]);
+      setVault(v);
+      setBeneficiaries(b);
+      setDeposits(d);
+      setError(null);
+    } catch (e: any) {
+      setError(e.message || "Failed to load vault");
+    } finally {
+      setLoading(false);
+    }
   }, [walletAddress, vaultId]);
+
+  useEffect(() => { loadData(); }, [loadData]);
 
   if (loading) {
     return (
@@ -79,6 +81,8 @@ const VaultDetail = () => {
       </Background>
     );
   }
+
+  const explorerUrl = apechain.blockExplorers.default.url;
 
   return (
     <Background>
@@ -135,11 +139,7 @@ const VaultDetail = () => {
                 <p className="text-sm text-muted-foreground">Contract Address</p>
                 <p className="font-mono text-sm text-foreground">{vault.vault_contract_address}</p>
               </div>
-              <a
-                href={`${apechain.blockExplorers.default.url}/address/${vault.vault_contract_address}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a href={`${explorerUrl}/address/${vault.vault_contract_address}`} target="_blank" rel="noopener noreferrer">
                 <Button variant="outline" size="sm" className="gap-1">
                   <ExternalLink className="h-3 w-3" /> View on ApeScan
                 </Button>
@@ -148,83 +148,41 @@ const VaultDetail = () => {
           </Card>
         )}
 
-        {/* Beneficiaries */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-center justify-center">
-              <Users className="h-5 w-5 text-primary" /> Beneficiaries
-            </CardTitle>
-            <CardDescription className="text-center">
-              {beneficiaries.length === 0 ? "No beneficiaries configured yet." : `${beneficiaries.length} beneficiar${beneficiaries.length !== 1 ? "ies" : "y"} configured.`}
-            </CardDescription>
-          </CardHeader>
-          {beneficiaries.length > 0 && (
-            <CardContent className="space-y-3">
-              {beneficiaries.map((b) => (
-                <div key={b.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
-                      {b.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">{b.name}</p>
-                      <p className="font-mono text-xs text-muted-foreground">
-                        {b.wallet_address.substring(0, 10)}...{b.wallet_address.substring(b.wallet_address.length - 4)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge>{b.allocation_percent}%</Badge>
-                    {b.invite_accepted ? (
-                      <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Accepted</Badge>
-                    ) : b.invite_sent ? (
-                      <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">Pending</Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-muted-foreground">Not invited</Badge>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          )}
-        </Card>
+        {/* Beneficiary Management */}
+        <div className="mb-8">
+          <BeneficiaryManager
+            vaultId={vault.id}
+            vaultContractAddress={vault.vault_contract_address}
+            walletAddress={walletAddress!}
+            beneficiaries={beneficiaries}
+            onRefresh={loadData}
+          />
+        </div>
 
-        {/* Deposit History */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-center justify-center">
-              <Coins className="h-5 w-5 text-primary" /> Deposit History
-            </CardTitle>
-            <CardDescription className="text-center">
-              {deposits.length === 0 ? "No deposits yet." : `${deposits.length} deposit${deposits.length !== 1 ? "s" : ""} recorded.`}
-            </CardDescription>
-          </CardHeader>
-          {deposits.length > 0 && (
-            <CardContent className="space-y-3">
-              {deposits.map((d) => (
-                <div key={d.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border">
-                  <div className="flex items-center gap-3">
-                    <Coins className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="font-medium text-foreground">{d.amount_eth} ETH</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Clock className="h-3 w-3" /> {new Date(d.created_at).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                  <a
-                    href={`${apechain.blockExplorers.default.url}/tx/${d.tx_hash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline flex items-center gap-1"
-                  >
-                    <ExternalLink className="h-3 w-3" /> Tx
-                  </a>
-                </div>
-              ))}
-            </CardContent>
-          )}
-        </Card>
+        {/* Deposit Management */}
+        <div className="mb-8">
+          <DepositManager
+            vaultId={vault.id}
+            vaultContractAddress={vault.vault_contract_address}
+            walletAddress={walletAddress!}
+            deposits={deposits}
+            onRefresh={loadData}
+            blockExplorerUrl={explorerUrl}
+          />
+        </div>
+
+        {/* Emergency Section — only for vault owner */}
+        {vault.status !== "CANCELLED" && (
+          <div className="mb-8">
+            <EmergencySection
+              vaultId={vault.id}
+              walletAddress={walletAddress!}
+              donorEmail={vault.donor_email}
+              donorPhone={vault.donor_phone}
+              onRefresh={loadData}
+            />
+          </div>
+        )}
       </div>
       <Footer />
     </Background>
