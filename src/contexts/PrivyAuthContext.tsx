@@ -1,7 +1,7 @@
 import React, { createContext, useContext, ReactNode } from "react";
 import { PrivyProvider, usePrivy, useWallets } from "@privy-io/react-auth";
 
-const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID || "";
+const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID || "cmmim4tyh01d90dl8bz0khyjt";
 const isPrivyReady = Boolean(PRIVY_APP_ID && PRIVY_APP_ID.length > 10);
 
 interface AuthContextType {
