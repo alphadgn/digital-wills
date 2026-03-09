@@ -9,6 +9,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   walletAddress: string | null;
+  email: string | null;
   privyUserId: string | null;
   login: () => void;
   logout: () => Promise<void>;
