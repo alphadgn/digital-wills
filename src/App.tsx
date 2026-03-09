@@ -18,6 +18,7 @@ import VaultDashboard from "./pages/VaultDashboard";
 import CreateVault from "./pages/CreateVault";
 import ManageBeneficiaries from "./pages/ManageBeneficiaries";
 import Claims from "./pages/Claims";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
