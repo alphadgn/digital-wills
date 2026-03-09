@@ -44,19 +44,22 @@ const Header = ({ hideWalletConnect = false }: { hideWalletConnect?: boolean }) 
         </nav>
       )}
 
-      {/* Auth - only show when authenticated */}
-      {isAuthenticated && (
-        <div className="flex items-center gap-3">
-          <span className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground font-mono">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            {walletAddress?.substring(0, 6)}...{walletAddress?.substring((walletAddress?.length ?? 0) - 4)}
-          </span>
-          <Button variant="ghost" size="sm" onClick={logout} className="gap-1 text-muted-foreground">
-            <LogOut className="h-4 w-4" />
-            {!isMobile && "Disconnect"}
-          </Button>
-        </div>
-      )}
+      {/* Theme toggle + Auth */}
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+        {isAuthenticated && (
+          <>
+            <span className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground font-mono">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              {walletAddress?.substring(0, 6)}...{walletAddress?.substring((walletAddress?.length ?? 0) - 4)}
+            </span>
+            <Button variant="ghost" size="sm" onClick={logout} className="gap-1 text-muted-foreground">
+              <LogOut className="h-4 w-4" />
+              {!isMobile && "Disconnect"}
+            </Button>
+          </>
+        )}
+      </div>
     </header>
   );
 };
