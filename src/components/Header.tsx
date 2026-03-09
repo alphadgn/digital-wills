@@ -1,48 +1,67 @@
 
 import React from "react";
-import { useWallet } from "@/contexts/WalletContext";
-import { Wallet } from "lucide-react";
+import { useAuth } from "@/contexts/PrivyAuthContext";
+import { Wallet, LayoutDashboard, FileCheck, LogOut } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const Header = () => {
-  const { address } = useWallet();
+  const { isAuthenticated, walletAddress, login, logout } = useAuth();
   const isMobile = useIsMobile();
   const location = useLocation();
 
-  // Only show sign in link on index page (/)
-  const showSignInLink = location.pathname === "/";
+  const navLinks = [
+    { to: "/vaults", label: "Vaults", icon: LayoutDashboard },
+    { to: "/claims", label: "Claims", icon: FileCheck },
+  ];
 
   return (
-    <header className="w-full py-4 px-6 flex justify-between items-center border-b">
-      <div className="flex-1">
-        {showSignInLink && (
-          <Link 
-            to="/sign-in"
-            className="text-[0.6rem] text-blue-600 hover:text-blue-800 font-medium"
-          >
-            Sign In
-          </Link>
-        )}
-        
-        {address && (
-          <div className="flex items-center space-x-2">
-            <div className="h-3 w-3 rounded-full bg-green-500"></div>
-            <span className="text-sm font-medium">
-              {address.substring(0, 6)}...{address.substring(address.length - 4)}
-            </span>
-          </div>
-        )}
-      </div>
-      
-      <div className="flex items-center gap-2 flex-1 justify-center">
-        <Wallet className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-digitalwill-primary`} />
-        <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold bg-gradient-to-r from-digitalwill-primary to-digitalwill-secondary bg-clip-text text-transparent`}>
+    <header className="w-full py-3 px-6 flex justify-between items-center border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+      {/* Logo */}
+      <Link to="/" className="flex items-center gap-2">
+        <Wallet className={`${isMobile ? "h-5 w-5" : "h-6 w-6"} text-primary`} />
+        <h1 className={`${isMobile ? "text-lg" : "text-xl"} font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent`}>
           DigitalWills.io
         </h1>
+      </Link>
+
+      {/* Nav */}
+      {isAuthenticated && !isMobile && (
+        <nav className="flex items-center gap-1">
+          {navLinks.map(({ to, label, icon: Icon }) => (
+            <Link key={to} to={to}>
+              <Button
+                variant={location.pathname === to ? "secondary" : "ghost"}
+                size="sm"
+                className="gap-2"
+              >
+                <Icon className="h-4 w-4" /> {label}
+              </Button>
+            </Link>
+          ))}
+        </nav>
+      )}
+
+      {/* Auth */}
+      <div className="flex items-center gap-3">
+        {isAuthenticated ? (
+          <>
+            <span className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground font-mono">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              {walletAddress?.substring(0, 6)}...{walletAddress?.substring((walletAddress?.length ?? 0) - 4)}
+            </span>
+            <Button variant="ghost" size="sm" onClick={logout} className="gap-1 text-muted-foreground">
+              <LogOut className="h-4 w-4" />
+              {!isMobile && "Disconnect"}
+            </Button>
+          </>
+        ) : (
+          <Button size="sm" onClick={login} className="gap-2">
+            <Wallet className="h-4 w-4" /> Connect Wallet
+          </Button>
+        )}
       </div>
-      
-      <div className="flex-1"></div>
     </header>
   );
 };
