@@ -21,7 +21,7 @@ const Header = ({ hideWalletConnect = false }: { hideWalletConnect?: boolean }) 
 
   return (
     <header className="w-full border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50 transition-all duration-300">
-      <div className="py-3 px-6 flex justify-between items-center">
+      <div className="py-3 px-6 flex justify-between items-center relative">
         {/* Left spacer for centering */}
         <div className="flex-1 flex justify-start">
           <ThemeToggle />
