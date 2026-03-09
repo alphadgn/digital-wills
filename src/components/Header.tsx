@@ -17,7 +17,7 @@ const Header = ({ hideWalletConnect = false }: { hideWalletConnect?: boolean }) 
   ];
 
   return (
-    <header className="w-full py-3 px-6 flex justify-between items-center border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+    <header className="w-full py-3 px-6 flex justify-center items-center border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
       {/* Logo */}
       <Link to="/" className="flex items-center gap-2">
         <Wallet className={`${isMobile ? "h-5 w-5" : "h-6 w-6"} text-primary`} />
