@@ -1,6 +1,7 @@
 
 import React, { useState } from "react";
 import { useWallet } from "@/contexts/WalletContext";
+import { useAuth } from "@/contexts/PrivyAuthContext";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -11,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { deleteUser, updateUser } from "@/data/userDatabase";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Wallet, UserRoundX, UserRoundCog, ShieldCheck } from "lucide-react";
+import { Wallet, UserRoundX, UserRoundCog, ShieldCheck, Mail, Copy } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,6 +29,7 @@ type BeneficiaryFormValues = z.infer<typeof walletSchema>;
 
 const UserProfile = () => {
   const { address, donorWallet, beneficiaryWallet, setBeneficiaryWallet, resetProcess } = useWallet();
+  const { walletAddress, email, privyUserId } = useAuth();
   const [isUpdating, setIsUpdating] = useState(false);
   const navigate = useNavigate();
   
@@ -38,12 +40,12 @@ const UserProfile = () => {
     }
   });
 
-  // If no wallet is connected, redirect to home
-  React.useEffect(() => {
-    if (!address && !donorWallet) {
-      navigate("/");
-    }
-  }, [address, donorWallet, navigate]);
+  const displayWallet = walletAddress || donorWallet || address;
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard");
+  };
 
   const handleDeleteAccount = () => {
     const walletToDelete = donorWallet || address;
@@ -71,13 +73,9 @@ const UserProfile = () => {
     }
     
     setIsUpdating(true);
-    
-    // Update in mock database
     const updatedUser = updateUser(donorWallet, {
       beneficiaryWallet: values.beneficiaryWallet
     });
-    
-    // Update in wallet context
     setBeneficiaryWallet(values.beneficiaryWallet);
     
     if (updatedUser) {
@@ -85,7 +83,6 @@ const UserProfile = () => {
     } else {
       toast.error("Failed to update beneficiary");
     }
-    
     setIsUpdating(false);
   };
 
@@ -102,26 +99,64 @@ const UserProfile = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-6">
-            {/* Wallet Information */}
-            <div className="flex flex-col gap-2">
+            {/* Account Information */}
+            <div className="flex flex-col gap-3">
               <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Wallet className="h-5 w-5" /> Wallet Information
+                <Wallet className="h-5 w-5 text-primary" /> Account Information
               </h3>
-              <div className="bg-gray-100 p-4 rounded-md">
-                <p className="text-sm font-medium text-gray-500">Donor Wallet Address</p>
-                <p className="font-mono text-sm break-all">{donorWallet || address}</p>
+
+              {/* Email */}
+              <div className="bg-muted p-4 rounded-md">
+                <p className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                  <Mail className="h-3.5 w-3.5" /> Email
+                </p>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-sm break-all">
+                    {email || "No email linked"}
+                  </p>
+                  {email && (
+                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => copyToClipboard(email)}>
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
               </div>
+
+              {/* Wallet Address */}
+              <div className="bg-muted p-4 rounded-md">
+                <p className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                  <Wallet className="h-3.5 w-3.5" /> Wallet Address
+                </p>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="font-mono text-sm break-all">
+                    {displayWallet || "No wallet connected"}
+                  </p>
+                  {displayWallet && (
+                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => copyToClipboard(displayWallet)}>
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Privy User ID */}
+              {privyUserId && (
+                <div className="bg-muted p-4 rounded-md">
+                  <p className="text-sm font-medium text-muted-foreground">User ID</p>
+                  <p className="font-mono text-xs break-all mt-1 text-muted-foreground">{privyUserId}</p>
+                </div>
+              )}
               
               {beneficiaryWallet && (
-                <div className="bg-gray-100 p-4 rounded-md">
-                  <p className="text-sm font-medium text-gray-500">Current Beneficiary Wallet</p>
-                  <p className="font-mono text-sm break-all">{beneficiaryWallet}</p>
+                <div className="bg-muted p-4 rounded-md">
+                  <p className="text-sm font-medium text-muted-foreground">Current Beneficiary Wallet</p>
+                  <p className="font-mono text-sm break-all mt-1">{beneficiaryWallet}</p>
                 </div>
               )}
             </div>
             
             {/* Change Beneficiary Form */}
-            <div className="border-t pt-4">
+            <div className="border-t border-border pt-4">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <UserRoundCog className="h-5 w-5" /> Update Beneficiary
               </h3>
@@ -158,7 +193,7 @@ const UserProfile = () => {
             </div>
             
             {/* Delete Account Section */}
-            <div className="border-t pt-4">
+            <div className="border-t border-border pt-4">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-destructive">
                 <UserRoundX className="h-5 w-5" /> Delete Account
               </h3>
