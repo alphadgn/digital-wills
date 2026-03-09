@@ -58,7 +58,7 @@ const Hero = () => {
                 </svg>
                 Connecting Web3 Wallet...
               </span>
-            ) : isConnecting ? "Connecting..." : "Sign Up & Connect Wallet"}
+            ) : isConnecting ? "Connecting..." : "Sign in/up for account access"}
           </Button>
           <Button 
             size="lg" 
