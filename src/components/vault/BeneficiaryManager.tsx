@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Users, Plus, Trash2, Link2, Copy, Check, Loader2 } from "lucide-react";
+import { Users, Plus, Trash2, Copy, Check, Loader2, Mail } from "lucide-react";
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
 import { INHERITANCE_VAULT_ABI } from "@/config/contracts";
 import { apechain } from "@/config/wagmi";
@@ -23,6 +23,7 @@ interface Props {
 export default function BeneficiaryManager({ vaultId, vaultContractAddress, walletAddress, beneficiaries, onRefresh }: Props) {
   const [addOpen, setAddOpen] = useState(false);
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [wallet, setWallet] = useState("");
   const [allocation, setAllocation] = useState("");
   const [saving, setSaving] = useState(false);
@@ -34,12 +35,16 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
   const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash: txHash });
 
   const handleAdd = async () => {
-    if (!name.trim() || !wallet.trim() || !allocation.trim()) {
-      toast.error("Please fill all fields");
+    if (!name.trim() || !email.trim() || !allocation.trim()) {
+      toast.error("Please fill name, email, and allocation");
       return;
     }
-    if (!/^0x[a-fA-F0-9]{40}$/.test(wallet.trim())) {
-      toast.error("Invalid wallet address");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      toast.error("Invalid email address");
+      return;
+    }
+    if (wallet.trim() && !/^0x[a-fA-F0-9]{40}$/.test(wallet.trim())) {
+      toast.error("Invalid wallet address format");
       return;
     }
     const alloc = parseInt(allocation);
@@ -48,24 +53,27 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
       return;
     }
 
+    const beneficiaryWallet = wallet.trim() || "0x0000000000000000000000000000000000000000";
+
     setSaving(true);
     try {
-      // On-chain transaction
-      if (vaultContractAddress && account) {
+      // On-chain transaction (only if real wallet provided)
+      if (vaultContractAddress && account && wallet.trim()) {
         writeContract({
           account,
           chain: apechain,
           address: vaultContractAddress as `0x${string}`,
           abi: INHERITANCE_VAULT_ABI,
           functionName: "addBeneficiary",
-          args: [wallet.trim() as `0x${string}`, BigInt(alloc)],
+          args: [beneficiaryWallet as `0x${string}`, BigInt(alloc)],
         });
       }
 
       // Save to database
-      await addBeneficiary(walletAddress, vaultId, name.trim(), wallet.trim(), alloc);
+      await addBeneficiary(walletAddress, vaultId, name.trim(), beneficiaryWallet, alloc, email.trim());
       toast.success(`${name.trim()} added as beneficiary`);
       setName("");
+      setEmail("");
       setWallet("");
       setAllocation("");
       setAddOpen(false);
@@ -80,8 +88,7 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
   const handleRemove = async (b: BeneficiaryRow) => {
     setRemovingId(b.id);
     try {
-      // On-chain transaction
-      if (vaultContractAddress && account) {
+      if (vaultContractAddress && account && b.wallet_address !== "0x0000000000000000000000000000000000000000") {
         writeContract({
           account,
           chain: apechain,
@@ -148,8 +155,13 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
                   <Input id="ben-name" placeholder="e.g. John Doe" value={name} onChange={(e) => setName(e.target.value)} />
                 </div>
                 <div>
-                  <Label htmlFor="ben-wallet">Wallet Address</Label>
-                  <Input id="ben-wallet" placeholder="0x..." value={wallet} onChange={(e) => setWallet(e.target.value)} className="font-mono" />
+                  <Label htmlFor="ben-email">Email Address <span className="text-destructive">*</span></Label>
+                  <Input id="ben-email" type="email" placeholder="john@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <p className="text-xs text-muted-foreground mt-1">Required — used for claim notifications</p>
+                </div>
+                <div>
+                  <Label htmlFor="ben-wallet">Wallet Address <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                  <Input id="ben-wallet" placeholder="0x... (can be added later)" value={wallet} onChange={(e) => setWallet(e.target.value)} className="font-mono" />
                 </div>
                 <div>
                   <Label htmlFor="ben-alloc">Allocation (%)</Label>
@@ -176,9 +188,16 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
                 </div>
                 <div>
                   <p className="font-medium text-foreground">{b.name}</p>
-                  <p className="font-mono text-xs text-muted-foreground">
-                    {b.wallet_address.substring(0, 10)}...{b.wallet_address.substring(b.wallet_address.length - 4)}
-                  </p>
+                  {b.email && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Mail className="h-3 w-3" /> {b.email}
+                    </p>
+                  )}
+                  {b.wallet_address && b.wallet_address !== "0x0000000000000000000000000000000000000000" && (
+                    <p className="font-mono text-xs text-muted-foreground">
+                      {b.wallet_address.substring(0, 10)}...{b.wallet_address.substring(b.wallet_address.length - 4)}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
