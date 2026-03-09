@@ -70,14 +70,12 @@ const ManageBeneficiaries = () => {
           <ArrowLeft className="h-4 w-4" /> Back
         </Button>
 
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Users className="h-6 w-6 text-primary" /> Beneficiaries
-            </h1>
-            <p className="text-muted-foreground text-sm">Vault {vaultId}</p>
-          </div>
-          <Button className="gap-2" onClick={() => setShowAdd(true)}>
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-foreground flex items-center justify-center gap-2">
+            <Users className="h-6 w-6 text-primary" /> Beneficiaries
+          </h1>
+          <p className="text-muted-foreground text-sm">Vault {vaultId}</p>
+          <Button className="gap-2 mt-3" onClick={() => setShowAdd(true)}>
             <Plus className="h-4 w-4" /> Add
           </Button>
         </div>

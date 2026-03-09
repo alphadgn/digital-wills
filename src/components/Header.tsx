@@ -52,9 +52,8 @@ const Header = ({ hideWalletConnect = false }: { hideWalletConnect?: boolean }) 
           </nav>
         )}
 
-        {/* Right side: Theme toggle + Auth + Mobile menu trigger */}
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
+        {/* Right side: Auth + Mobile menu trigger */}
+        <div className="flex-1 flex items-center justify-end gap-2">
           {isAuthenticated && !isMobile && (
             <>
               <span className="flex items-center gap-2 text-sm text-muted-foreground font-mono transition-colors duration-200">
