@@ -93,6 +93,33 @@ export type Database = {
           },
         ]
       }
+      purchases: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          stripe_session_id: string | null
+          tier: string
+          wallet_address: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          stripe_session_id?: string | null
+          tier?: string
+          wallet_address?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          stripe_session_id?: string | null
+          tier?: string
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
       vault_beneficiaries: {
         Row: {
           allocation_percent: number
