@@ -117,7 +117,7 @@ export function useDelegatedNFTCheck(address: Address | undefined) {
                 abi: ERC721_BALANCE_ABI,
                 functionName: "balanceOf",
                 args: [delegator],
-              })
+              } as any)
               .then((bal) => {
                 if (bal > 0n) foundMAYC = true;
               })
