@@ -62,12 +62,20 @@ export function useDelegatedNFTCheck(address: Address | undefined) {
     const check = async () => {
       setIsChecking(true);
       try {
-        const delegations = await client.readContract({
+        const delegations = (await client.readContract({
           address: DELEGATE_REGISTRY_V2,
           abi: DELEGATE_REGISTRY_ABI,
           functionName: "getIncomingDelegations",
           args: [address],
-        } as any);
+        } as any)) as Array<{
+          type_: number;
+          to: string;
+          from: string;
+          rights: string;
+          contract_: string;
+          tokenId: bigint;
+          amount: bigint;
+        }>;
 
         const baycDelegators = new Set<Address>();
         const maycDelegators = new Set<Address>();
