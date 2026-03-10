@@ -48,6 +48,7 @@ const App = () => (
                   <Route path="/vault/:vaultId" element={<ProtectedRoute><VaultDetail /></ProtectedRoute>} />
                   <Route path="/vault/:vaultId/beneficiaries" element={<ProtectedRoute><ManageBeneficiaries /></ProtectedRoute>} />
                   <Route path="/claims" element={<ProtectedRoute><Claims /></ProtectedRoute>} />
+                  <Route path="/security-audit" element={<ProtectedRoute><SecurityAudit /></ProtectedRoute>} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
