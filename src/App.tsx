@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
 import UserProfile from "./pages/UserProfile";
 import VaultDashboard from "./pages/VaultDashboard";
+import SecurityAudit from "./pages/SecurityAudit";
 import VaultDetail from "./pages/VaultDetail";
 import CreateVault from "./pages/CreateVault";
 import ManageBeneficiaries from "./pages/ManageBeneficiaries";
