@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
 import UserProfile from "./pages/UserProfile";
 import VaultDashboard from "./pages/VaultDashboard";
+import SecurityAudit from "./pages/SecurityAudit";
 import VaultDetail from "./pages/VaultDetail";
 import CreateVault from "./pages/CreateVault";
 import ManageBeneficiaries from "./pages/ManageBeneficiaries";
@@ -47,6 +48,7 @@ const App = () => (
                   <Route path="/vault/:vaultId" element={<ProtectedRoute><VaultDetail /></ProtectedRoute>} />
                   <Route path="/vault/:vaultId/beneficiaries" element={<ProtectedRoute><ManageBeneficiaries /></ProtectedRoute>} />
                   <Route path="/claims" element={<ProtectedRoute><Claims /></ProtectedRoute>} />
+                  <Route path="/security-audit" element={<ProtectedRoute><SecurityAudit /></ProtectedRoute>} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

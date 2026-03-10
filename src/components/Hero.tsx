@@ -199,8 +199,8 @@ const Hero = () => {
               <span className="font-semibold text-primary">MAYC holders:</span> $59.95 •{" "}
               <span className="font-semibold">Standard:</span> $99.95
               <br />
-              <span className="text-xs opacity-75">
-                Supports delegate.cash V2 — delegated wallets qualify too
+               <span className="text-xs opacity-75">
+                Supports delegated wallets
               </span>
             </p>
           )}
