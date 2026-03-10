@@ -54,6 +54,12 @@ const Header = ({ hideWalletConnect = false }: { hideWalletConnect?: boolean }) 
 
         {/* Right side: Auth + Mobile menu trigger */}
         <div className="flex-1 flex items-center justify-end gap-2">
+          {!isAuthenticated && (
+            <Button variant="outline" size="sm" onClick={login} className="gap-2 transition-all duration-200">
+              <UserCircle className="h-4 w-4" />
+              Sign In
+            </Button>
+          )}
           {isAuthenticated && !isMobile && (
             <>
               <span className="flex items-center gap-2 text-sm text-muted-foreground font-mono transition-colors duration-200">
