@@ -110,7 +110,7 @@ export function useDelegatedNFTCheck(address: Address | undefined) {
                 functionName: "balanceOf",
                 args: [delegator],
               } as any)
-              .then((bal) => {
+              .then((bal: bigint) => {
                 if (bal > 0n) foundBAYC = true;
               })
               .catch(() => {})
