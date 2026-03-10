@@ -1,5 +1,6 @@
 import { http, createConfig } from "wagmi";
 import { defineChain } from "viem";
+import { mainnet } from "viem/chains";
 
 export const apechain = defineChain({
   id: 33139,
@@ -14,8 +15,9 @@ export const apechain = defineChain({
 });
 
 export const wagmiConfig = createConfig({
-  chains: [apechain],
+  chains: [apechain, mainnet],
   transports: {
     [apechain.id]: http(),
+    [mainnet.id]: http(),
   },
 });
