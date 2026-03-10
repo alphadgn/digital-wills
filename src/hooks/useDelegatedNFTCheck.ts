@@ -67,7 +67,7 @@ export function useDelegatedNFTCheck(address: Address | undefined) {
           abi: DELEGATE_REGISTRY_ABI,
           functionName: "getIncomingDelegations",
           args: [address],
-        });
+        } as any);
 
         const baycDelegators = new Set<Address>();
         const maycDelegators = new Set<Address>();
