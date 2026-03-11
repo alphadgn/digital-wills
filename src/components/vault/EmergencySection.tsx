@@ -51,7 +51,9 @@ export default function EmergencySection({ vaultId, walletAddress, donorEmail, d
     }
     setLoading(true);
     try {
-      await updateVault(walletAddress, vaultId, {
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not authenticated");
+      await updateVault(token, vaultId, {
         donor_email: email.trim() || null,
         donor_phone: phone.trim() || null,
       });
