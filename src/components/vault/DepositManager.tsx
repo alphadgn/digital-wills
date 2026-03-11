@@ -11,6 +11,7 @@ import { parseEther } from "viem";
 import { INHERITANCE_VAULT_ABI, ERC721_ABI, ERC1155_ABI } from "@/config/contracts";
 import { apechain } from "@/config/wagmi";
 import { addDeposit, type DepositRow } from "@/lib/supabaseVault";
+import { useAuth } from "@/contexts/PrivyAuthContext";
 import { toast } from "sonner";
 
 interface Props {
