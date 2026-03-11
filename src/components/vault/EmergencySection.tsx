@@ -112,11 +112,13 @@ export default function EmergencySection({ vaultId, walletAddress, donorEmail, d
       const data = await res.json();
 
       if (res.ok && data.verified) {
-        await recordEmergencyAttempt(walletAddress, vaultId, currentAttempt, true);
+        const token = await getAccessToken();
+        if (token) await recordEmergencyAttempt(token, vaultId, currentAttempt, true);
         toast.success("Identity verified successfully");
         setStep("destination");
       } else {
-        await recordEmergencyAttempt(walletAddress, vaultId, currentAttempt, false);
+        const token = await getAccessToken();
+        if (token) await recordEmergencyAttempt(token, vaultId, currentAttempt, false);
 
         if (currentAttempt >= 2) {
           // After 2 failed attempts, send warning
