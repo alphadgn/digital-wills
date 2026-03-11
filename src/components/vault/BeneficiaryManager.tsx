@@ -103,7 +103,9 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
         });
       }
 
-      await removeBeneficiary(walletAddress, b.id);
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not authenticated");
+      await removeBeneficiary(token, b.id);
       toast.success(`${b.name} removed`);
       onRefresh();
     } catch (e: any) {
