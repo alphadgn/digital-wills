@@ -10,6 +10,7 @@ import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagm
 import { INHERITANCE_VAULT_ABI } from "@/config/contracts";
 import { apechain } from "@/config/wagmi";
 import { addBeneficiary, removeBeneficiary, markInviteSent, type BeneficiaryRow } from "@/lib/supabaseVault";
+import { useAuth } from "@/contexts/PrivyAuthContext";
 import { toast } from "sonner";
 
 interface Props {
