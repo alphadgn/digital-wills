@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      claims: {
+        Row: {
+          beneficiary_vote: boolean
+          beneficiary_wallet: string
+          created_at: string
+          id: string
+          oracle_confidence: number | null
+          oracle_vote: boolean | null
+          status: string
+          updated_at: string
+          vault_id: string
+        }
+        Insert: {
+          beneficiary_vote?: boolean
+          beneficiary_wallet: string
+          created_at?: string
+          id?: string
+          oracle_confidence?: number | null
+          oracle_vote?: boolean | null
+          status?: string
+          updated_at?: string
+          vault_id: string
+        }
+        Update: {
+          beneficiary_vote?: boolean
+          beneficiary_wallet?: string
+          created_at?: string
+          id?: string
+          oracle_confidence?: number | null
+          oracle_vote?: boolean | null
+          status?: string
+          updated_at?: string
+          vault_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claims_vault_id_fkey"
+            columns: ["vault_id"]
+            isOneToOne: false
+            referencedRelation: "vaults"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deposit_history: {
         Row: {
           amount_eth: number
@@ -89,6 +133,50 @@ export type Database = {
             columns: ["vault_id"]
             isOneToOne: false
             referencedRelation: "vaults"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oracle_results: {
+        Row: {
+          claim_id: string
+          confidence: number
+          created_at: string
+          deceased: boolean
+          id: string
+          matched_dob: string | null
+          matched_name: string | null
+          sources: string[]
+          verified_at: string
+        }
+        Insert: {
+          claim_id: string
+          confidence: number
+          created_at?: string
+          deceased: boolean
+          id?: string
+          matched_dob?: string | null
+          matched_name?: string | null
+          sources?: string[]
+          verified_at?: string
+        }
+        Update: {
+          claim_id?: string
+          confidence?: number
+          created_at?: string
+          deceased?: boolean
+          id?: string
+          matched_dob?: string | null
+          matched_name?: string | null
+          sources?: string[]
+          verified_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oracle_results_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "claims"
             referencedColumns: ["id"]
           },
         ]
