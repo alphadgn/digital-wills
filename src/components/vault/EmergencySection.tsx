@@ -10,6 +10,8 @@ import { useAuth } from "@/contexts/PrivyAuthContext";
 import { recordEmergencyAttempt, updateVault } from "@/lib/supabaseVault";
 import { toast } from "sonner";
 
+// Note: walletAddress prop is kept for display but DB calls use the Privy token
+
 interface Props {
   vaultId: string;
   walletAddress: string;
