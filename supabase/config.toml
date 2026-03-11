@@ -1,1 +1,25 @@
 project_id = "iczppbrhreznpmxkwfrh"
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.check-purchase]
+verify_jwt = false
+
+[functions.claim-api]
+verify_jwt = false
+
+[functions.oracle-verify]
+verify_jwt = false
+
+[functions.vault-api]
+verify_jwt = false
+
+[functions.verify-payment]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.emergency-verify]
+verify_jwt = false
