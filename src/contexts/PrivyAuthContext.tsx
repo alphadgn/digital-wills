@@ -14,6 +14,7 @@ interface AuthContextType {
   login: () => void;
   logout: () => Promise<void>;
   isPrivyConfigured: boolean;
+  getAccessToken: () => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,10 +28,11 @@ const fallbackValue: AuthContextType = {
   login: () => console.warn("Privy app ID is not configured or invalid. Set a valid VITE_PRIVY_APP_ID."),
   logout: async () => {},
   isPrivyConfigured: false,
+  getAccessToken: async () => null,
 };
 
 function AuthInner({ children }: { children: ReactNode }) {
-  const { ready, authenticated, user, login, logout } = usePrivy();
+  const { ready, authenticated, user, login, logout, getAccessToken } = usePrivy();
   const { wallets } = useWallets();
   const walletAddress = wallets[0]?.address ?? user?.wallet?.address ?? null;
   const email = user?.email?.address ?? null;
@@ -46,6 +48,7 @@ function AuthInner({ children }: { children: ReactNode }) {
         login,
         logout,
         isPrivyConfigured: true,
+        getAccessToken,
       }}
     >
       {children}

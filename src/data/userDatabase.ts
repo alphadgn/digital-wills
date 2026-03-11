@@ -13,7 +13,7 @@ let users: UserProfile[] = [
       method: "email",
       value: "user1@example.com"
     },
-    donorSSN: "123456789",
+    donorSSN: null,
     claimProcessed: false
   },
   {
@@ -26,7 +26,7 @@ let users: UserProfile[] = [
       method: "phone",
       value: "+12125551234"
     },
-    donorSSN: "987654321",
+    donorSSN: null,
     claimProcessed: false
   }
 ];

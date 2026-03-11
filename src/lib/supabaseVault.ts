@@ -1,4 +1,7 @@
-import { supabase } from "@/integrations/supabase/client";
+/**
+ * Vault data layer — all operations route through the vault-api edge function
+ * which verifies the Privy JWT and scopes access to verified wallets.
+ */
 
 export interface VaultRow {
   id: string;
@@ -40,127 +43,106 @@ export interface DepositRow {
   created_at: string;
 }
 
-function getRestUrl() {
-  const url = import.meta.env.VITE_SUPABASE_URL;
-  return `${url}/rest/v1`;
+function getVaultApiUrl() {
+  return `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/vault-api`;
 }
 
-function getHeaders(walletAddress: string) {
-  return {
-    "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-    "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-    "Content-Type": "application/json",
-    "Prefer": "return=representation",
-    "x-wallet-address": walletAddress.toLowerCase(),
-  };
+async function vaultApiRequest<T>(
+  token: string,
+  action: string,
+  params: Record<string, any> = {}
+): Promise<T> {
+  const res = await fetch(getVaultApiUrl(), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ action, params }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Request failed with status ${res.status}`);
+  }
+  return res.json();
 }
 
 // ── Vaults ──
 
-export async function getVaultsForWallet(walletAddress: string): Promise<VaultRow[]> {
-  const res = await fetch(`${getRestUrl()}/vaults?order=created_at.desc`, {
-    headers: getHeaders(walletAddress),
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+export async function getVaultsForWallet(token: string): Promise<VaultRow[]> {
+  return vaultApiRequest<VaultRow[]>(token, "GET_VAULTS");
 }
 
-export async function getVaultById(walletAddress: string, vaultId: string): Promise<VaultRow> {
-  const res = await fetch(`${getRestUrl()}/vaults?id=eq.${vaultId}`, {
-    headers: { ...getHeaders(walletAddress), "Accept": "application/vnd.pgrst.object+json" },
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+export async function getVaultById(token: string, vaultId: string): Promise<VaultRow> {
+  return vaultApiRequest<VaultRow>(token, "GET_VAULT", { vaultId });
 }
 
-export async function createVault(walletAddress: string, vaultContractAddress: string | null, vaultName: string = "My Vault"): Promise<VaultRow> {
-  const res = await fetch(`${getRestUrl()}/vaults`, {
-    method: "POST",
-    headers: { ...getHeaders(walletAddress), "Accept": "application/vnd.pgrst.object+json" },
-    body: JSON.stringify({
-      wallet_address: walletAddress.toLowerCase(),
-      vault_contract_address: vaultContractAddress,
-      vault_name: vaultName,
-    }),
+export async function createVault(
+  token: string,
+  walletAddress: string,
+  vaultContractAddress: string | null,
+  vaultName: string = "My Vault"
+): Promise<VaultRow> {
+  return vaultApiRequest<VaultRow>(token, "CREATE_VAULT", {
+    walletAddress,
+    vaultContractAddress,
+    vaultName,
   });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
 }
 
-export async function updateVault(walletAddress: string, vaultId: string, updates: Partial<Pick<VaultRow, 'vault_name' | 'status' | 'donor_email' | 'donor_phone'>>): Promise<VaultRow> {
-  const res = await fetch(`${getRestUrl()}/vaults?id=eq.${vaultId}`, {
-    method: "PATCH",
-    headers: { ...getHeaders(walletAddress), "Accept": "application/vnd.pgrst.object+json" },
-    body: JSON.stringify(updates),
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+export async function updateVault(
+  token: string,
+  vaultId: string,
+  updates: Partial<Pick<VaultRow, "vault_name" | "status" | "donor_email" | "donor_phone">>
+): Promise<VaultRow> {
+  return vaultApiRequest<VaultRow>(token, "UPDATE_VAULT", { vaultId, updates });
 }
 
 // ── Beneficiaries ──
 
-export async function getVaultBeneficiaries(walletAddress: string, vaultId: string): Promise<BeneficiaryRow[]> {
-  const res = await fetch(`${getRestUrl()}/vault_beneficiaries?vault_id=eq.${vaultId}&order=created_at.asc`, {
-    headers: getHeaders(walletAddress),
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+export async function getVaultBeneficiaries(
+  token: string,
+  vaultId: string
+): Promise<BeneficiaryRow[]> {
+  return vaultApiRequest<BeneficiaryRow[]>(token, "GET_BENEFICIARIES", { vaultId });
 }
 
 export async function addBeneficiary(
-  walletAddress: string,
+  token: string,
   vaultId: string,
   name: string,
   beneficiaryWallet: string,
   allocationPercent: number,
   email?: string
 ): Promise<BeneficiaryRow> {
-  const inviteToken = crypto.randomUUID();
-  const res = await fetch(`${getRestUrl()}/vault_beneficiaries`, {
-    method: "POST",
-    headers: { ...getHeaders(walletAddress), "Accept": "application/vnd.pgrst.object+json" },
-    body: JSON.stringify({
-      vault_id: vaultId,
-      name,
-      wallet_address: beneficiaryWallet.toLowerCase(),
-      allocation_percent: allocationPercent,
-      invite_token: inviteToken,
-      email: email || null,
-    }),
+  return vaultApiRequest<BeneficiaryRow>(token, "ADD_BENEFICIARY", {
+    vaultId,
+    name,
+    beneficiaryWallet,
+    allocationPercent,
+    email,
   });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
 }
 
-export async function removeBeneficiary(walletAddress: string, beneficiaryId: string): Promise<void> {
-  const res = await fetch(`${getRestUrl()}/vault_beneficiaries?id=eq.${beneficiaryId}`, {
-    method: "DELETE",
-    headers: getHeaders(walletAddress),
-  });
-  if (!res.ok) throw new Error(await res.text());
+export async function removeBeneficiary(token: string, beneficiaryId: string): Promise<void> {
+  await vaultApiRequest(token, "REMOVE_BENEFICIARY", { beneficiaryId });
 }
 
-export async function markInviteSent(walletAddress: string, beneficiaryId: string): Promise<void> {
-  const res = await fetch(`${getRestUrl()}/vault_beneficiaries?id=eq.${beneficiaryId}`, {
-    method: "PATCH",
-    headers: getHeaders(walletAddress),
-    body: JSON.stringify({ invite_sent: true }),
-  });
-  if (!res.ok) throw new Error(await res.text());
+export async function markInviteSent(token: string, beneficiaryId: string): Promise<void> {
+  await vaultApiRequest(token, "MARK_INVITE_SENT", { beneficiaryId });
 }
 
 // ── Deposits ──
 
-export async function getDepositHistory(walletAddress: string, vaultId: string): Promise<DepositRow[]> {
-  const res = await fetch(`${getRestUrl()}/deposit_history?vault_id=eq.${vaultId}&order=created_at.desc`, {
-    headers: getHeaders(walletAddress),
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+export async function getDepositHistory(
+  token: string,
+  vaultId: string
+): Promise<DepositRow[]> {
+  return vaultApiRequest<DepositRow[]>(token, "GET_DEPOSITS", { vaultId });
 }
 
 export async function addDeposit(
-  walletAddress: string,
+  token: string,
   vaultId: string,
   txHash: string,
   amountEth: number,
@@ -168,41 +150,27 @@ export async function addDeposit(
   tokenAddress?: string,
   tokenId?: string
 ) {
-  const res = await fetch(`${getRestUrl()}/deposit_history`, {
-    method: "POST",
-    headers: { ...getHeaders(walletAddress), "Accept": "application/vnd.pgrst.object+json" },
-    body: JSON.stringify({
-      vault_id: vaultId,
-      tx_hash: txHash,
-      amount_eth: amountEth,
-      from_address: walletAddress.toLowerCase(),
-      token_type: tokenType,
-      token_address: tokenAddress || null,
-      token_id: tokenId || null,
-    }),
+  return vaultApiRequest(token, "ADD_DEPOSIT", {
+    vaultId,
+    txHash,
+    amountEth,
+    tokenType,
+    tokenAddress,
+    tokenId,
   });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
 }
 
 // ── Emergency ──
 
 export async function recordEmergencyAttempt(
-  walletAddress: string,
+  token: string,
   vaultId: string,
   attemptNumber: number,
   success: boolean
 ) {
-  const res = await fetch(`${getRestUrl()}/emergency_attempts`, {
-    method: "POST",
-    headers: { ...getHeaders(walletAddress), "Accept": "application/vnd.pgrst.object+json" },
-    body: JSON.stringify({
-      vault_id: vaultId,
-      wallet_address: walletAddress.toLowerCase(),
-      attempt_number: attemptNumber,
-      success,
-    }),
+  return vaultApiRequest(token, "RECORD_EMERGENCY", {
+    vaultId,
+    attemptNumber,
+    success,
   });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
 }
