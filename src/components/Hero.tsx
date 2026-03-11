@@ -52,17 +52,15 @@ const Hero = () => {
   const { hasDelegatedBAYC, hasDelegatedMAYC, isChecking: isDelegateChecking } =
     useDelegatedNFTCheck(address as `0x${string}` | undefined);
 
-  // Check if wallet has already purchased
+  // Check if wallet has already purchased via server-side edge function
   useEffect(() => {
     if (!address) return;
     const checkPurchase = async () => {
       try {
-        const { data } = await (supabase as any)
-          .from("purchases")
-          .select("id")
-          .eq("wallet_address", address.toLowerCase())
-          .maybeSingle();
-        if (data) setHasPurchased(true);
+        const { data, error } = await supabase.functions.invoke("check-purchase", {
+          body: { wallet_address: address.toLowerCase() },
+        });
+        if (!error && data?.purchased) setHasPurchased(true);
       } catch (e) {
         console.error("Purchase check failed:", e);
       }

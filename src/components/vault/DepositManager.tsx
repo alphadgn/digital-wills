@@ -42,10 +42,12 @@ export default function DepositManager({ vaultId, vaultContractAddress, walletAd
     if (isConfirmed && txHash && (depositingEth || depositingNft)) {
       const record = async () => {
         try {
+          const token = await getAccessToken();
+          if (!token) throw new Error("Not authenticated");
           if (depositingEth) {
-            await addDeposit(walletAddress, vaultId, txHash, parseFloat(ethAmount) || 0, "ETH");
+            await addDeposit(token, vaultId, txHash, parseFloat(ethAmount) || 0, "ETH");
           } else if (depositingNft) {
-            await addDeposit(walletAddress, vaultId, txHash, 0, nftType, nftAddress, nftTokenId);
+            await addDeposit(token, vaultId, txHash, 0, nftType, nftAddress, nftTokenId);
           }
           toast.success("Deposit recorded!");
           setEthAmount("");

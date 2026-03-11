@@ -145,8 +145,10 @@ export default function EmergencySection({ vaultId, walletAddress, donorEmail, d
     }
     setLoading(true);
     try {
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not authenticated");
       // Update vault status
-      await updateVault(walletAddress, vaultId, { status: "CANCELLED" });
+      await updateVault(token, vaultId, { status: "CANCELLED" });
       toast.success("Emergency withdrawal initiated. Assets will be sent to the designated address.");
       setStep("done");
       onRefresh();
