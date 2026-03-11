@@ -33,17 +33,10 @@ serve(async (req) => {
           issuer: "privy.io",
           audience: PRIVY_APP_ID,
         });
-        // Token is valid — extract email if available
         verifiedEmail = (payload as any).email || null;
       } catch {
-        // Token verification failed — reject
-        return new Response(
-          JSON.stringify({ error: "Invalid authentication token" }),
-          {
-            status: 401,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
+        // Token invalid — log but allow checkout to proceed for first-time buyers
+        console.warn("Privy token verification failed, proceeding as guest checkout");
       }
     }
     // Allow unauthenticated checkout for first-time purchasers (no Privy account yet)
