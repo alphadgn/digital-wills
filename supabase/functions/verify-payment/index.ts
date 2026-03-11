@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { createRemoteJWKSet, jwtVerify } from "https://deno.land/x/jose@v5.2.0/index.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,6 +10,11 @@ const corsHeaders = {
 };
 
 const MAYC_PRICE_ID = "price_1T9CGC7x3vtVVX3uW6sZRuv1";
+const PRIVY_APP_ID = Deno.env.get("VITE_PRIVY_APP_ID") || "";
+const PRIVY_APP_SECRET = Deno.env.get("PRIVY_APP_SECRET") || "";
+const JWKS = createRemoteJWKSet(
+  new URL("https://auth.privy.io/.well-known/jwks.json")
+);
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -20,7 +26,7 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
-    const { session_id, wallet_address } = await req.json();
+    const { session_id } = await req.json();
 
     if (!session_id) {
       return new Response(JSON.stringify({ error: "session_id is required" }), {
@@ -46,6 +52,40 @@ serve(async (req) => {
     const priceId = lineItems.data[0]?.price?.id;
     const tier = priceId === MAYC_PRICE_ID ? "mayc" : "standard";
 
+    // Derive wallet address from verified Privy JWT if present (don't trust client)
+    let walletAddress: string | null = null;
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+      try {
+        const token = authHeader.replace("Bearer ", "");
+        const { payload } = await jwtVerify(token, JWKS, {
+          issuer: "privy.io",
+          audience: PRIVY_APP_ID,
+        });
+        const userId = payload.sub as string;
+
+        // Fetch user's wallets from Privy
+        const userRes = await fetch(
+          `https://auth.privy.io/api/v1/users/${userId}`,
+          {
+            headers: {
+              Authorization: `Basic ${btoa(PRIVY_APP_ID + ":" + PRIVY_APP_SECRET)}`,
+              "privy-app-id": PRIVY_APP_ID,
+            },
+          }
+        );
+        if (userRes.ok) {
+          const user = await userRes.json();
+          const wallet = (user.linked_accounts || []).find(
+            (a: any) => a.type === "wallet"
+          );
+          if (wallet) walletAddress = wallet.address.toLowerCase();
+        }
+      } catch {
+        // JWT verification failed — proceed without wallet
+      }
+    }
+
     // Record purchase using service role
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") || "",
@@ -60,7 +100,7 @@ serve(async (req) => {
     await supabase.from("purchases").upsert(
       {
         stripe_session_id: session_id,
-        wallet_address: wallet_address?.toLowerCase() || null,
+        wallet_address: walletAddress,
         email,
         tier,
       },
@@ -71,9 +111,9 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Verify payment error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: "Verification failed" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

@@ -11,6 +11,7 @@ import { parseEther } from "viem";
 import { INHERITANCE_VAULT_ABI, ERC721_ABI, ERC1155_ABI } from "@/config/contracts";
 import { apechain } from "@/config/wagmi";
 import { addDeposit, type DepositRow } from "@/lib/supabaseVault";
+import { useAuth } from "@/contexts/PrivyAuthContext";
 import { toast } from "sonner";
 
 interface Props {
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function DepositManager({ vaultId, vaultContractAddress, walletAddress, deposits, onRefresh, blockExplorerUrl }: Props) {
+  const { getAccessToken } = useAuth();
   const [ethAmount, setEthAmount] = useState("");
   const [nftAddress, setNftAddress] = useState("");
   const [nftTokenId, setNftTokenId] = useState("");
@@ -40,10 +42,12 @@ export default function DepositManager({ vaultId, vaultContractAddress, walletAd
     if (isConfirmed && txHash && (depositingEth || depositingNft)) {
       const record = async () => {
         try {
+          const token = await getAccessToken();
+          if (!token) throw new Error("Not authenticated");
           if (depositingEth) {
-            await addDeposit(walletAddress, vaultId, txHash, parseFloat(ethAmount) || 0, "ETH");
+            await addDeposit(token, vaultId, txHash, parseFloat(ethAmount) || 0, "ETH");
           } else if (depositingNft) {
-            await addDeposit(walletAddress, vaultId, txHash, 0, nftType, nftAddress, nftTokenId);
+            await addDeposit(token, vaultId, txHash, 0, nftType, nftAddress, nftTokenId);
           }
           toast.success("Deposit recorded!");
           setEthAmount("");

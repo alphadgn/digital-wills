@@ -24,7 +24,7 @@ const statusColor: Record<string, string> = {
 
 const VaultDetail = () => {
   const { vaultId } = useParams<{ vaultId: string }>();
-  const { walletAddress } = useAuth();
+  const { walletAddress, getAccessToken } = useAuth();
   const navigate = useNavigate();
   const [vault, setVault] = useState<VaultRow | null>(null);
   const [beneficiaries, setBeneficiaries] = useState<BeneficiaryRow[]>([]);
@@ -36,10 +36,12 @@ const VaultDetail = () => {
     if (!walletAddress || !vaultId) return;
     try {
       setLoading(true);
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not authenticated");
       const [v, b, d] = await Promise.all([
-        getVaultById(walletAddress, vaultId),
-        getVaultBeneficiaries(walletAddress, vaultId),
-        getDepositHistory(walletAddress, vaultId),
+        getVaultById(token, vaultId),
+        getVaultBeneficiaries(token, vaultId),
+        getDepositHistory(token, vaultId),
       ]);
       setVault(v);
       setBeneficiaries(b);
@@ -50,7 +52,7 @@ const VaultDetail = () => {
     } finally {
       setLoading(false);
     }
-  }, [walletAddress, vaultId]);
+  }, [walletAddress, vaultId, getAccessToken]);
 
   useEffect(() => { loadData(); }, [loadData]);
 

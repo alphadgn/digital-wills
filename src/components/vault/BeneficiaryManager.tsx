@@ -10,6 +10,7 @@ import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagm
 import { INHERITANCE_VAULT_ABI } from "@/config/contracts";
 import { apechain } from "@/config/wagmi";
 import { addBeneficiary, removeBeneficiary, markInviteSent, type BeneficiaryRow } from "@/lib/supabaseVault";
+import { useAuth } from "@/contexts/PrivyAuthContext";
 import { toast } from "sonner";
 
 interface Props {
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export default function BeneficiaryManager({ vaultId, vaultContractAddress, walletAddress, beneficiaries, onRefresh }: Props) {
+  const { getAccessToken } = useAuth();
   const [addOpen, setAddOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -70,7 +72,9 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
       }
 
       // Save to database
-      await addBeneficiary(walletAddress, vaultId, name.trim(), beneficiaryWallet, alloc, email.trim());
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not authenticated");
+      await addBeneficiary(token, vaultId, name.trim(), beneficiaryWallet, alloc, email.trim());
       toast.success(`${name.trim()} added as beneficiary`);
       setName("");
       setEmail("");
@@ -99,7 +103,9 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
         });
       }
 
-      await removeBeneficiary(walletAddress, b.id);
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not authenticated");
+      await removeBeneficiary(token, b.id);
       toast.success(`${b.name} removed`);
       onRefresh();
     } catch (e: any) {
@@ -118,7 +124,8 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
 
     if (!b.invite_sent) {
       try {
-        await markInviteSent(walletAddress, b.id);
+        const token = await getAccessToken();
+        if (token) await markInviteSent(token, b.id);
         onRefresh();
       } catch { /* non-critical */ }
     }

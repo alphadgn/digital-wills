@@ -10,6 +10,8 @@ import { useAuth } from "@/contexts/PrivyAuthContext";
 import { recordEmergencyAttempt, updateVault } from "@/lib/supabaseVault";
 import { toast } from "sonner";
 
+// Note: walletAddress prop is kept for display but DB calls use the Privy token
+
 interface Props {
   vaultId: string;
   walletAddress: string;
@@ -21,7 +23,7 @@ interface Props {
 type Step = "idle" | "confirm1" | "verify" | "destination" | "processing" | "done" | "error";
 
 export default function EmergencySection({ vaultId, walletAddress, donorEmail, donorPhone, onRefresh }: Props) {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, getAccessToken } = useAuth();
   const [step, setStep] = useState<Step>("idle");
   const [freeWill, setFreeWill] = useState(false);
   const [destinationAddr, setDestinationAddr] = useState("");
@@ -49,7 +51,9 @@ export default function EmergencySection({ vaultId, walletAddress, donorEmail, d
     }
     setLoading(true);
     try {
-      await updateVault(walletAddress, vaultId, {
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not authenticated");
+      await updateVault(token, vaultId, {
         donor_email: email.trim() || null,
         donor_phone: phone.trim() || null,
       });
@@ -108,11 +112,13 @@ export default function EmergencySection({ vaultId, walletAddress, donorEmail, d
       const data = await res.json();
 
       if (res.ok && data.verified) {
-        await recordEmergencyAttempt(walletAddress, vaultId, currentAttempt, true);
+        const token = await getAccessToken();
+        if (token) await recordEmergencyAttempt(token, vaultId, currentAttempt, true);
         toast.success("Identity verified successfully");
         setStep("destination");
       } else {
-        await recordEmergencyAttempt(walletAddress, vaultId, currentAttempt, false);
+        const token = await getAccessToken();
+        if (token) await recordEmergencyAttempt(token, vaultId, currentAttempt, false);
 
         if (currentAttempt >= 2) {
           // After 2 failed attempts, send warning
@@ -139,8 +145,10 @@ export default function EmergencySection({ vaultId, walletAddress, donorEmail, d
     }
     setLoading(true);
     try {
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not authenticated");
       // Update vault status
-      await updateVault(walletAddress, vaultId, { status: "CANCELLED" });
+      await updateVault(token, vaultId, { status: "CANCELLED" });
       toast.success("Emergency withdrawal initiated. Assets will be sent to the designated address.");
       setStep("done");
       onRefresh();
