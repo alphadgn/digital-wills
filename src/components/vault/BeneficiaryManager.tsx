@@ -72,7 +72,9 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
       }
 
       // Save to database
-      await addBeneficiary(walletAddress, vaultId, name.trim(), beneficiaryWallet, alloc, email.trim());
+      const token = await getAccessToken();
+      if (!token) throw new Error("Not authenticated");
+      await addBeneficiary(token, vaultId, name.trim(), beneficiaryWallet, alloc, email.trim());
       toast.success(`${name.trim()} added as beneficiary`);
       setName("");
       setEmail("");
