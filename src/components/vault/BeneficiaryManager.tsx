@@ -124,7 +124,8 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
 
     if (!b.invite_sent) {
       try {
-        await markInviteSent(walletAddress, b.id);
+        const token = await getAccessToken();
+        if (token) await markInviteSent(token, b.id);
         onRefresh();
       } catch { /* non-critical */ }
     }

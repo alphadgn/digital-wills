@@ -9,7 +9,7 @@ import { toast } from "sonner";
  * Checks Supabase for existing vaults. If none found, deploys on-chain and stores in DB.
  */
 export function useAutoVault() {
-  const { isAuthenticated, walletAddress, isLoading } = useAuth();
+  const { isAuthenticated, walletAddress, isLoading, getAccessToken } = useAuth();
   const { deploy, vaultAddress: deployedVaultAddress, isSuccess, isPending, isConfirming } = useDeployVault();
   const [vaultAddress, setVaultAddress] = useState<string | null>(null);
   const [vaultId, setVaultId] = useState<string | null>(null);
@@ -22,7 +22,9 @@ export function useAutoVault() {
 
     const checkExisting = async () => {
       try {
-        const vaults = await getVaultsForWallet(walletAddress);
+        const token = await getAccessToken();
+        if (!token) return;
+        const vaults = await getVaultsForWallet(token);
         if (vaults.length > 0) {
           setVaultAddress(vaults[0].vault_contract_address);
           setVaultId(vaults[0].id);
@@ -44,14 +46,16 @@ export function useAutoVault() {
     };
 
     checkExisting();
-  }, [isAuthenticated, walletAddress, isLoading, hasChecked, deploy]);
+  }, [isAuthenticated, walletAddress, isLoading, hasChecked, deploy, getAccessToken]);
 
   // Store vault in Supabase once deployed on-chain
   useEffect(() => {
     if (isSuccess && deployedVaultAddress && walletAddress) {
       const store = async () => {
         try {
-          const vault = await createVault(walletAddress, deployedVaultAddress);
+          const token = await getAccessToken();
+          if (!token) return;
+          const vault = await createVault(token, walletAddress, deployedVaultAddress);
           setVaultAddress(deployedVaultAddress);
           setVaultId(vault.id);
           setIsCreating(false);
@@ -66,7 +70,7 @@ export function useAutoVault() {
       };
       store();
     }
-  }, [isSuccess, deployedVaultAddress, walletAddress]);
+  }, [isSuccess, deployedVaultAddress, walletAddress, getAccessToken]);
 
   return {
     vaultAddress,
