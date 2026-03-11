@@ -23,7 +23,7 @@ interface Props {
 type Step = "idle" | "confirm1" | "verify" | "destination" | "processing" | "done" | "error";
 
 export default function EmergencySection({ vaultId, walletAddress, donorEmail, donorPhone, onRefresh }: Props) {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, getAccessToken } = useAuth();
   const [step, setStep] = useState<Step>("idle");
   const [freeWill, setFreeWill] = useState(false);
   const [destinationAddr, setDestinationAddr] = useState("");
