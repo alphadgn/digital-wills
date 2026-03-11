@@ -22,6 +22,7 @@ interface Props {
 }
 
 export default function BeneficiaryManager({ vaultId, vaultContractAddress, walletAddress, beneficiaries, onRefresh }: Props) {
+  const { getAccessToken } = useAuth();
   const [addOpen, setAddOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
