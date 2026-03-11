@@ -24,6 +24,7 @@ interface Props {
 }
 
 export default function DepositManager({ vaultId, vaultContractAddress, walletAddress, deposits, onRefresh, blockExplorerUrl }: Props) {
+  const { getAccessToken } = useAuth();
   const [ethAmount, setEthAmount] = useState("");
   const [nftAddress, setNftAddress] = useState("");
   const [nftTokenId, setNftTokenId] = useState("");
