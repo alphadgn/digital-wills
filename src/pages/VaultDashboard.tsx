@@ -40,9 +40,40 @@ const statusColor: Record<string, string> = {
 };
 
 const VaultDashboard = () => {
-  const { isAuthenticated, walletAddress, login, isLoading } = useAuth();
+  const { isAuthenticated, walletAddress, login, isLoading, getAccessToken } = useAuth();
   const { vaultAddress: autoVaultAddress, isCreating, hasVault } = useAutoVault();
   const navigate = useNavigate();
+  const [livenessStatuses, setLivenessStatuses] = useState<LivenessStatus[]>([]);
+  const [checkingIn, setCheckingIn] = useState(false);
+
+  const loadLiveness = useCallback(async () => {
+    try {
+      const token = await getAccessToken();
+      if (!token) return;
+      const statuses = await getLivenessStatus(token);
+      setLivenessStatuses(statuses);
+    } catch (e) {
+      console.error("Failed to load liveness:", e);
+    }
+  }, [getAccessToken]);
+
+  useEffect(() => {
+    if (isAuthenticated) loadLiveness();
+  }, [isAuthenticated, loadLiveness]);
+
+  const handleCheckIn = async (vaultId: string) => {
+    try {
+      setCheckingIn(true);
+      const token = await getAccessToken();
+      if (!token) return;
+      await checkIn(token, vaultId);
+      await loadLiveness();
+    } catch (e) {
+      console.error("Check-in failed:", e);
+    } finally {
+      setCheckingIn(false);
+    }
+  };
 
   if (isLoading) {
     return (

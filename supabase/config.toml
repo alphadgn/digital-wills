@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.emergency-verify]
 verify_jwt = false
+
+[functions.liveness-api]
+verify_jwt = false
