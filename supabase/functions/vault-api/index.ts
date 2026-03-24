@@ -46,6 +46,38 @@ async function getVerifiedWallets(token: string): Promise<string[]> {
 
   return wallets;
 }
+// ── Rate Limiter (in-memory, per-instance) ──
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 60; // requests per window
+const RATE_WINDOW_MS = 60_000; // 1 minute
+
+function checkRateLimit(key: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return true;
+  }
+  entry.count++;
+  return entry.count <= RATE_LIMIT;
+}
+
+async function logAudit(
+  supabase: any,
+  action: string,
+  walletAddress: string,
+  metadata: Record<string, any> = {}
+) {
+  try {
+    await supabase.from("audit_logs").insert({
+      action,
+      wallet_address: walletAddress,
+      metadata,
+    });
+  } catch (e) {
+    console.error("Audit log failed:", e);
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -65,6 +97,14 @@ serve(async (req) => {
     const token = authHeader.replace("Bearer ", "");
     const wallets = await getVerifiedWallets(token);
 
+    // Rate limiting by primary wallet
+    if (!checkRateLimit(wallets[0])) {
+      return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Create service-role Supabase client (bypasses RLS)
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -73,6 +113,9 @@ serve(async (req) => {
 
     const { action, params } = await req.json();
     let result: any;
+
+    // Audit every action
+    await logAudit(supabase, `VAULT_API:${action}`, wallets[0], { params });
 
     switch (action) {
       case "GET_VAULTS": {
