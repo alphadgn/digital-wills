@@ -1,14 +1,16 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/PrivyAuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, Shield, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
+import { Wallet, Shield, ArrowRight, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Background from "@/components/DigitalWill/Background";
 import { useAutoVault } from "@/hooks/useAutoVault";
+import { SecurityBanner, LivenessBadge, EncryptionBadge } from "@/components/TrustIndicators";
+import { getLivenessStatus, checkIn, type LivenessStatus } from "@/lib/livenessApi";
 
 // Mock data until backend connected
 const MOCK_VAULTS = [
@@ -38,9 +40,40 @@ const statusColor: Record<string, string> = {
 };
 
 const VaultDashboard = () => {
-  const { isAuthenticated, walletAddress, login, isLoading } = useAuth();
+  const { isAuthenticated, walletAddress, login, isLoading, getAccessToken } = useAuth();
   const { vaultAddress: autoVaultAddress, isCreating, hasVault } = useAutoVault();
   const navigate = useNavigate();
+  const [livenessStatuses, setLivenessStatuses] = useState<LivenessStatus[]>([]);
+  const [checkingIn, setCheckingIn] = useState(false);
+
+  const loadLiveness = useCallback(async () => {
+    try {
+      const token = await getAccessToken();
+      if (!token) return;
+      const statuses = await getLivenessStatus(token);
+      setLivenessStatuses(statuses);
+    } catch (e) {
+      console.error("Failed to load liveness:", e);
+    }
+  }, [getAccessToken]);
+
+  useEffect(() => {
+    if (isAuthenticated) loadLiveness();
+  }, [isAuthenticated, loadLiveness]);
+
+  const handleCheckIn = async (vaultId: string) => {
+    try {
+      setCheckingIn(true);
+      const token = await getAccessToken();
+      if (!token) return;
+      await checkIn(token, vaultId);
+      await loadLiveness();
+    } catch (e) {
+      console.error("Check-in failed:", e);
+    } finally {
+      setCheckingIn(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -97,6 +130,10 @@ const VaultDashboard = () => {
           </p>
         </div>
 
+        {/* Security trust banner */}
+        <div className="mb-6">
+          <SecurityBanner />
+        </div>
         {/* Auto-vault creation status */}
         {isCreating && (
           <Card className="mb-8 border-primary/30 bg-primary/5">

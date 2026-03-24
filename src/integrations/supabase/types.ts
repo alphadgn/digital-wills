@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          wallet_address: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          wallet_address: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       claims: {
         Row: {
           beneficiary_vote: boolean
@@ -136,6 +163,78 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      encrypted_payloads: {
+        Row: {
+          algo: string
+          ciphertext: string
+          created_at: string
+          id: string
+          iv: string
+          payload_type: string
+          salt: string
+          updated_at: string
+          vault_id: string
+          version: number
+        }
+        Insert: {
+          algo?: string
+          ciphertext: string
+          created_at?: string
+          id?: string
+          iv: string
+          payload_type?: string
+          salt: string
+          updated_at?: string
+          vault_id: string
+          version?: number
+        }
+        Update: {
+          algo?: string
+          ciphertext?: string
+          created_at?: string
+          id?: string
+          iv?: string
+          payload_type?: string
+          salt?: string
+          updated_at?: string
+          vault_id?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      liveness_checks: {
+        Row: {
+          challenge_issued_at: string | null
+          challenge_responded: boolean
+          created_at: string
+          id: string
+          last_check_in: string
+          updated_at: string
+          vault_id: string
+          wallet_address: string
+        }
+        Insert: {
+          challenge_issued_at?: string | null
+          challenge_responded?: boolean
+          created_at?: string
+          id?: string
+          last_check_in?: string
+          updated_at?: string
+          vault_id: string
+          wallet_address: string
+        }
+        Update: {
+          challenge_issued_at?: string | null
+          challenge_responded?: boolean
+          created_at?: string
+          id?: string
+          last_check_in?: string
+          updated_at?: string
+          vault_id?: string
+          wallet_address?: string
+        }
+        Relationships: []
       }
       oracle_results: {
         Row: {
