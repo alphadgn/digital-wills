@@ -32,7 +32,7 @@ export async function deriveKeyFromSignature(
     ["deriveKey"]
   );
 
-  const usedSalt = salt ?? crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
+  const usedSalt = salt ?? crypto.getRandomValues(new Uint8Array(SALT_LENGTH)) as unknown as Uint8Array<ArrayBuffer>;
 
   const key = await crypto.subtle.deriveKey(
     {
