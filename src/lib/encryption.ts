@@ -24,20 +24,21 @@ export async function deriveKeyFromSignature(
   salt?: Uint8Array
 ): Promise<{ key: CryptoKey; salt: Uint8Array }> {
   const enc = new TextEncoder();
+  const rawKey = enc.encode(signature);
   const keyMaterial = await crypto.subtle.importKey(
     "raw",
-    enc.encode(signature),
+    rawKey.buffer as ArrayBuffer,
     "PBKDF2",
     false,
     ["deriveKey"]
   );
 
-  const usedSalt = salt ?? crypto.getRandomValues(new Uint8Array(SALT_LENGTH)) as unknown as Uint8Array<ArrayBuffer>;
+  const usedSalt = salt ?? new Uint8Array(crypto.getRandomValues(new Uint8Array(SALT_LENGTH)));
 
   const key = await crypto.subtle.deriveKey(
     {
       name: "PBKDF2",
-      salt: usedSalt,
+      salt: usedSalt.buffer as ArrayBuffer,
       iterations: PBKDF2_ITERATIONS,
       hash: "SHA-256",
     },
