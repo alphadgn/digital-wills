@@ -133,7 +133,7 @@ const VaultDashboard = () => {
         {/* Security trust banner */}
         <div className="mb-6">
           <SecurityBanner />
-
+        </div>
         {/* Auto-vault creation status */}
         {isCreating && (
           <Card className="mb-8 border-primary/30 bg-primary/5">
