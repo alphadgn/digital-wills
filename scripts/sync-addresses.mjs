@@ -5,12 +5,13 @@
  *
  *   npm run sync:addresses -- 4663
  *
- * Reads contracts/broadcast/Deploy.s.sol/<chainId>/run-latest.json, which Foundry writes
- * only on a real `--broadcast` run. Dry runs land in a `dry-run/` subdirectory and are
- * ignored here on purpose: a simulated address is not a deployed one.
+ * Reads every contracts/broadcast/<script>/<chainId>/run-latest.json, which Foundry writes
+ * only on a real `--broadcast` run, and applies them oldest-first so a targeted redeploy
+ * supersedes the original. Dry runs land in a `dry-run/` subdirectory and are ignored here
+ * on purpose: a simulated address is not a deployed one.
  */
 
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { getAddress } from "viem";
@@ -23,25 +24,37 @@ if (!chainId) {
   process.exit(1);
 }
 
-const broadcast = join(
-  root,
-  "contracts",
-  "broadcast",
-  "Deploy.s.sol",
-  chainId,
-  "run-latest.json",
-);
+const broadcastRoot = join(root, "contracts", "broadcast");
 
-if (!existsSync(broadcast)) {
+if (!existsSync(broadcastRoot)) {
   console.error(
-    `No broadcast log at ${broadcast}\n` +
-      `Deploy first:\n` +
+    `No broadcast directory at ${broadcastRoot}
+` +
+      `Deploy first:
+` +
       `  cd contracts && forge script script/Deploy.s.sol --rpc-url <rpc> --broadcast`,
   );
   process.exit(1);
 }
 
-const log = JSON.parse(readFileSync(broadcast, "utf8"));
+// A chain can be deployed to by more than one script - a full Deploy, then a targeted
+// redeploy of the contracts that changed. Read every log for this chain and apply them
+// oldest-first, so the most recent deployment of each contract is the one that sticks.
+// Reading only Deploy.s.sol silently reinstated superseded addresses.
+const logs = readdirSync(broadcastRoot)
+  .map((scriptDir) => join(broadcastRoot, scriptDir, chainId, "run-latest.json"))
+  .filter((f) => existsSync(f))
+  .map((f) => ({ file: f, json: JSON.parse(readFileSync(f, "utf8")) }))
+  .sort((a, b) => (a.json.timestamp ?? 0) - (b.json.timestamp ?? 0));
+
+if (logs.length === 0) {
+  console.error(
+    `No broadcast log for chain ${chainId} under ${broadcastRoot}
+` +
+      `Dry runs are ignored on purpose: a simulated address is not a deployed one.`,
+  );
+  process.exit(1);
+}
 
 // Map the contract name Foundry records to the key used in ProtocolAddresses.
 const KEY_FOR = {
@@ -59,24 +72,27 @@ const KEY_FOR = {
 const PROXIED = new Set(["OracleGateway", "ClaimManager", "AssetRouter"]);
 
 const found = {};
-let lastImpl = null;
 
-for (const tx of log.transactions ?? []) {
-  if (tx.transactionType !== "CREATE" && tx.transactionType !== "CREATE2") continue;
-  const name = tx.contractName;
-  const address = tx.contractAddress;
-  if (!address) continue;
+for (const { json } of logs) {
+  let lastImpl = null;
 
-  if (name === "ERC1967Proxy" && lastImpl && PROXIED.has(lastImpl)) {
-    found[KEY_FOR[lastImpl]] = address;
-    lastImpl = null;
-    continue;
-  }
+  for (const tx of json.transactions ?? []) {
+    if (tx.transactionType !== "CREATE" && tx.transactionType !== "CREATE2") continue;
+    const name = tx.contractName;
+    const address = tx.contractAddress;
+    if (!address) continue;
 
-  if (KEY_FOR[name]) {
-    // Record the implementation; a following proxy may override it.
-    if (!found[KEY_FOR[name]]) found[KEY_FOR[name]] = address;
-    lastImpl = name;
+    if (name === "ERC1967Proxy" && lastImpl && PROXIED.has(lastImpl)) {
+      found[KEY_FOR[lastImpl]] = address;
+      lastImpl = null;
+      continue;
+    }
+
+    if (KEY_FOR[name]) {
+      // Later logs overwrite earlier ones: a redeploy supersedes the original.
+      found[KEY_FOR[name]] = address;
+      lastImpl = name;
+    }
   }
 }
 
@@ -139,7 +155,9 @@ if (prev.includes("deployment pending")) {
 lines.splice(startIdx, endIdx - startIdx + 1, block);
 writeFileSync(configPath, lines.join("\n"), "utf8");
 
-console.log(`Updated ${configPath} for chain ${chainId}:`);
+console.log(
+  `Updated ${configPath} for chain ${chainId} from ${logs.length} broadcast log(s):`,
+);
 for (const [key, addr] of Object.entries(found)) {
   console.log(`  ${key}: ${getAddress(addr)}`);
 }

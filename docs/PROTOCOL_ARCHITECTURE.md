@@ -153,20 +153,20 @@ covering test in `contracts/test/InheritanceVault.t.sol`:
 
 | Contract | Address |
 |----------|---------|
-| VaultFactory | `0xC8780b79c9aafE2A447Ec528A796c2d30635F1ac` |
+| VaultFactory | `0xe5a42C68c42bA87fDa627e0af83281AC145175ac` |
 | ClaimManager | `0xE89C46be71f7BF7dBDA398c719525431C6e7A3Ea` |
 | OracleGateway | `0x11850Bb3d719F157C80B28735031fAFAa6BBCdd1` |
 | AssetRouter | `0xe3Ab525E4B41c1AB71c879546210416ee5A1EFFf` |
 | DeathOracle | `0x85Ba00086F6323c5035a16c0F34f5BC45A6C7734` |
-| InheritanceVault (impl) | `0xE82734749AC54d5268FbF592eE2a5A0078A17491` |
+| InheritanceVault (impl) | `0xC2644C70FBBd9059011e6C60211C45EAcB6603c7` |
 
 Frontend addresses are generated from the broadcast log with `npm run sync:addresses -- 4663`;
 ABIs come from the compiled artifacts with `npm run sync:abis`. Neither is written by hand — the
 previous hand-maintained ABIs had drifted into describing functions the contracts never had.
 
-**The deployed factory predates auto-wiring.** Its vaults need `setClaimManager` called once by
-the donor. Redeploying `InheritanceVault` and `VaultFactory` (via `script/RedeployFactory.s.sol`,
-which reuses the other four contracts) replaces that with vaults that arrive ready to use.
+Vaults from this factory arrive wired to the ClaimManager and oracle authority. An earlier
+factory revision (`0xC8780b79c9aafE2A447Ec528A796c2d30635F1ac`) is still on-chain; vaults it
+created work but need `setClaimManager` called once by their donor.
 
 ### Known limitations
 
