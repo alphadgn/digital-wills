@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -45,7 +45,11 @@ export type Database = {
         Row: {
           beneficiary_vote: boolean
           beneficiary_wallet: string
+          cancelled_at: string | null
+          cancelled_by: string | null
           created_at: string
+          donor_notified_at: string | null
+          donor_window_ends: string | null
           id: string
           oracle_confidence: number | null
           oracle_vote: boolean | null
@@ -56,7 +60,11 @@ export type Database = {
         Insert: {
           beneficiary_vote?: boolean
           beneficiary_wallet: string
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
+          donor_notified_at?: string | null
+          donor_window_ends?: string | null
           id?: string
           oracle_confidence?: number | null
           oracle_vote?: boolean | null
@@ -67,7 +75,11 @@ export type Database = {
         Update: {
           beneficiary_vote?: boolean
           beneficiary_wallet?: string
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
+          donor_notified_at?: string | null
+          donor_window_ends?: string | null
           id?: string
           oracle_confidence?: number | null
           oracle_vote?: boolean | null
@@ -236,6 +248,47 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          channel: string
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          provider_id: string | null
+          status: string
+          vault_id: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind: string
+          provider_id?: string | null
+          status: string
+          vault_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          provider_id?: string | null
+          status?: string
+          vault_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_vault_id_fkey"
+            columns: ["vault_id"]
+            isOneToOne: false
+            referencedRelation: "vaults"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       oracle_results: {
         Row: {
           claim_id: string
@@ -360,6 +413,8 @@ export type Database = {
           created_at: string
           donor_email: string | null
           donor_phone: string | null
+          frozen: boolean
+          frozen_at: string | null
           id: string
           inactivity_period_days: number
           status: string
@@ -374,6 +429,8 @@ export type Database = {
           created_at?: string
           donor_email?: string | null
           donor_phone?: string | null
+          frozen?: boolean
+          frozen_at?: string | null
           id?: string
           inactivity_period_days?: number
           status?: string
@@ -388,6 +445,8 @@ export type Database = {
           created_at?: string
           donor_email?: string | null
           donor_phone?: string | null
+          frozen?: boolean
+          frozen_at?: string | null
           id?: string
           inactivity_period_days?: number
           status?: string
