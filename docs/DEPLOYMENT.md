@@ -25,29 +25,28 @@ RPC `https://rpc.mainnet.chain.robinhood.com` · explorer `https://robinhoodchai
 
 ## Outstanding
 
-### 1. Apply the database migration
+### 1. Finish the notification config
 
-`supabase/migrations/20260901120000_notifications_and_claim_freeze.sql` adds the
-`notifications` table and the claim freeze/cancel columns. **Until it is applied,
-`INITIATE_CLAIM` fails** — it writes `donor_window_ends`, which does not yet exist.
+`RESEND_API_KEY` is set, so the email leg is configured. It has not yet been exercised by a
+real claim — the first `CLAIM_INITIATED` row in `notifications` will show `sent` or `failed`
+for the email channel and settle it.
 
-```sh
-supabase db push          # or apply through the Lovable/Supabase dashboard
-```
-
-### 2. Set notification secrets
-
-Without these the donor is never told a claim was filed, which is the only thing that makes
-the cancellation window usable. Sends are recorded as `skipped` rather than silently dropped,
-so the gap is visible in the `notifications` table.
+Still unset:
 
 ```sh
-supabase secrets set RESEND_API_KEY=... RESEND_FROM="Digital Wills <noreply@yourdomain>"
+supabase secrets set APP_ORIGIN=https://digital-wills.lovable.app
 supabase secrets set TWILIO_ACCOUNT_SID=... TWILIO_AUTH_TOKEN=... TWILIO_FROM_NUMBER=...
-supabase secrets set APP_ORIGIN=https://yourdomain
 ```
 
-### 3. Move admin roles to a multisig
+`APP_ORIGIN` matters even with email working: it builds the cancellation link inside the
+message. Unset, it falls back to `https://digitalwills.io`, which is not where this app is
+deployed — so the link a donor clicks to cancel an improper claim would point at the wrong
+host. Set this before relying on the notification path.
+
+Without Twilio, a donor who chose SMS contact has their notification recorded as `skipped`
+rather than delivered. Visible in `notifications`, but they are not actually told.
+
+### 2. Move admin roles to a multisig
 
 The deployer key currently holds `DEFAULT_ADMIN_ROLE` on `ClaimManager` and `OracleGateway`,
 owns `VaultFactory`, and is the **sole oracle reporter at threshold 1**. One key can therefore
