@@ -20,11 +20,11 @@ const Dashboard = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-1 py-12 px-6">
+      <main className="flex-1 py-8 sm:py-12 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8 text-center">Your Digital Will Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-8 text-center">Your Digital Will Dashboard</h1>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Will Status</CardTitle>
@@ -95,26 +95,26 @@ const Dashboard = () => {
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Smart Contract Address</h3>
-                    <p className="font-mono text-sm">0x8742eE7FaDc4F384fB6A8543f3c6d660D1F31040</p>
+                    <p className="font-mono text-sm break-all">0x8742eE7FaDc4F384fB6A8543f3c6d660D1F31040</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Multisig Wallet</h3>
-                    <p className="font-mono text-sm">0x91C04346Ae1851b82651eD4825F99a56695Bd19A</p>
+                    <p className="font-mono text-sm break-all">0x91C04346Ae1851b82651eD4825F99a56695Bd19A</p>
                   </div>
                 </div>
                 
                 <div className="border-t pt-4 mt-4">
                   <h3 className="text-sm font-medium text-gray-500 mb-2">Protected Assets</h3>
                   <ul className="space-y-2">
-                    <li className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <li className="flex justify-between items-center gap-2 p-2 bg-gray-50 rounded">
                       <span>Ethereum (ETH)</span>
                       <span className="font-medium">2.5 ETH</span>
                     </li>
-                    <li className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <li className="flex justify-between items-center gap-2 p-2 bg-gray-50 rounded">
                       <span>ApeChain Token (APE)</span>
                       <span className="font-medium">1000 APE</span>
                     </li>
-                    <li className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <li className="flex justify-between items-center gap-2 p-2 bg-gray-50 rounded">
                       <span>NFT Collection</span>
                       <span className="font-medium">3 NFTs</span>
                     </li>

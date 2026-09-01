@@ -176,20 +176,20 @@ const CreateVault = () => {
   return (
     <Background>
       <Header />
-      <div className="min-h-screen py-12 px-4 max-w-2xl mx-auto w-full">
+      <div className="min-h-screen py-8 sm:py-12 px-4 max-w-2xl mx-auto w-full">
         <Button variant="ghost" className="mb-6 gap-2 text-muted-foreground" onClick={() => navigate("/vaults")}>
           <ArrowLeft className="h-4 w-4" /> Back to Dashboard
         </Button>
 
         {/* Progress */}
-        <div className="flex items-center gap-2 mb-8">
+        <div className="flex items-center gap-1 sm:gap-2 mb-8">
           {stepLabels.map((label, i) => {
             const currentIdx = stepKeys.indexOf(step === "complete" ? "deposit" : step);
             const isActive = currentIdx >= i;
             return (
               <React.Fragment key={label}>
                 <div
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium shrink-0 ${
+                  className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full text-xs sm:text-sm font-medium shrink-0 ${
                     isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                   }`}
                 >
@@ -240,7 +240,7 @@ const CreateVault = () => {
               </div>
               <div className="p-3 rounded-lg bg-muted/50 border border-border">
                 <p className="text-xs text-muted-foreground mb-1">Connected Wallet (Donor)</p>
-                <p className="font-mono text-sm text-foreground">{walletAddress}</p>
+                <p className="font-mono text-sm text-foreground break-all">{walletAddress}</p>
               </div>
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-sm text-foreground">
                 <strong>Network:</strong> {activeChain.name} (Chain ID: {CONTRACTS.CHAIN_ID})
@@ -299,7 +299,7 @@ const CreateVault = () => {
                 <Plus className="h-4 w-4" /> Add Beneficiary
               </Button>
             </CardContent>
-            <CardFooter className="flex justify-between items-center">
+            <CardFooter className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <Button variant="outline" onClick={() => setStep("configure")}>Back</Button>
                 <Badge variant={totalAllocation === 100 ? "default" : "destructive"}>
@@ -334,30 +334,30 @@ const CreateVault = () => {
 
               <div className="p-3 rounded-lg bg-muted/50 border border-border">
                 <p className="text-xs text-muted-foreground mb-1">Donor Wallet</p>
-                <p className="font-mono text-sm text-foreground">{walletAddress}</p>
+                <p className="font-mono text-sm text-foreground break-all">{walletAddress}</p>
               </div>
 
               <div className="space-y-2">
                 <p className="text-sm font-medium text-foreground">Beneficiaries ({beneficiaries.length})</p>
                 {beneficiaries.map((b, i) => (
                   <div key={i} className="p-3 rounded-lg bg-muted/50 border border-border">
-                    <div className="flex justify-between">
-                      <p className="font-medium text-foreground">{b.name}</p>
-                      <Badge>{b.allocationPercent}%</Badge>
+                    <div className="flex justify-between gap-2">
+                      <p className="font-medium text-foreground min-w-0 break-words">{b.name}</p>
+                      <Badge className="shrink-0">{b.allocationPercent}%</Badge>
                     </div>
-                    <p className="font-mono text-xs text-muted-foreground mt-1">{b.address}</p>
+                    <p className="font-mono text-xs text-muted-foreground mt-1 break-all">{b.address}</p>
                   </div>
                 ))}
               </div>
 
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-sm text-foreground">
                 <strong>Contract:</strong>{" "}
-                <span className="font-mono text-xs">{CONTRACTS.VAULT_FACTORY}</span>
+                <span className="font-mono text-xs break-all">{CONTRACTS.VAULT_FACTORY}</span>
                 <br />
                 <strong>Network:</strong> {activeChain.name} • <strong>Release:</strong> 2-of-3 (donor, beneficiary, oracle)
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
+            <CardFooter className="flex flex-wrap justify-between gap-3">
               <Button variant="outline" onClick={() => setStep("beneficiaries")}>Back</Button>
               <Button onClick={handleDeploy} className="gap-2">
                 <Shield className="h-4 w-4" /> Deploy Vault Contract
@@ -369,7 +369,7 @@ const CreateVault = () => {
         {/* Step: Deploying */}
         {step === "deploying" && (
           <Card className="text-center">
-            <CardContent className="py-16 space-y-4">
+            <CardContent className="py-12 sm:py-16 space-y-4">
               <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
               <h2 className="text-xl font-semibold text-foreground">
                 {isPending ? "Confirm in Wallet" : isConfirming ? "Waiting for Confirmation" : "Deploying..."}
@@ -515,7 +515,7 @@ const CreateVault = () => {
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
+            <CardFooter className="flex flex-wrap justify-between gap-3">
               <Button variant="outline" onClick={() => setStep("complete")}>
                 Skip for Now
               </Button>
@@ -538,13 +538,13 @@ const CreateVault = () => {
         {/* Step: Complete */}
         {step === "complete" && (
           <Card className="text-center">
-            <CardContent className="py-16">
+            <CardContent className="py-12 sm:py-16">
               <CheckCircle2 className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-foreground mb-2">Vault Created!</h2>
               <p className="text-muted-foreground mb-4">Your inheritance vault is live on {activeChain.name}.</p>
               {vaultAddress && (
                 <div className="inline-flex items-center gap-2 p-3 rounded-lg bg-muted font-mono text-sm text-foreground mb-6">
-                  <span className="truncate max-w-[280px]">{vaultAddress}</span>
+                  <span className="truncate max-w-[200px] sm:max-w-[280px]">{vaultAddress}</span>
                   <a
                     href={`${activeChain.blockExplorers.default.url}/address/${vaultAddress}`}
                     target="_blank"
@@ -554,7 +554,7 @@ const CreateVault = () => {
                   </a>
                 </div>
               )}
-              <div className="flex gap-3 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button variant="outline" onClick={() => navigate("/vaults")}>Go to Dashboard</Button>
                 {vaultAddress && (
                   <Button onClick={() => navigate(`/vault/${vaultAddress}/beneficiaries`)}>

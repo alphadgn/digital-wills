@@ -230,7 +230,7 @@ const AssetRecoverySection = () => {
             Cancel
           </Button>
         ) : (
-          <div className="flex gap-3">
+          <div className="flex flex-wrap justify-center gap-3">
             <Button
               variant="outline"
               onClick={handleNoClick}

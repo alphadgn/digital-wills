@@ -116,7 +116,7 @@ const VaultDashboard = () => {
   return (
     <Background>
       <Header />
-      <div className="min-h-screen py-12 px-4 max-w-5xl mx-auto w-full">
+      <div className="min-h-screen py-8 sm:py-12 px-4 max-w-5xl mx-auto w-full">
         {/* Back button */}
         <Button variant="ghost" className="mb-4 gap-2 text-muted-foreground" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4" /> Back
@@ -124,8 +124,8 @@ const VaultDashboard = () => {
 
         {/* Top bar - centered */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Vault Dashboard</h1>
-          <p className="text-muted-foreground mt-1 font-mono text-sm">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Vault Dashboard</h1>
+          <p className="text-muted-foreground mt-1 font-mono text-sm break-all">
             {walletAddress?.substring(0, 6)}...{walletAddress?.substring((walletAddress?.length ?? 0) - 4)}
           </p>
         </div>
@@ -150,10 +150,10 @@ const VaultDashboard = () => {
         {hasVault && autoVaultAddress && (
           <Card className="mb-8 border-emerald-500/30 bg-emerald-500/5">
             <CardContent className="flex items-center gap-4 py-5">
-              <Shield className="h-6 w-6 text-emerald-600" />
-              <div>
+              <Shield className="h-6 w-6 shrink-0 text-emerald-600" />
+              <div className="min-w-0">
                 <p className="font-medium text-foreground">Your Vault</p>
-                <p className="text-sm font-mono text-muted-foreground">{autoVaultAddress}</p>
+                <p className="text-sm font-mono text-muted-foreground break-all">{autoVaultAddress}</p>
               </div>
             </CardContent>
           </Card>
@@ -180,19 +180,19 @@ const VaultDashboard = () => {
           {MOCK_VAULTS.map((vault) => (
             <Card key={vault.id} className="hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => navigate(`/vault/${vault.id}`)}>
-              <CardContent className="flex items-center justify-between py-5">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <CardContent className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                     <Shield className="h-5 w-5 text-primary" />
                   </div>
-                  <div>
-                    <p className="font-mono text-sm font-medium text-foreground">{vault.contractAddress}</p>
+                  <div className="min-w-0">
+                    <p className="font-mono text-sm font-medium text-foreground break-all">{vault.contractAddress}</p>
                     <p className="text-xs text-muted-foreground">
                       {vault.beneficiaryCount} beneficiar{vault.beneficiaryCount !== 1 ? "ies" : "y"} · Created {vault.createdAt}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3 pl-[52px] sm:pl-0 sm:shrink-0">
                   <Badge variant="outline" className={statusColor[vault.status]}>
                     {vault.status}
                   </Badge>

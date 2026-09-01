@@ -70,11 +70,11 @@ const About = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
-      <main className="flex-1 py-14 px-6">
+      <main className="flex-1 py-10 sm:py-14 px-4 sm:px-6">
         <article className="max-w-3xl mx-auto space-y-12">
           {/* Masthead */}
           <header className="space-y-4">
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
               About Digital Wills
             </h1>
             <p className="text-lg text-foreground">
@@ -108,7 +108,7 @@ const About = () => {
 
             <dl className="grid gap-px bg-border border border-border rounded-md overflow-hidden not-prose">
               {parties.map(({ role, detail }) => (
-                <div key={role} className="bg-card p-5">
+                <div key={role} className="bg-card p-4 sm:p-5">
                   <dt className="font-semibold text-foreground">{role}</dt>
                   <dd className="mt-1 text-sm leading-relaxed text-muted-foreground">
                     {detail}
@@ -161,7 +161,7 @@ const About = () => {
               Digital Wills introduces programmable inheritance for digital ownership.
             </p>
 
-            <ul className="space-y-2 border border-border rounded-md p-5 bg-card">
+            <ul className="space-y-2 border border-border rounded-md p-4 sm:p-5 bg-card">
               {pillars.map((line) => (
                 <li key={line} className="text-foreground">
                   {line}

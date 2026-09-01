@@ -24,12 +24,12 @@ const CongratulationsScreen = () => {
             <Award className="h-12 w-12 text-green-600" />
           </div>
         </div>
-        <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-digitalwill-primary to-digitalwill-secondary bg-clip-text text-transparent">
+        <CardTitle className="text-2xl sm:text-3xl font-bold text-center bg-gradient-to-r from-digitalwill-primary to-digitalwill-secondary bg-clip-text text-transparent">
           Congratulations!
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6 text-center">
-        <div className="py-4 px-6 bg-green-50 rounded-lg border border-green-200">
+        <div className="py-4 px-4 sm:px-6 bg-green-50 rounded-lg border border-green-200">
           <h3 className="font-semibold text-xl mb-2 text-green-800">
             You've Made an Excellent Choice
           </h3>
@@ -65,8 +65,8 @@ const CongratulationsScreen = () => {
           </div>
         </div>
         
-        <div className="flex items-center justify-center p-4 bg-blue-50 rounded-md border border-blue-200">
-          <Bookmark className="h-5 w-5 text-blue-500 mr-2" />
+        <div className="flex items-start justify-center p-4 bg-blue-50 rounded-md border border-blue-200 text-left">
+          <Bookmark className="h-5 w-5 shrink-0 text-blue-500 mr-2 mt-0.5" />
           <p className="text-blue-700">
             Remember to share the appropriate access information with your trusted contacts.
           </p>

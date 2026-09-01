@@ -65,7 +65,7 @@ const ManageBeneficiaries = () => {
   return (
     <Background>
       <Header />
-      <div className="min-h-screen py-12 px-4 max-w-3xl mx-auto w-full">
+      <div className="min-h-screen py-8 sm:py-12 px-4 max-w-3xl mx-auto w-full">
         <Button variant="ghost" className="mb-6 gap-2 text-muted-foreground" onClick={() => navigate("/vaults")}>
           <ArrowLeft className="h-4 w-4" /> Back
         </Button>
@@ -74,7 +74,7 @@ const ManageBeneficiaries = () => {
           <h1 className="text-2xl font-bold text-foreground flex items-center justify-center gap-2">
             <Users className="h-6 w-6 text-primary" /> Beneficiaries
           </h1>
-          <p className="text-muted-foreground text-sm">Vault {vaultId}</p>
+          <p className="text-muted-foreground text-sm break-words">Vault {vaultId}</p>
           <Button className="gap-2 mt-3" onClick={() => setShowAdd(true)}>
             <Plus className="h-4 w-4" /> Add
           </Button>
@@ -111,17 +111,17 @@ const ManageBeneficiaries = () => {
         <div className="space-y-3">
           {beneficiaries.map((b) => (
             <Card key={b.id}>
-              <CardContent className="flex items-center justify-between py-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
+              <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
                     {b.name.charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <p className="font-medium text-foreground">{b.name}</p>
-                    <p className="font-mono text-xs text-muted-foreground">{b.walletAddress.substring(0, 10)}...{b.walletAddress.substring(38)}</p>
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground truncate">{b.name}</p>
+                    <p className="font-mono text-xs text-muted-foreground break-all">{b.walletAddress.substring(0, 10)}...{b.walletAddress.substring(38)}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 pl-[52px] sm:pl-0 sm:shrink-0 sm:gap-3">
                   <Badge>{b.allocationPercent}%</Badge>
                   {b.inviteAccepted ? (
                     <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Accepted</Badge>

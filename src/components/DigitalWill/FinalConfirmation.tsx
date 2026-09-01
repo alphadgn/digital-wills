@@ -14,9 +14,9 @@ const FinalConfirmation: React.FC<FinalConfirmationProps> = ({
   onSubmit
 }) => {
   return (
-    <div className="flex-1 py-12 px-6">
+    <div className="flex-1 py-8 sm:py-12 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8">
           Confirm Digital Will Setup
         </h2>
         
@@ -29,7 +29,7 @@ const FinalConfirmation: React.FC<FinalConfirmationProps> = ({
           </AlertDescription>
         </Alert>
         
-        <div className="space-y-6 border rounded-lg p-6 bg-white shadow-sm">
+        <div className="space-y-6 border rounded-lg p-4 sm:p-6 bg-white shadow-sm">
           <div className="space-y-2">
             <h3 className="font-semibold">Donor Information</h3>
             <p className="text-sm text-gray-600">
@@ -52,14 +52,16 @@ const FinalConfirmation: React.FC<FinalConfirmationProps> = ({
           </div>
         </div>
         
-        <div className="mt-8 flex justify-center space-x-4">
+        <div className="mt-8 flex flex-col sm:flex-row justify-center gap-3">
           <Button 
             variant="outline"
+            className="w-full sm:w-auto"
             onClick={onMakeChanges}
           >
             Make Changes
           </Button>
           <Button 
+            className="w-full sm:w-auto"
             onClick={onSubmit}
           >
             Submit & Complete Setup

@@ -147,8 +147,8 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="text-center flex-1">
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-center flex-1 min-w-0">
             <CardTitle className="flex items-center gap-2 justify-center">
               <Users className="h-5 w-5 text-primary" /> Beneficiaries
             </CardTitle>
@@ -160,7 +160,7 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
           </div>
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="gap-1">
+              <Button size="sm" className="gap-1 shrink-0">
                 <Plus className="h-4 w-4" /> Add
               </Button>
             </DialogTrigger>
@@ -200,26 +200,26 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
       {beneficiaries.length > 0 && (
         <CardContent className="space-y-3">
           {beneficiaries.map((b) => (
-            <div key={b.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
+            <div key={b.id} className="flex flex-col gap-3 p-3 rounded-lg bg-muted/50 border border-border sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
                   {b.name.charAt(0).toUpperCase()}
                 </div>
-                <div>
-                  <p className="font-medium text-foreground">{b.name}</p>
+                <div className="min-w-0">
+                  <p className="font-medium text-foreground truncate">{b.name}</p>
                   {b.email && (
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Mail className="h-3 w-3" /> {b.email}
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 min-w-0">
+                      <Mail className="h-3 w-3 shrink-0" /> <span className="truncate">{b.email}</span>
                     </p>
                   )}
                   {b.wallet_address && b.wallet_address !== "0x0000000000000000000000000000000000000000" && (
-                    <p className="font-mono text-xs text-muted-foreground">
+                    <p className="font-mono text-xs text-muted-foreground break-all">
                       {b.wallet_address.substring(0, 10)}...{b.wallet_address.substring(b.wallet_address.length - 4)}
                     </p>
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 pl-12 sm:pl-0 sm:shrink-0">
                 <Badge>{b.allocation_percent}%</Badge>
                 {b.invite_accepted ? (
                   <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Accepted</Badge>

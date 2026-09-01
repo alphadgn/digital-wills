@@ -9,9 +9,9 @@ const AssetRecovery = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <div className="flex-1 py-12 px-6">
+      <div className="flex-1 py-8 sm:py-12 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">
             Asset Recovery Process
           </h2>
           

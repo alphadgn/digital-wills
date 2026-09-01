@@ -17,10 +17,10 @@ const Progress: React.FC<ProgressProps> = ({ progressPercentage, currentStep }) 
         className="h-2 bg-blue-600" 
         indicatorClassName="bg-yellow-400" 
       />
-      <div className="flex justify-between mt-1 text-xs">
-        <span className="text-gray-500">Start</span>
-        <span className="text-center font-medium text-digitalwill-primary">{currentStep}</span>
-        <span className="text-gray-500">Complete</span>
+      <div className="flex justify-between items-center gap-2 mt-1 text-[11px] sm:text-xs">
+        <span className="text-gray-500 shrink-0">Start</span>
+        <span className="text-center font-medium text-digitalwill-primary truncate">{currentStep}</span>
+        <span className="text-gray-500 shrink-0">Complete</span>
       </div>
     </div>
   );

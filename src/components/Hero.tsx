@@ -154,12 +154,12 @@ const Hero = () => {
   const isLoading = isCheckingNFT || isCreatingCheckout || isDelegateChecking;
 
   return (
-    <section className="py-20 px-6 relative">
+    <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 relative">
       <div className="max-w-4xl mx-auto text-center animate-fade-in">
-        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-6">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-6 text-balance">
           Secure Your Digital Legacy
         </h1>
-        <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto transition-colors duration-300">
+        <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto transition-colors duration-300">
           The true essence of decentralization is self custody so why would you leave the future of your hard earned assets to a court appointed probate process. Take control of the process. Ensure your loved ones receive full benefits of your empire. Create a digital will today.
         </p>
         <div className="flex flex-col items-center gap-4">
@@ -167,7 +167,7 @@ const Hero = () => {
             size="lg"
             onClick={handlePurchase}
             disabled={isLoading}
-            className="transition-all duration-300 text-lg px-10 py-6 hover:scale-[1.02] hover:shadow-lg"
+            className="w-full sm:w-auto h-auto whitespace-normal text-base sm:text-lg px-6 sm:px-10 py-4 sm:py-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
           >
             {isLoading ? (
               <span className="flex items-center gap-2">
@@ -209,7 +209,7 @@ const Hero = () => {
             size="lg"
             variant="secondary"
             onClick={handleInitiateClaim}
-            className="bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+            className="w-full sm:w-auto h-auto whitespace-normal py-3 bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
           >
             <Award className="mr-2 h-5 w-5" />
             Initiate Asset Claim

@@ -92,7 +92,7 @@ const VaultDetail = () => {
   return (
     <Background>
       <Header />
-      <div className="min-h-screen py-12 px-4 max-w-4xl mx-auto w-full">
+      <div className="min-h-screen py-8 sm:py-12 px-4 max-w-4xl mx-auto w-full">
         <Button variant="ghost" className="mb-6 gap-2 text-muted-foreground" onClick={() => navigate("/vaults")}>
           <ArrowLeft className="h-4 w-4" /> Back to Vaults
         </Button>
@@ -100,8 +100,8 @@ const VaultDetail = () => {
         {/* Vault Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-2">
-            <Shield className="h-6 w-6 text-primary" />
-            <h1 className="text-3xl font-bold text-foreground">{vault.vault_name}</h1>
+            <Shield className="h-6 w-6 shrink-0 text-primary" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground break-words min-w-0">{vault.vault_name}</h1>
           </div>
           <Badge variant="outline" className={statusColor[vault.status] || ""}>
             {vault.status}
@@ -146,13 +146,13 @@ const VaultDetail = () => {
         {/* Contract Address */}
         {vault.vault_contract_address && (
           <Card className="mb-8">
-            <CardContent className="flex items-center justify-between py-4">
-              <div>
+            <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
                 <p className="text-sm text-muted-foreground">Contract Address</p>
-                <p className="font-mono text-sm text-foreground">{vault.vault_contract_address}</p>
+                <p className="font-mono text-sm text-foreground break-all">{vault.vault_contract_address}</p>
               </div>
-              <a href={`${explorerUrl}/address/${vault.vault_contract_address}`} target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="sm" className="gap-1">
+              <a href={`${explorerUrl}/address/${vault.vault_contract_address}`} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                <Button variant="outline" size="sm" className="w-full gap-1 sm:w-auto">
                   <ExternalLink className="h-3 w-3" /> View on ApeScan
                 </Button>
               </a>

@@ -9,7 +9,6 @@ import WillConfirmation from "./WillConfirmation";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import CongratulationsScreen from "../CongratulationsScreen";
-import { useIsMobile } from "@/hooks/use-mobile";
 import RestartButton from "../RestartButton";
 
 interface ContentContainerProps {
@@ -33,7 +32,6 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   const [visitedSteps, setVisitedSteps] = useState<Set<number>>(new Set([STEP.DONOR_WALLET]));
   const [currentStep, setCurrentStep] = useState(STEP.DONOR_WALLET);
   const [processedSteps, setProcessedSteps] = useState<Set<number>>(new Set());
-  const isMobile = useIsMobile();
   
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -199,8 +197,8 @@ const ContentContainer: React.FC<ContentContainerProps> = () => {
   return (
     <div className="flex-1 py-8 px-4 sm:py-12 sm:px-6 md:px-8">
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6 sm:mb-8">
-          <h2 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-center`}>
+        <div className="flex justify-center items-center mb-6 sm:mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center">
             Digital Will Creation
           </h2>
         </div>

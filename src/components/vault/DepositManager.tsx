@@ -210,15 +210,15 @@ export default function DepositManager({ vaultId, vaultContractAddress, walletAd
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-muted-foreground">History</h4>
             {deposits.map((d) => (
-              <div key={d.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border">
-                <div className="flex items-center gap-3">
-                  {tokenIcon(d.token_type)}
-                  <div>
+              <div key={d.id} className="flex flex-col gap-2 p-3 rounded-lg bg-muted/50 border border-border sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="shrink-0">{tokenIcon(d.token_type)}</span>
+                  <div className="min-w-0">
                     <p className="font-medium text-foreground">
                       {d.token_type === "ETH" ? `${d.amount_eth} ETH` : `${d.token_type} #${d.token_id}`}
                     </p>
                     {d.token_address && (
-                      <p className="font-mono text-xs text-muted-foreground">
+                      <p className="font-mono text-xs text-muted-foreground break-all">
                         {d.token_address.substring(0, 10)}...{d.token_address.substring(d.token_address.length - 4)}
                       </p>
                     )}
@@ -227,7 +227,7 @@ export default function DepositManager({ vaultId, vaultContractAddress, walletAd
                     </p>
                   </div>
                 </div>
-                <a href={`${blockExplorerUrl}/tx/${d.tx_hash}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1">
+                <a href={`${blockExplorerUrl}/tx/${d.tx_hash}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1 shrink-0 pl-8 sm:pl-0">
                   <ExternalLink className="h-3 w-3" /> Tx
                 </a>
               </div>

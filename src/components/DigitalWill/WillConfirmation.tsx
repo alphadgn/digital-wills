@@ -77,7 +77,7 @@ const WillConfirmation: React.FC<WillConfirmationProps> = ({ onEdit, onComplete 
       return (
         <Card className="w-full max-w-3xl mx-auto">
           <CardHeader>
-            <CardTitle className="text-center text-2xl">Your Multi-Signature Wallet Details</CardTitle>
+            <CardTitle className="text-center text-xl sm:text-2xl">Your Multi-Signature Wallet Details</CardTitle>
             <CardDescription className="text-center">
               Please save this information immediately. This is the ONLY time you will see these details.
             </CardDescription>
@@ -92,16 +92,17 @@ const WillConfirmation: React.FC<WillConfirmationProps> = ({ onEdit, onComplete 
               </AlertDescription>
             </Alert>
             
-            <div className="space-y-5 p-4 border rounded-md bg-gray-50">
+            <div className="space-y-5 p-3 sm:p-4 border rounded-md bg-gray-50">
               <div>
                 <h3 className="flex items-center gap-2 text-lg font-semibold border-b pb-2 mb-2">
                   <Key className="h-5 w-5 text-digitalwill-primary" /> Multi-Signature Wallet Address
                 </h3>
-                <div className="flex justify-between items-center p-2 bg-white border rounded-md font-mono">
-                  <span className="text-sm break-all">{multisigWallet}</span>
+                <div className="flex justify-between items-center gap-2 p-2 bg-white border rounded-md font-mono">
+                  <span className="text-sm break-all min-w-0">{multisigWallet}</span>
                   <Button 
                     variant="outline" 
                     size="sm"
+                    className="shrink-0"
                     onClick={() => handleCopyToClipboard(multisigWallet)}
                   >
                     <Copy className="h-4 w-4" />
@@ -113,11 +114,12 @@ const WillConfirmation: React.FC<WillConfirmationProps> = ({ onEdit, onComplete 
                 <h3 className="flex items-center gap-2 text-lg font-semibold border-b pb-2 mb-2">
                   <Key className="h-5 w-5 text-digitalwill-primary" /> Multi-Signature Seed Phrase
                 </h3>
-                <div className="flex justify-between items-center p-2 bg-white border rounded-md">
-                  <span className="text-sm font-mono break-all">{seedPhrases.multisig}</span>
+                <div className="flex justify-between items-center gap-2 p-2 bg-white border rounded-md">
+                  <span className="text-sm font-mono break-all min-w-0">{seedPhrases.multisig}</span>
                   <Button 
                     variant="outline" 
                     size="sm"
+                    className="shrink-0"
                     onClick={() => handleCopyToClipboard(seedPhrases.multisig)}
                   >
                     <Copy className="h-4 w-4" />
@@ -129,11 +131,12 @@ const WillConfirmation: React.FC<WillConfirmationProps> = ({ onEdit, onComplete 
                 <h3 className="flex items-center gap-2 text-lg font-semibold border-b pb-2 mb-2">
                   <Key className="h-5 w-5 text-digitalwill-primary" /> Multi-Signature Product Key
                 </h3>
-                <div className="flex justify-between items-center p-2 bg-white border rounded-md font-mono">
-                  <span className="text-sm break-all">{productKeys.multisig}</span>
+                <div className="flex justify-between items-center gap-2 p-2 bg-white border rounded-md font-mono">
+                  <span className="text-sm break-all min-w-0">{productKeys.multisig}</span>
                   <Button 
                     variant="outline" 
                     size="sm"
+                    className="shrink-0"
                     onClick={() => handleCopyToClipboard(productKeys.multisig)}
                   >
                     <Copy className="h-4 w-4" />
@@ -143,7 +146,7 @@ const WillConfirmation: React.FC<WillConfirmationProps> = ({ onEdit, onComplete 
             </div>
             
             <Button 
-              className="w-full" 
+              className="w-full h-auto whitespace-normal py-3" 
               size="lg"
               onClick={handleDismiss}
             >
@@ -178,7 +181,7 @@ const WillConfirmation: React.FC<WillConfirmationProps> = ({ onEdit, onComplete 
             </div>
             
             <Button 
-              className="w-full bg-red-600 hover:bg-red-700"
+              className="w-full h-auto whitespace-normal py-3 bg-red-600 hover:bg-red-700"
               size="lg" 
               onClick={handleDismiss}
             >
@@ -231,11 +234,11 @@ const WillConfirmation: React.FC<WillConfirmationProps> = ({ onEdit, onComplete 
           </div>
         </div>
         
-        <div className="flex justify-center space-x-4 pt-4">
+        <div className="flex flex-col sm:flex-row justify-center gap-3 pt-4">
           <Button 
             variant="outline" 
             onClick={onEdit}
-            className="flex items-center gap-2"
+            className="w-full sm:w-auto flex items-center justify-center gap-2"
           >
             <Edit3 className="h-4 w-4" />
             Make Changes
@@ -244,7 +247,7 @@ const WillConfirmation: React.FC<WillConfirmationProps> = ({ onEdit, onComplete 
           <Button 
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex items-center gap-2"
+            className="w-full sm:w-auto flex items-center justify-center gap-2"
           >
             <CheckCircle className="h-4 w-4" />
             {isSubmitting ? "Submitting..." : "Confirm & Submit"}

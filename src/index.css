@@ -100,6 +100,17 @@
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Safety net: one stray wide element must not make the whole page pan
+     sideways on a phone. `clip` rather than `hidden` so the sticky header
+     keeps working. */
+  html,
+  body,
+  #root {
+    max-width: 100%;
+    overflow-x: clip;
   }
 }
 

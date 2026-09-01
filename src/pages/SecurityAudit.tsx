@@ -61,9 +61,9 @@ const AuditSection = ({ title, items }: { title: string; items: AuditItem[] }) =
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-lg">{title}</CardTitle>
-          <Badge variant="outline" className="font-mono">{score}% passing</Badge>
+          <Badge variant="outline" className="font-mono shrink-0">{score}% passing</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -104,7 +104,7 @@ const SecurityAudit = () => {
       <main className="flex-1 py-8 px-4 md:px-6">
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold">Security Audit Checklist</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">Security Audit Checklist</h1>
             <p className="text-muted-foreground">Smart contract security verification for your vault protocol</p>
           </div>
 
@@ -121,7 +121,7 @@ const SecurityAudit = () => {
                     <p className="text-sm text-muted-foreground">{allItems.length} checks evaluated</p>
                   </div>
                 </div>
-                <div className="flex gap-4 text-sm">
+                <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
                   <span className="flex items-center gap-1"><ShieldCheck className="h-4 w-4 text-emerald-500" /> {totalPass} passed</span>
                   <span className="flex items-center gap-1"><ShieldAlert className="h-4 w-4 text-amber-500" /> {totalWarn} warnings</span>
                   <span className="flex items-center gap-1"><ShieldX className="h-4 w-4 text-destructive" /> {totalFail} failed</span>

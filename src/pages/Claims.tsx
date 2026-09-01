@@ -108,17 +108,17 @@ const Claims = () => {
   return (
     <Background>
       <Header />
-      <div className="min-h-screen py-12 px-4 max-w-4xl mx-auto w-full">
+      <div className="min-h-screen py-8 sm:py-12 px-4 max-w-4xl mx-auto w-full">
         <Button variant="ghost" className="mb-6 gap-2 text-muted-foreground" onClick={() => navigate("/vaults")}>
           <ArrowLeft className="h-4 w-4" /> Back
         </Button>
 
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Claims</h1>
-            <p className="text-muted-foreground">Track inheritance claims and oracle verification.</p>
+        <div className="flex flex-col gap-3 mb-8 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Claims</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">Track inheritance claims and oracle verification.</p>
           </div>
-          <Button variant="outline" size="sm" onClick={loadClaims} disabled={loading}>
+          <Button variant="outline" size="sm" onClick={loadClaims} disabled={loading} className="self-start shrink-0 sm:self-auto">
             <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
           </Button>
         </div>
