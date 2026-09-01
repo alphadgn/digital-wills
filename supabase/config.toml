@@ -27,5 +27,3 @@ verify_jwt = false
 [functions.liveness-api]
 verify_jwt = false
 
-[functions.notify-selftest]
-verify_jwt = false
