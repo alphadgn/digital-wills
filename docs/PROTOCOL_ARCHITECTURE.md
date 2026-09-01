@@ -137,17 +137,43 @@ covering test in `contracts/test/InheritanceVault.t.sol`:
 
 ### Operational requirements
 
-- Each vault must be wired once by its donor: `setClaimManager(...)` and `setOracleAuthority(...)`.
-  Until `claimManager` is set, no claim can freeze the vault.
+- Vaults arrive wired: `VaultFactory` passes its `defaultClaimManager` and
+  `defaultOracleAuthority` into `initialize()`, because `setClaimManager` is `onlyOwner` and the
+  donor owns the vault — the factory cannot supply it afterwards. Donors may still re-point a
+  vault with `setClaimManager`, or opt out at creation with `createVaultWithConfig(...)`.
+  Vaults created by an earlier factory revision still need wiring by hand; the `VaultGovernance`
+  panel detects that and offers it in one click.
 - Notification providers are read from the environment: `RESEND_API_KEY`, `RESEND_FROM`,
   `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`, `APP_ORIGIN`. Unset keys make
   sends record as `skipped` rather than silently succeed.
 - Contract dependencies are vendored via `forge install` and gitignored; run it after a fresh
   clone. See `contracts/remappings.txt`.
 
+### Deployed addresses — Robinhood Chain (4663)
+
+| Contract | Address |
+|----------|---------|
+| VaultFactory | `0xC8780b79c9aafE2A447Ec528A796c2d30635F1ac` |
+| ClaimManager | `0xE89C46be71f7BF7dBDA398c719525431C6e7A3Ea` |
+| OracleGateway | `0x11850Bb3d719F157C80B28735031fAFAa6BBCdd1` |
+| AssetRouter | `0xe3Ab525E4B41c1AB71c879546210416ee5A1EFFf` |
+| DeathOracle | `0x85Ba00086F6323c5035a16c0F34f5BC45A6C7734` |
+| InheritanceVault (impl) | `0xE82734749AC54d5268FbF592eE2a5A0078A17491` |
+
+Frontend addresses are generated from the broadcast log with `npm run sync:addresses -- 4663`;
+ABIs come from the compiled artifacts with `npm run sync:abis`. Neither is written by hand — the
+previous hand-maintained ABIs had drifted into describing functions the contracts never had.
+
+**The deployed factory predates auto-wiring.** Its vaults need `setClaimManager` called once by
+the donor. Redeploying `InheritanceVault` and `VaultFactory` (via `script/RedeployFactory.s.sol`,
+which reuses the other four contracts) replaces that with vaults that arrive ready to use.
+
 ### Known limitations
 
 - `EmergencyPause` and `BeneficiaryRegistry` are deployed but not yet consulted by the vault.
+- The deployer key holds `DEFAULT_ADMIN_ROLE` on `ClaimManager` and `OracleGateway`, owns
+  `VaultFactory`, and is the sole oracle reporter at threshold 1. A single key therefore controls
+  death verification; move these roles to a multisig before real assets are held.
 - `AssetRouter` distribution is available but the vault releases tokens directly; the router path
   is not yet wired into `ClaimManager.executeClaim`, which settles ETH only.
 - Token release is per-asset and caller-driven — there is no single call that sweeps every token

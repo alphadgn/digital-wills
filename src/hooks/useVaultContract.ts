@@ -5,7 +5,9 @@ import {
   useReadContract,
   useAccount,
   useSendTransaction,
+  useConfig,
 } from "wagmi";
+import { waitForTransactionReceipt } from "wagmi/actions";
 import { parseEther, decodeEventLog } from "viem";
 import { CONTRACTS, getAddresses } from "@/config/contracts";
 import {
@@ -202,6 +204,74 @@ export function useDonorClaimResponse(vaultAddress?: `0x${string}`) {
   const recordActivity = useCallback(() => call("recordActivity"), [call]);
 
   return { cancel, approve, recordActivity, ...rest };
+}
+
+/**
+ * Register a vault's beneficiaries on-chain, one transaction each.
+ *
+ * `addBeneficiary` takes a single beneficiary, so a will with three heirs needs three
+ * transactions. They are sent sequentially rather than in parallel: each one bumps the
+ * sender's nonce and the vault's `totalAllocatedBps`, and firing them together makes
+ * wallets mis-order them or reject the batch. Progress is reported so a donor can see
+ * which heir is being written and resume if a transaction is rejected.
+ */
+export function useRegisterBeneficiaries(vaultAddress?: `0x${string}`) {
+  const { address: account } = useAccount();
+  const config = useConfig();
+  const { writeContractAsync } = useWriteContract();
+
+  const [completed, setCompleted] = useState(0);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  /**
+   * @param list allocations in PERCENT; converted to basis points for the contract.
+   * @returns the number successfully registered, so a partial run can be resumed.
+   */
+  const register = useCallback(
+    async (list: { address: `0x${string}`; allocationPercent: number }[]) => {
+      if (!vaultAddress || !account) return 0;
+
+      setIsRegistering(true);
+      setError(null);
+      let done = 0;
+
+      try {
+        for (const b of list) {
+          const hash = await writeContractAsync({
+            account,
+            chain: activeChain,
+            address: vaultAddress,
+            abi: INHERITANCE_VAULT_ABI,
+            functionName: "addBeneficiary",
+            // The contract stores basis points (10000 = 100%).
+            args: [b.address, BigInt(Math.round(b.allocationPercent * 100))],
+          });
+
+          // Wait for each to confirm before sending the next, so the allocation total
+          // the contract checks against is always the settled one.
+          await waitForTransactionReceipt(config, { hash });
+
+          done += 1;
+          setCompleted(done);
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e : new Error(String(e)));
+      } finally {
+        setIsRegistering(false);
+      }
+
+      return done;
+    },
+    [vaultAddress, account, writeContractAsync, config],
+  );
+
+  const reset = useCallback(() => {
+    setCompleted(0);
+    setError(null);
+  }, []);
+
+  return { register, completed, isRegistering, error, reset };
 }
 
 // ── Beneficiary actions ──

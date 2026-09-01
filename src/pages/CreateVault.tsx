@@ -11,7 +11,11 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Background from "@/components/DigitalWill/Background";
-import { useDeployVault, useDepositToVault } from "@/hooks/useVaultContract";
+import {
+  useDeployVault,
+  useDepositToVault,
+  useRegisterBeneficiaries,
+} from "@/hooks/useVaultContract";
 import { CONTRACTS } from "@/config/contracts";
 import { activeChain } from "@/config/wagmi";
 
@@ -21,7 +25,14 @@ interface BeneficiaryInput {
   allocationPercent: number;
 }
 
-type Step = "configure" | "beneficiaries" | "review" | "deploying" | "deposit" | "complete";
+type Step =
+  | "configure"
+  | "beneficiaries"
+  | "review"
+  | "deploying"
+  | "registering"
+  | "deposit"
+  | "complete";
 
 const CreateVault = () => {
   const { walletAddress, isAuthenticated, login } = useAuth();
@@ -43,6 +54,13 @@ const CreateVault = () => {
     isSuccess: isDepositSuccess,
     error: depositError,
   } = useDepositToVault(vaultAddress ?? undefined);
+
+  const {
+    register,
+    completed: registeredCount,
+    isRegistering,
+    error: registerError,
+  } = useRegisterBeneficiaries(vaultAddress ?? undefined);
 
   const totalAllocation = beneficiaries.reduce((s, b) => s + b.allocationPercent, 0);
   const isValid =
@@ -70,13 +88,36 @@ const CreateVault = () => {
     deploy({ inactivityPeriodDays: parseInt(inactivityPeriod, 10) || 365 });
   };
 
-  // Watch for deployment success
+  // Watch for deployment success, then write the beneficiaries on-chain. Without this
+  // they would exist only in the database and the vault would have no heirs.
   React.useEffect(() => {
-    if (isSuccess && vaultAddress) {
-      toast.success("Vault deployed on-chain!");
-      setStep("deposit");
+    if (!isSuccess || !vaultAddress || step !== "deploying") return;
+
+    toast.success("Vault deployed on-chain!");
+    setStep("registering");
+
+    register(
+      beneficiaries.map((b) => ({
+        address: b.address as `0x${string}`,
+        allocationPercent: b.allocationPercent,
+      })),
+    ).then((done) => {
+      if (done === beneficiaries.length) {
+        toast.success(
+          done === 1 ? "Beneficiary registered" : `${done} beneficiaries registered`,
+        );
+        setStep("deposit");
+      }
+    });
+  }, [isSuccess, vaultAddress, step, register, beneficiaries]);
+
+  React.useEffect(() => {
+    if (registerError) {
+      toast.error("Beneficiary registration stopped", {
+        description: registerError.message?.slice(0, 120),
+      });
     }
-  }, [isSuccess, vaultAddress]);
+  }, [registerError]);
 
   // Watch for deployment error
   React.useEffect(() => {
@@ -101,8 +142,15 @@ const CreateVault = () => {
     }
   }, [depositError]);
 
-  const stepLabels = ["Configure", "Beneficiaries", "Review", "Deploy", "Deposit"];
-  const stepKeys: Step[] = ["configure", "beneficiaries", "review", "deploying", "deposit"];
+  const stepLabels = ["Configure", "Beneficiaries", "Review", "Deploy", "Register", "Deposit"];
+  const stepKeys: Step[] = [
+    "configure",
+    "beneficiaries",
+    "review",
+    "deploying",
+    "registering",
+    "deposit",
+  ];
 
   if (!isAuthenticated) {
     return (
@@ -145,7 +193,11 @@ const CreateVault = () => {
                     isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                   }`}
                 >
-                  {step === "complete" && i === 4 ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
+                  {step === "complete" && i === stepLabels.length - 1 ? (
+                    <CheckCircle2 className="h-4 w-4" />
+                  ) : (
+                    i + 1
+                  )}
                 </div>
                 <span className={`text-xs hidden sm:inline ${isActive ? "text-foreground font-medium" : "text-muted-foreground"}`}>
                   {label}
@@ -191,7 +243,7 @@ const CreateVault = () => {
                 <p className="font-mono text-sm text-foreground">{walletAddress}</p>
               </div>
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-sm text-foreground">
-                <strong>Network:</strong> ApeChain (Chain ID: {CONTRACTS.CHAIN_ID})
+                <strong>Network:</strong> {activeChain.name} (Chain ID: {CONTRACTS.CHAIN_ID})
               </div>
             </CardContent>
             <CardFooter className="flex justify-end">
@@ -302,7 +354,7 @@ const CreateVault = () => {
                 <strong>Contract:</strong>{" "}
                 <span className="font-mono text-xs">{CONTRACTS.VAULT_FACTORY}</span>
                 <br />
-                <strong>Network:</strong> ApeChain • <strong>Unlock:</strong> Dual-vote (Beneficiary + Oracle)
+                <strong>Network:</strong> {activeChain.name} • <strong>Release:</strong> 2-of-3 (donor, beneficiary, oracle)
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
@@ -325,7 +377,7 @@ const CreateVault = () => {
               <p className="text-muted-foreground">
                 {isPending
                   ? "Please approve the transaction in your wallet."
-                  : "Your transaction is being confirmed on ApeChain..."}
+                  : "Your transaction is being confirmed on ${activeChain.name}..."}
               </p>
               {txHash && (
                 <a
@@ -334,8 +386,91 @@ const CreateVault = () => {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
                 >
-                  View on ApeScan <ExternalLink className="h-3 w-3" />
+                  View on {activeChain.blockExplorers.default.name}{" "}
+                  <ExternalLink className="h-3 w-3" />
                 </a>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Step: Registering beneficiaries on-chain */}
+        {step === "registering" && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" /> Registering Beneficiaries
+              </CardTitle>
+              <CardDescription>
+                Each beneficiary is written to the vault in its own transaction, so you will be
+                asked to approve {beneficiaries.length}{" "}
+                {beneficiaries.length === 1 ? "transaction" : "transactions"}.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {beneficiaries.map((b, i) => {
+                const done = i < registeredCount;
+                const active = i === registeredCount && isRegistering;
+                return (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between rounded-lg border border-border p-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {b.name || "Beneficiary"}
+                      </p>
+                      <p className="font-mono text-xs text-muted-foreground truncate">
+                        {b.address}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 pl-3">
+                      <Badge variant="outline">{b.allocationPercent}%</Badge>
+                      {done ? (
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      ) : active ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      ) : (
+                        <span className="h-4 w-4" />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              <p className="text-sm text-muted-foreground">
+                {registeredCount} of {beneficiaries.length} registered
+              </p>
+
+              {registerError && (
+                <div className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+                  <p className="text-sm text-foreground">
+                    Registration stopped after {registeredCount} of {beneficiaries.length}. Your
+                    vault is deployed and the beneficiaries already written are saved — you can
+                    retry the rest.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      disabled={isRegistering}
+                      onClick={() =>
+                        register(
+                          beneficiaries.slice(registeredCount).map((b) => ({
+                            address: b.address as `0x${string}`,
+                            allocationPercent: b.allocationPercent,
+                          })),
+                        ).then((done) => {
+                          if (done === beneficiaries.length - registeredCount) setStep("deposit");
+                        })
+                      }
+                    >
+                      Retry remaining
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setStep("deposit")}>
+                      Skip for now
+                    </Button>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -406,7 +541,7 @@ const CreateVault = () => {
             <CardContent className="py-16">
               <CheckCircle2 className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-foreground mb-2">Vault Created!</h2>
-              <p className="text-muted-foreground mb-4">Your inheritance vault is live on ApeChain.</p>
+              <p className="text-muted-foreground mb-4">Your inheritance vault is live on {activeChain.name}.</p>
               {vaultAddress && (
                 <div className="inline-flex items-center gap-2 p-3 rounded-lg bg-muted font-mono text-sm text-foreground mb-6">
                   <span className="truncate max-w-[280px]">{vaultAddress}</span>

@@ -61,6 +61,9 @@ serve(async (req) => {
     });
   } catch (err) {
     console.error("Webhook error:", err);
-    return new Response(JSON.stringify({ error: err.message }), { status: 400 });
+    return new Response(
+      JSON.stringify({ error: err instanceof Error ? err.message : String(err) }),
+      { status: 400 },
+    );
   }
 });

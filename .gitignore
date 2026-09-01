@@ -34,3 +34,7 @@ contracts/foundry.lock
 .env
 .env.*
 !.env.example
+
+# Deno (supabase edge functions) local deps
+supabase/functions/node_modules
+supabase/functions/deno.lock

@@ -67,7 +67,8 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
           address: vaultContractAddress as `0x${string}`,
           abi: INHERITANCE_VAULT_ABI,
           functionName: "addBeneficiary",
-          args: [beneficiaryWallet as `0x${string}`, BigInt(alloc)],
+          // The contract stores basis points (10000 = 100%); the form collects percent.
+          args: [beneficiaryWallet as `0x${string}`, BigInt(alloc * 100)],
         });
       }
 
