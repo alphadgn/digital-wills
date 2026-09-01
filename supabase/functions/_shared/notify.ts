@@ -18,7 +18,16 @@ const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID") || "";
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN") || "";
 const TWILIO_FROM_NUMBER = Deno.env.get("TWILIO_FROM_NUMBER") || "";
 
-const APP_ORIGIN = Deno.env.get("APP_ORIGIN") || "https://digitalwills.io";
+/**
+ * Placeholder Twilio values are as good as unset — treating them as configured would
+ * turn every SMS into a failed delivery attempt instead of an honest "skipped".
+ */
+const TWILIO_READY = /^AC[0-9a-f]{32}$/i.test(TWILIO_ACCOUNT_SID) &&
+  TWILIO_AUTH_TOKEN.length >= 32 &&
+  /^\+[1-9]\d{6,14}$/.test(TWILIO_FROM_NUMBER);
+
+// Trailing slashes would produce double-slashed cancellation links.
+const APP_ORIGIN = (Deno.env.get("APP_ORIGIN") || "https://digitalwills.io").replace(/\/+$/, "");
 
 export type NotificationChannel = "email" | "sms";
 export type NotificationStatus = "sent" | "failed" | "skipped";
