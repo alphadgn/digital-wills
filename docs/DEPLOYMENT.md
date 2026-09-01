@@ -71,7 +71,12 @@ is not a deployed one.
 ## Local checks
 
 ```sh
-cd contracts && forge test        # 32 tests
+cd contracts && forge test        # 32 unit tests (live-deployment suite skips)
+
+# End-to-end against the CONTRACTS ACTUALLY DEPLOYED, on a fork - reads live state,
+# spends nothing. Proves the live factory produces wired vaults and that a claim
+# freezes a real vault and can be cancelled.
+forge test --match-contract LiveDeployment --fork-url robinhood -vv
 npx tsc --noEmit -p tsconfig.app.json
 npm run build
 cd supabase/functions && deno check */index.ts _shared/notify.ts
