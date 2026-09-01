@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Users, Plus, Trash2, Copy, Check, Loader2, Mail } from "lucide-react";
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
-import { INHERITANCE_VAULT_ABI } from "@/config/contracts";
-import { apechain } from "@/config/wagmi";
+import { INHERITANCE_VAULT_ABI } from "@/config/abis";
+import { activeChain } from "@/config/wagmi";
 import { addBeneficiary, removeBeneficiary, markInviteSent, type BeneficiaryRow } from "@/lib/supabaseVault";
 import { useAuth } from "@/contexts/PrivyAuthContext";
 import { toast } from "sonner";
@@ -63,7 +63,7 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
       if (vaultContractAddress && account && wallet.trim()) {
         writeContract({
           account,
-          chain: apechain,
+          chain: activeChain,
           address: vaultContractAddress as `0x${string}`,
           abi: INHERITANCE_VAULT_ABI,
           functionName: "addBeneficiary",
@@ -92,14 +92,25 @@ export default function BeneficiaryManager({ vaultId, vaultContractAddress, wall
   const handleRemove = async (b: BeneficiaryRow) => {
     setRemovingId(b.id);
     try {
-      if (vaultContractAddress && account && b.wallet_address !== "0x0000000000000000000000000000000000000000") {
+      // The on-chain array is ordered by insertion; find this beneficiary's slot.
+      const onChainIndex = beneficiaries
+        .filter((x) => x.wallet_address !== "0x0000000000000000000000000000000000000000")
+        .findIndex((x) => x.id === b.id);
+
+      if (
+        vaultContractAddress &&
+        account &&
+        b.wallet_address !== "0x0000000000000000000000000000000000000000" &&
+        onChainIndex >= 0
+      ) {
         writeContract({
           account,
-          chain: apechain,
+          chain: activeChain,
           address: vaultContractAddress as `0x${string}`,
           abi: INHERITANCE_VAULT_ABI,
           functionName: "removeBeneficiary",
-          args: [b.wallet_address as `0x${string}`],
+          // The vault removes by array index, not by address.
+          args: [BigInt(onChainIndex)],
         });
       }
 

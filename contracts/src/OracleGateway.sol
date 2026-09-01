@@ -3,14 +3,22 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /**
  * @title OracleGateway
  * @notice Aggregates death verification reports from multiple authorized reporters.
  * @dev Uses a multi-sig threshold model: N-of-M reporters must confirm before
  *      the result is considered verified.
+ *
+ *      Each decision is recorded on-chain as an EIP-712 signature by the reporting authority,
+ *      so a verification is cryptographically attributable to the reporter that made it and
+ *      can be audited after the fact. Signed reports may be relayed by any address; only the
+ *      signature determines authorship.
  */
-contract OracleGateway is AccessControlUpgradeable, UUPSUpgradeable {
+contract OracleGateway is AccessControlUpgradeable, UUPSUpgradeable, EIP712Upgradeable {
+    using ECDSA for bytes32;
     bytes32 public constant REPORTER_ROLE = keccak256("REPORTER_ROLE");
 
     struct VerificationRequest {
@@ -34,9 +42,17 @@ contract OracleGateway is AccessControlUpgradeable, UUPSUpgradeable {
     // vault => latest requestId
     mapping(address => uint256) public latestRequest;
 
+    /// @notice EIP-712 type hash for a signed death verification decision.
+    bytes32 public constant DEATH_REPORT_TYPEHASH =
+        keccak256("DeathReport(uint256 requestId,address vault,bool deceased,uint256 confidence)");
+
+    /// @notice The signature each reporter recorded for a request, kept for on-chain audit.
+    mapping(uint256 => mapping(address => bytes)) public reportSignatures;
+
     event RequestCreated(uint256 indexed requestId, address indexed vault);
     event ReportSubmitted(uint256 indexed requestId, address indexed reporter, bool deceased, uint256 confidence);
     event RequestFinalized(uint256 indexed requestId, bool deceased, uint256 avgConfidence);
+    event SignedReportRecorded(uint256 indexed requestId, address indexed reporter, bytes32 digest);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() { _disableInitializers(); }
@@ -44,6 +60,7 @@ contract OracleGateway is AccessControlUpgradeable, UUPSUpgradeable {
     function initialize(address admin, uint256 _threshold) external initializer {
         __AccessControl_init();
         __UUPSUpgradeable_init();
+        __EIP712_init("DigitalWillsOracle", "1");
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         require(_threshold > 0, "Threshold must be > 0");
         threshold = _threshold;
@@ -72,12 +89,74 @@ contract OracleGateway is AccessControlUpgradeable, UUPSUpgradeable {
         bool deceased,
         uint256 confidence // scaled 0–10000
     ) external onlyRole(REPORTER_ROLE) {
+        _applyReport(requestId, msg.sender, deceased, confidence);
+    }
+
+    /**
+     * @notice Record a reporter's decision on-chain from their EIP-712 signature.
+     * @dev Any address may relay the report; authorship comes from the signature alone, and the
+     *      recovered signer must hold REPORTER_ROLE. The signature is stored so the decision
+     *      remains cryptographically attributable and auditable.
+     */
+    function submitSignedReport(
+        uint256 requestId,
+        bool deceased,
+        uint256 confidence,
+        bytes calldata signature
+    ) external returns (address reporter) {
+        bytes32 digest = hashDeathReport(requestId, deceased, confidence);
+        reporter = digest.recover(signature);
+
+        require(hasRole(REPORTER_ROLE, reporter), "Signer not a reporter");
+
+        reportSignatures[requestId][reporter] = signature;
+        emit SignedReportRecorded(requestId, reporter, digest);
+
+        _applyReport(requestId, reporter, deceased, confidence);
+    }
+
+    /**
+     * @notice The EIP-712 digest a reporter signs to record a decision for a request.
+     */
+    function hashDeathReport(
+        uint256 requestId,
+        bool deceased,
+        uint256 confidence
+    ) public view returns (bytes32) {
+        return _hashTypedDataV4(
+            keccak256(
+                abi.encode(
+                    DEATH_REPORT_TYPEHASH,
+                    requestId,
+                    requests[requestId].vault,
+                    deceased,
+                    confidence
+                )
+            )
+        );
+    }
+
+    function getReportSignature(uint256 requestId, address reporter)
+        external
+        view
+        returns (bytes memory)
+    {
+        return reportSignatures[requestId][reporter];
+    }
+
+    function _applyReport(
+        uint256 requestId,
+        address reporter,
+        bool deceased,
+        uint256 confidence // scaled 0–10000
+    ) internal {
         VerificationRequest storage r = requests[requestId];
+        require(r.vault != address(0), "Request does not exist");
         require(!r.finalized, "Already finalized");
-        require(!hasReported[requestId][msg.sender], "Already reported");
+        require(!hasReported[requestId][reporter], "Already reported");
         require(confidence <= 10000, "Invalid confidence");
 
-        hasReported[requestId][msg.sender] = true;
+        hasReported[requestId][reporter] = true;
         r.reportCount++;
         r.aggregateConfidence += confidence;
 
@@ -87,7 +166,7 @@ contract OracleGateway is AccessControlUpgradeable, UUPSUpgradeable {
             r.denials++;
         }
 
-        emit ReportSubmitted(requestId, msg.sender, deceased, confidence);
+        emit ReportSubmitted(requestId, reporter, deceased, confidence);
 
         // Auto-finalize if threshold met
         if (r.confirmations >= threshold) {

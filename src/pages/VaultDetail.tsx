@@ -12,10 +12,13 @@ import Background from "@/components/DigitalWill/Background";
 import BeneficiaryManager from "@/components/vault/BeneficiaryManager";
 import DepositManager from "@/components/vault/DepositManager";
 import EmergencySection from "@/components/vault/EmergencySection";
-import { apechain } from "@/config/wagmi";
+import PendingClaimAlert from "@/components/vault/PendingClaimAlert";
+import VaultGovernance from "@/components/vault/VaultGovernance";
+import { activeChain } from "@/config/wagmi";
 
 const statusColor: Record<string, string> = {
   ACTIVE: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  FROZEN: "bg-destructive/10 text-destructive border-destructive/20",
   CLAIMED: "bg-amber-500/10 text-amber-600 border-amber-500/20",
   DISTRIBUTED: "bg-primary/10 text-primary border-primary/20",
   PAUSED: "bg-muted text-muted-foreground border-border",
@@ -84,7 +87,7 @@ const VaultDetail = () => {
     );
   }
 
-  const explorerUrl = apechain.blockExplorers.default.url;
+  const explorerUrl = activeChain.blockExplorers.default.url;
 
   return (
     <Background>
@@ -104,6 +107,13 @@ const VaultDetail = () => {
             {vault.status}
           </Badge>
         </div>
+
+        {/* A pending claim freezes the vault; the donor cancels it here. */}
+        <PendingClaimAlert
+          vaultId={vault.id}
+          vaultContractAddress={vault.vault_contract_address}
+          onRefresh={loadData}
+        />
 
         {/* Vault Info Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -149,6 +159,12 @@ const VaultDetail = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* 2-of-3 signer set and the wiring that activates it */}
+        <VaultGovernance
+          vaultContractAddress={vault.vault_contract_address}
+          onRefresh={loadData}
+        />
 
         {/* Beneficiary Management */}
         <div className="mb-8">

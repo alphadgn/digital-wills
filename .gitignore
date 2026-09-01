@@ -22,3 +22,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Foundry
+contracts/lib
+contracts/out
+contracts/cache
+contracts/broadcast
+contracts/foundry.lock
+
+# Secrets - never commit. This repo is public.
+.env
+.env.*
+!.env.example

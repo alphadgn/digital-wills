@@ -1,7 +1,71 @@
-// Contract addresses — replace with deployed addresses
+/**
+ * Protocol contract addresses, per chain.
+ *
+ * Addresses are written here by `npm run sync:addresses` after a deployment, which reads them
+ * from the Foundry broadcast log. Do not paste them by hand.
+ *
+ * Protocol ABIs live in ./abis.ts and are generated from the compiled artifacts
+ * (`npm run sync:abis`) — never hand-written.
+ */
+
+import { robinhoodChain, apechain } from "./wagmi";
+
+export interface ProtocolAddresses {
+  VAULT_FACTORY: `0x${string}`;
+  VAULT_IMPLEMENTATION: `0x${string}`;
+  DEATH_ORACLE: `0x${string}`;
+  ORACLE_GATEWAY: `0x${string}`;
+  CLAIM_MANAGER: `0x${string}`;
+  ASSET_ROUTER: `0x${string}`;
+}
+
+const ZERO = "0x0000000000000000000000000000000000000000" as const;
+
+const UNDEPLOYED: ProtocolAddresses = {
+  VAULT_FACTORY: ZERO,
+  VAULT_IMPLEMENTATION: ZERO,
+  DEATH_ORACLE: ZERO,
+  ORACLE_GATEWAY: ZERO,
+  CLAIM_MANAGER: ZERO,
+  ASSET_ROUTER: ZERO,
+};
+
+/** Deployed addresses by chain ID. Populated by scripts/sync-addresses.mjs. */
+export const ADDRESSES: Record<number, ProtocolAddresses> = {
+  // Robinhood Chain (4663) — deployed.
+  4663: {
+    VAULT_FACTORY: "0xC8780b79c9aafE2A447Ec528A796c2d30635F1ac" as `0x${string}`,
+    VAULT_IMPLEMENTATION: "0xE82734749AC54d5268FbF592eE2a5A0078A17491" as `0x${string}`,
+    DEATH_ORACLE: "0x85Ba00086F6323c5035a16c0F34f5BC45A6C7734" as `0x${string}`,
+    ORACLE_GATEWAY: "0x11850Bb3d719F157C80B28735031fAFAa6BBCdd1" as `0x${string}`,
+    CLAIM_MANAGER: "0xE89C46be71f7BF7dBDA398c719525431C6e7A3Ea" as `0x${string}`,
+    ASSET_ROUTER: "0xe3Ab525E4B41c1AB71c879546210416ee5A1EFFf" as `0x${string}`,
+  },
+  // ApeChain (33139) — later.
+  [apechain.id]: { ...UNDEPLOYED },
+};
+
+/** Addresses for the chain the app is configured to use. */
+export function getAddresses(chainId: number): ProtocolAddresses {
+  return ADDRESSES[chainId] ?? UNDEPLOYED;
+}
+
+/** True once the protocol has been deployed to this chain. */
+export function isDeployed(chainId: number): boolean {
+  return getAddresses(chainId).VAULT_FACTORY !== ZERO;
+}
+
 export const CONTRACTS = {
-  VAULT_FACTORY: "0x0000000000000000000000000000000000000000" as `0x${string}`,
-  CHAIN_ID: 33139, // ApeChain
+  CHAIN_ID: robinhoodChain.id,
+  get VAULT_FACTORY() {
+    return getAddresses(robinhoodChain.id).VAULT_FACTORY;
+  },
+  get CLAIM_MANAGER() {
+    return getAddresses(robinhoodChain.id).CLAIM_MANAGER;
+  },
+  get ORACLE_GATEWAY() {
+    return getAddresses(robinhoodChain.id).ORACLE_GATEWAY;
+  },
 } as const;
 
 // ERC-721 minimal ABI for approve + transferFrom
@@ -69,95 +133,6 @@ export const ERC1155_ABI = [
       { name: "operator", type: "address" },
       { name: "approved", type: "bool" },
     ],
-    outputs: [],
-  },
-] as const;
-
-// Minimal ABIs for frontend interaction — replace with full ABIs after deployment
-export const VAULT_FACTORY_ABI = [
-  {
-    name: "createVault",
-    type: "function",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "beneficiaries", type: "address[]" },
-      { name: "allocations", type: "uint256[]" },
-    ],
-    outputs: [{ name: "vaultAddress", type: "address" }],
-  },
-  {
-    name: "VaultCreated",
-    type: "event",
-    inputs: [
-      { name: "donor", type: "address", indexed: true },
-      { name: "vault", type: "address", indexed: false },
-    ],
-  },
-] as const;
-
-export const INHERITANCE_VAULT_ABI = [
-  {
-    name: "initiateClaim",
-    type: "function",
-    stateMutability: "nonpayable",
-    inputs: [],
-    outputs: [],
-  },
-  {
-    name: "submitOracleVote",
-    type: "function",
-    stateMutability: "nonpayable",
-    inputs: [{ name: "deceased", type: "bool" }],
-    outputs: [],
-  },
-  {
-    name: "distribute",
-    type: "function",
-    stateMutability: "nonpayable",
-    inputs: [],
-    outputs: [],
-  },
-  {
-    name: "getVaultState",
-    type: "function",
-    stateMutability: "view",
-    inputs: [],
-    outputs: [
-      { name: "beneficiaryVote", type: "bool" },
-      { name: "oracleVote", type: "bool" },
-      { name: "isDistributed", type: "bool" },
-      { name: "totalEth", type: "uint256" },
-    ],
-  },
-  {
-    name: "deposit",
-    type: "function",
-    stateMutability: "payable",
-    inputs: [],
-    outputs: [],
-  },
-  {
-    name: "addBeneficiary",
-    type: "function",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "beneficiary", type: "address" },
-      { name: "allocation", type: "uint256" },
-    ],
-    outputs: [],
-  },
-  {
-    name: "removeBeneficiary",
-    type: "function",
-    stateMutability: "nonpayable",
-    inputs: [{ name: "beneficiary", type: "address" }],
-    outputs: [],
-  },
-  {
-    name: "emergencyWithdraw",
-    type: "function",
-    stateMutability: "nonpayable",
-    inputs: [{ name: "destination", type: "address" }],
     outputs: [],
   },
 ] as const;

@@ -12,3 +12,6 @@ runs = 1000
 [rpc_endpoints]
 mainnet = "${ETH_RPC_URL}"
 apechain = "https://rpc.apechain.com"
+# Robinhood Chain (Arbitrum Orbit L2, native currency ETH)
+robinhood = "https://rpc.mainnet.chain.robinhood.com"
+robinhood_testnet = "https://rpc.testnet.chain.robinhood.com"

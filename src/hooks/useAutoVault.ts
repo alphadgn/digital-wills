@@ -33,10 +33,9 @@ export function useAutoVault() {
           // Auto-deploy a new vault
           setIsCreating(true);
           setHasChecked(true);
-          deploy({
-            beneficiaries: [walletAddress as `0x${string}`],
-            allocations: [100],
-          });
+          // The factory only takes an inactivity period; beneficiaries are added
+          // afterwards in their own transactions.
+          deploy({ inactivityPeriodDays: 365 });
           toast.info("Creating your vault automatically...");
         }
       } catch (e) {

@@ -1,6 +1,7 @@
 
 import React from "react";
 import { Wallet } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -20,8 +21,9 @@ const Footer = () => {
         <div>
           <h3 className="text-lg font-medium mb-4 text-foreground">Quick Links</h3>
           <ul className="space-y-2">
-            <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors duration-200">How It Works</a></li>
-            <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors duration-200">Features</a></li>
+            <li><Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors duration-200">About</Link></li>
+            <li><Link to="/about#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors duration-200">How It Works</Link></li>
+            <li><Link to="/about#security" className="text-muted-foreground hover:text-foreground transition-colors duration-200">Security</Link></li>
             <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors duration-200">FAQ</a></li>
             <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors duration-200">Contact</a></li>
           </ul>

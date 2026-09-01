@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   AlertCircle, CheckCircle2, Clock, XCircle, Loader2,
-  ShieldCheck, ArrowLeft, RefreshCw
+  ShieldCheck, ArrowLeft, RefreshCw, Ban
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ const statusConfig: Record<ClaimStatus, { icon: React.ReactNode; color: string; 
   VERIFIED: { icon: <CheckCircle2 className="h-4 w-4" />, color: "bg-emerald-500/10 text-emerald-600", label: "Verified" },
   DENIED: { icon: <XCircle className="h-4 w-4" />, color: "bg-destructive/10 text-destructive", label: "Denied" },
   EXECUTED: { icon: <ShieldCheck className="h-4 w-4" />, color: "bg-primary/10 text-primary", label: "Executed" },
+  CANCELLED: { icon: <Ban className="h-4 w-4" />, color: "bg-muted text-muted-foreground", label: "Cancelled by donor" },
 };
 
 const Claims = () => {

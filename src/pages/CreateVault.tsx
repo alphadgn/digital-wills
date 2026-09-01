@@ -13,7 +13,7 @@ import Footer from "@/components/Footer";
 import Background from "@/components/DigitalWill/Background";
 import { useDeployVault, useDepositToVault } from "@/hooks/useVaultContract";
 import { CONTRACTS } from "@/config/contracts";
-import { apechain } from "@/config/wagmi";
+import { activeChain } from "@/config/wagmi";
 
 interface BeneficiaryInput {
   address: string;
@@ -65,10 +65,9 @@ const CreateVault = () => {
 
   const handleDeploy = () => {
     setStep("deploying");
-    deploy({
-      beneficiaries: beneficiaries.map((b) => b.address as `0x${string}`),
-      allocations: beneficiaries.map((b) => b.allocationPercent),
-    });
+    // The factory deploys an empty vault; beneficiaries are registered afterwards, one
+    // transaction each, in the "beneficiaries" step below.
+    deploy({ inactivityPeriodDays: parseInt(inactivityPeriod, 10) || 365 });
   };
 
   // Watch for deployment success
@@ -330,7 +329,7 @@ const CreateVault = () => {
               </p>
               {txHash && (
                 <a
-                  href={`${apechain.blockExplorers.default.url}/tx/${txHash}`}
+                  href={`${activeChain.blockExplorers.default.url}/tx/${txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
@@ -359,7 +358,7 @@ const CreateVault = () => {
                 <div className="flex items-center gap-2">
                   <p className="font-mono text-sm text-foreground truncate">{vaultAddress}</p>
                   <a
-                    href={`${apechain.blockExplorers.default.url}/address/${vaultAddress}`}
+                    href={`${activeChain.blockExplorers.default.url}/address/${vaultAddress}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="shrink-0"
@@ -412,7 +411,7 @@ const CreateVault = () => {
                 <div className="inline-flex items-center gap-2 p-3 rounded-lg bg-muted font-mono text-sm text-foreground mb-6">
                   <span className="truncate max-w-[280px]">{vaultAddress}</span>
                   <a
-                    href={`${apechain.blockExplorers.default.url}/address/${vaultAddress}`}
+                    href={`${activeChain.blockExplorers.default.url}/address/${vaultAddress}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

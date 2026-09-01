@@ -14,9 +14,14 @@ interface IERC721 {
     function safeTransferFrom(address from, address to, uint256 tokenId) external;
 }
 
+interface IERC1155 {
+    function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes calldata data) external;
+    function balanceOf(address account, uint256 id) external view returns (uint256);
+}
+
 /**
  * @title AssetRouter
- * @notice Routes ETH, ERC20, and ERC721 assets from a vault to beneficiaries
+ * @notice Routes ETH, ERC-20, ERC-721 and ERC-1155 assets from a vault to beneficiaries
  *         according to their allocation percentages.
  * @dev Called by the vault after claim verification. Uses ReentrancyGuard for safety.
  */
@@ -31,6 +36,9 @@ contract AssetRouter is AccessControlUpgradeable, ReentrancyGuardUpgradeable, UU
         uint256[] erc20Amounts;
         address[] erc721Tokens;
         uint256[] erc721TokenIds;
+        address[] erc1155Tokens;
+        uint256[] erc1155Ids;
+        uint256[] erc1155Amounts;
         bool executed;
         uint256 executedAt;
     }
@@ -41,6 +49,7 @@ contract AssetRouter is AccessControlUpgradeable, ReentrancyGuardUpgradeable, UU
     event ETHDistributed(address indexed vault, address indexed beneficiary, uint256 amount);
     event ERC20Distributed(address indexed vault, address indexed beneficiary, address token, uint256 amount);
     event ERC721Distributed(address indexed vault, address indexed beneficiary, address token, uint256 tokenId);
+    event ERC1155Distributed(address indexed vault, address indexed beneficiary, address token, uint256 id, uint256 amount);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() { _disableInitializers(); }
@@ -95,6 +104,20 @@ contract AssetRouter is AccessControlUpgradeable, ReentrancyGuardUpgradeable, UU
     ) external onlyRole(VAULT_ROLE) nonReentrant {
         IERC721(token).safeTransferFrom(msg.sender, beneficiary, tokenId);
         emit ERC721Distributed(msg.sender, beneficiary, token, tokenId);
+    }
+
+    /**
+     * @notice Distribute an ERC-1155 balance to a beneficiary.
+     * @dev Vault must have approved this contract before calling.
+     */
+    function distributeERC1155(
+        address beneficiary,
+        address token,
+        uint256 id,
+        uint256 amount
+    ) external onlyRole(VAULT_ROLE) nonReentrant {
+        IERC1155(token).safeTransferFrom(msg.sender, beneficiary, id, amount, "");
+        emit ERC1155Distributed(msg.sender, beneficiary, token, id, amount);
     }
 
     receive() external payable {}

@@ -48,8 +48,9 @@ const oracleChecks: AuditItem[] = [
 
 const accessControlChecks: AuditItem[] = [
   { label: "Owner Privileges", status: "pass", description: "Owner role restricted to vault creator with no admin override.", icon: <Key className="h-4 w-4" /> },
-  { label: "Beneficiary Authorization", status: "pass", description: "Beneficiaries can only claim after oracle confirmation and timelock.", icon: <Users className="h-4 w-4" /> },
-  { label: "Multisig Requirement", status: "pass", description: "Emergency functions require 2-of-3 multisig approval.", icon: <Lock className="h-4 w-4" /> },
+  { label: "Beneficiary Authorization", status: "pass", description: "A beneficiary claim alone is 1 of 3 approvals and releases nothing. Release needs verified death or donor consent.", icon: <Users className="h-4 w-4" /> },
+  { label: "Multisig Requirement", status: "pass", description: "Vault release requires 2-of-3 approval across donor, beneficiary and oracle authority.", icon: <Lock className="h-4 w-4" /> },
+  { label: "Donor Cancellation", status: "pass", description: "A claim freezes the vault and opens a donor cancellation window. Cancelling clears every approval and records proof of life.", icon: <Key className="h-4 w-4" /> },
   { label: "Upgrade Authority", status: "warn", description: "UUPS proxy upgrade restricted to owner — recommend timelock on upgrades.", icon: <ShieldAlert className="h-4 w-4" /> },
 ];
 

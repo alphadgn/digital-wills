@@ -1,6 +1,15 @@
-export type VaultStatus = "ACTIVE" | "CLAIMED" | "DISTRIBUTED" | "PAUSED";
-export type ClaimStatus = "INITIATED" | "VERIFICATION_PENDING" | "VERIFIED" | "DENIED" | "EXECUTED";
-export type AssetType = "ETH" | "ERC20" | "ERC721";
+export type VaultStatus = "ACTIVE" | "FROZEN" | "CLAIMED" | "DISTRIBUTED" | "PAUSED";
+export type ClaimStatus =
+  | "INITIATED"
+  | "VERIFICATION_PENDING"
+  | "VERIFIED"
+  | "DENIED"
+  | "EXECUTED"
+  | "CANCELLED";
+export type AssetType = "ETH" | "ERC20" | "ERC721" | "ERC1155";
+
+/** The three signers on a vault. Two of the three authorize a release. */
+export type VaultSigner = "DONOR" | "BENEFICIARY" | "ORACLE";
 
 export interface Vault {
   id: string;
@@ -8,6 +17,8 @@ export interface Vault {
   contractAddress: string;
   status: VaultStatus;
   totalValueEth: string;
+  /** True while a claim is pending or authorized: the donor cannot reconfigure the will. */
+  frozen: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -30,6 +41,10 @@ export interface Claim {
   beneficiaryVote: boolean;
   oracleVote: boolean | null;
   oracleConfidence: number | null;
+  /** Deadline until which the donor may cancel this claim. */
+  donorWindowEnds: string | null;
+  donorNotifiedAt: string | null;
+  cancelledAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

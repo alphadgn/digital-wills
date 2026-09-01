@@ -6,10 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Coins, Image, Clock, ExternalLink, Loader2 } from "lucide-react";
-import { useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
+import {
+  useWriteContract,
+  useWaitForTransactionReceipt,
+  useAccount,
+  useSendTransaction,
+} from "wagmi";
 import { parseEther } from "viem";
-import { INHERITANCE_VAULT_ABI, ERC721_ABI, ERC1155_ABI } from "@/config/contracts";
-import { apechain } from "@/config/wagmi";
+import { ERC721_ABI, ERC1155_ABI } from "@/config/contracts";
+import { activeChain } from "@/config/wagmi";
 import { addDeposit, type DepositRow } from "@/lib/supabaseVault";
 import { useAuth } from "@/contexts/PrivyAuthContext";
 import { toast } from "sonner";
@@ -35,19 +40,30 @@ export default function DepositManager({ vaultId, vaultContractAddress, walletAd
 
   const { address: account } = useAccount();
   const { writeContract, data: txHash, isPending, isSuccess, reset } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess: isConfirmed, data: receipt } = useWaitForTransactionReceipt({ hash: txHash });
+  // The vault has no deposit() function - it takes ETH through receive(), so funding it
+  // is a plain value transfer rather than a contract call.
+  const {
+    sendTransaction,
+    data: ethTxHash,
+    isPending: isEthPending,
+    reset: resetEth,
+  } = useSendTransaction();
+  // An ETH deposit is a value transfer and an NFT deposit is a contract call, so watch
+  // whichever hash this deposit produced.
+  const activeTxHash = ethTxHash ?? txHash;
+  const { isLoading: isConfirming, isSuccess: isConfirmed, data: receipt } = useWaitForTransactionReceipt({ hash: activeTxHash });
 
   // Record deposit after confirmation
   useEffect(() => {
-    if (isConfirmed && txHash && (depositingEth || depositingNft)) {
+    if (isConfirmed && activeTxHash && (depositingEth || depositingNft)) {
       const record = async () => {
         try {
           const token = await getAccessToken();
           if (!token) throw new Error("Not authenticated");
           if (depositingEth) {
-            await addDeposit(token, vaultId, txHash, parseFloat(ethAmount) || 0, "ETH");
+            await addDeposit(token, vaultId, activeTxHash, parseFloat(ethAmount) || 0, "ETH");
           } else if (depositingNft) {
-            await addDeposit(token, vaultId, txHash, 0, nftType, nftAddress, nftTokenId);
+            await addDeposit(token, vaultId, activeTxHash, 0, nftType, nftAddress, nftTokenId);
           }
           toast.success("Deposit recorded!");
           setEthAmount("");
@@ -61,11 +77,12 @@ export default function DepositManager({ vaultId, vaultContractAddress, walletAd
           setDepositingEth(false);
           setDepositingNft(false);
           reset();
+          resetEth();
         }
       };
       record();
     }
-  }, [isConfirmed, txHash]);
+  }, [isConfirmed, activeTxHash]);
 
   const handleDepositEth = useCallback(() => {
     if (!vaultContractAddress || !account) {
@@ -78,15 +95,13 @@ export default function DepositManager({ vaultId, vaultContractAddress, walletAd
       return;
     }
     setDepositingEth(true);
-    writeContract({
+    sendTransaction({
       account,
-      chain: apechain,
-      address: vaultContractAddress as `0x${string}`,
-      abi: INHERITANCE_VAULT_ABI,
-      functionName: "deposit",
+      chain: activeChain,
+      to: vaultContractAddress as `0x${string}`,
       value: parseEther(ethAmount),
     });
-  }, [vaultContractAddress, account, ethAmount, writeContract]);
+  }, [vaultContractAddress, account, ethAmount, sendTransaction]);
 
   const handleDepositNft = useCallback(() => {
     if (!vaultContractAddress || !account) {
@@ -108,7 +123,7 @@ export default function DepositManager({ vaultId, vaultContractAddress, walletAd
       // Transfer ERC-721 to vault
       writeContract({
         account,
-        chain: apechain,
+        chain: activeChain,
         address: nftAddress.trim() as `0x${string}`,
         abi: ERC721_ABI,
         functionName: "transferFrom",
@@ -119,7 +134,7 @@ export default function DepositManager({ vaultId, vaultContractAddress, walletAd
       const amt = parseInt(nftAmount) || 1;
       writeContract({
         account,
-        chain: apechain,
+        chain: activeChain,
         address: nftAddress.trim() as `0x${string}`,
         abi: ERC1155_ABI,
         functionName: "safeTransferFrom",
@@ -128,7 +143,7 @@ export default function DepositManager({ vaultId, vaultContractAddress, walletAd
     }
   }, [vaultContractAddress, account, nftAddress, nftTokenId, nftType, nftAmount, writeContract]);
 
-  const isBusy = isPending || isConfirming;
+  const isBusy = isPending || isEthPending || isConfirming;
 
   const tokenIcon = (type: string) => {
     if (type === "ETH") return <Coins className="h-5 w-5 text-primary" />;

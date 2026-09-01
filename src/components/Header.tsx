@@ -23,8 +23,17 @@ const Header = ({ hideWalletConnect = false }: { hideWalletConnect?: boolean }) 
     <header className="w-full border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50 transition-all duration-300">
       <div className="py-3 px-6 flex justify-between items-center relative">
         {/* Left spacer for centering */}
-        <div className="flex-1 flex justify-start">
+        <div className="flex-1 flex justify-start items-center gap-1">
           <ThemeToggle />
+          <Link to="/about">
+            <Button
+              variant={location.pathname === "/about" ? "secondary" : "ghost"}
+              size="sm"
+              className="transition-all duration-200"
+            >
+              About
+            </Button>
+          </Link>
         </div>
 
         {/* Centered Logo */}

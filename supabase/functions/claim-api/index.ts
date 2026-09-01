@@ -1,6 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createRemoteJWKSet, jwtVerify } from "https://deno.land/x/jose@v5.2.0/index.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+import { notifyDonorOfClaim } from "../_shared/notify.ts";
+
+// Days the donor has to cancel an improper claim. Mirrors InheritanceVault.DEFAULT_DONOR_WINDOW.
+const DONOR_WINDOW_DAYS = 7;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -116,6 +120,10 @@ serve(async (req) => {
           throw new Error("Active claim already exists");
         }
 
+        const donorWindowEnds = new Date(
+          Date.now() + DONOR_WINDOW_DAYS * 24 * 60 * 60 * 1000,
+        ).toISOString();
+
         const { data, error } = await supabase
           .from("claims")
           .insert({
@@ -123,10 +131,86 @@ serve(async (req) => {
             beneficiary_wallet: wallets[0],
             status: "INITIATED",
             beneficiary_vote: true,
+            donor_window_ends: donorWindowEnds,
           })
           .select()
           .single();
         if (error) throw error;
+
+        // Freeze the vault record alongside the on-chain freeze.
+        await supabase
+          .from("vaults")
+          .update({ frozen: true, frozen_at: new Date().toISOString() })
+          .eq("id", params.vaultId);
+
+        // Tell the donor. Their ability to cancel while alive depends on this message,
+        // so the outcome is recorded and returned rather than fired and forgotten.
+        const { data: vaultRow } = await supabase
+          .from("vaults")
+          .select("donor_email, donor_phone")
+          .eq("id", params.vaultId)
+          .single();
+
+        const notifications = await notifyDonorOfClaim(
+          supabase,
+          params.vaultId,
+          { donor_email: vaultRow?.donor_email, donor_phone: vaultRow?.donor_phone },
+          wallets[0],
+          donorWindowEnds,
+        );
+
+        if (notifications.some((n) => n.status === "sent")) {
+          await supabase
+            .from("claims")
+            .update({ donor_notified_at: new Date().toISOString() })
+            .eq("id", data.id);
+        }
+
+        result = { ...data, notifications };
+        break;
+      }
+
+      case "CANCEL_CLAIM": {
+        // Donor cancels an improper claim while alive. Scoped to vaults the caller owns.
+        const { data: claim } = await supabase
+          .from("claims")
+          .select("*, vaults!inner(id, wallet_address)")
+          .eq("id", params.claimId)
+          .single();
+        if (!claim) throw new Error("Claim not found");
+
+        const donorWallet = (claim.vaults?.wallet_address || "").toLowerCase();
+        if (!wallets.includes(donorWallet)) {
+          throw new Error("Only the donor can cancel a claim");
+        }
+        if (!["INITIATED", "VERIFICATION_PENDING"].includes(claim.status)) {
+          throw new Error("Claim is no longer cancellable");
+        }
+
+        const now = new Date().toISOString();
+        const { data, error } = await supabase
+          .from("claims")
+          .update({
+            status: "CANCELLED",
+            cancelled_at: now,
+            cancelled_by: donorWallet,
+          })
+          .eq("id", params.claimId)
+          .select()
+          .single();
+        if (error) throw error;
+
+        // Cancellation unfreezes the vault and is itself proof of life.
+        await supabase
+          .from("vaults")
+          .update({ frozen: false, frozen_at: null })
+          .eq("id", claim.vault_id);
+
+        await supabase
+          .from("liveness_checks")
+          .update({ last_check_in: now, challenge_responded: true })
+          .eq("vault_id", claim.vault_id);
+
         result = data;
         break;
       }
@@ -171,6 +255,15 @@ serve(async (req) => {
           .select()
           .single();
         if (error) throw error;
+
+        // Death could not be verified: unfreeze and leave the assets with the donor.
+        if (newStatus === "DENIED") {
+          await supabase
+            .from("vaults")
+            .update({ frozen: false, frozen_at: null })
+            .eq("id", claim.vault_id);
+        }
+
         result = data;
         break;
       }

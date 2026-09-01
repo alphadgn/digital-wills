@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { notifyDonorOfEmergencyAttempt } from "../_shared/notify.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -49,20 +50,15 @@ Deno.serve(async (req) => {
         success: false,
       });
 
-      // If second failed attempt, send warning
+      // If second failed attempt, warn the donor over their chosen contact method.
       if (attempt_number >= 2 && (vault.donor_email || vault.donor_phone)) {
-        // Send warning notification
-        console.log(`[EMERGENCY WARNING] Unauthorized access attempt on vault ${vault_id}`);
-        console.log(`Sending warning to: email=${vault.donor_email}, phone=${vault.donor_phone}`);
-
-        // In production, integrate with email/SMS provider here
-        // For now, log the warning event
-        await supabase.from("emergency_attempts").insert({
+        await notifyDonorOfEmergencyAttempt(
+          supabase,
           vault_id,
-          wallet_address: wallet_address.toLowerCase(),
-          attempt_number: attempt_number,
-          success: false,
-        });
+          { donor_email: vault.donor_email, donor_phone: vault.donor_phone },
+          wallet_address,
+          attempt_number,
+        );
       }
 
       return new Response(JSON.stringify({
@@ -115,7 +111,13 @@ Deno.serve(async (req) => {
     if (!privyVerified) {
       // Failed Privy verification
       if (attempt_number >= 2 && (vault.donor_email || vault.donor_phone)) {
-        console.log(`[EMERGENCY WARNING] Failed Privy verification on vault ${vault_id}`);
+        await notifyDonorOfEmergencyAttempt(
+          supabase,
+          vault_id,
+          { donor_email: vault.donor_email, donor_phone: vault.donor_phone },
+          wallet_address,
+          attempt_number,
+        );
       }
 
       return new Response(JSON.stringify({

@@ -2,16 +2,41 @@
 
 ## Overview
 
-A trustless protocol enabling donors to create on-chain inheritance vaults that distribute digital assets (ETH, ERC20, ERC721) to beneficiaries after verified death, avoiding traditional probate.
+A trustless protocol enabling donors to create on-chain inheritance vaults that distribute digital
+assets (ETH, ERC-20, ERC-721, ERC-1155) to beneficiaries after verified death, avoiding traditional
+probate.
+
+The product specification is the About page copy (`src/pages/About.tsx`), which is the source of
+truth for the protocol's behaviour. [Implementation Status](#implementation-status) maps each
+claim in that copy to the code that enforces it and the test that covers it.
 
 ## Core Principle
 
-**Dual-vote distribution rule:**
+```
+No verified death. No inheritance release.
+```
+
+Assets sit in a **2-of-3 multi-signature vault** governed by three parties:
+
+| Party | Role |
+|-------|------|
+| **Donor** | Owns the assets. Retains full control while alive, including changing the beneficiary. |
+| **Beneficiary** | Designated recipient. May initiate a claim, but cannot access the vault alone. |
+| **Oracle Authority** | Independent verification system that confirms death through approved sources. |
+
+**Distribution rule:**
 ```
 beneficiaryVote == true AND oracleVote == true → execute distribution
 ```
 
-All distribution logic is enforced **on-chain**. The frontend is a convenience layer.
+A beneficiary-initiated claim **freezes the vault** and starts verification. The donor is notified
+via their selected email or SMS contact method and can cancel an improper claim while alive. If
+death cannot be verified, assets remain locked. If it is verified, the oracle records its signed
+decision on-chain and the contracts release assets to the beneficiary.
+
+The platform never takes custody. Sensitive identity information stays off-chain; the chain holds an
+auditable history of vault and inheritance events. All distribution logic is enforced **on-chain**
+— the frontend is a convenience layer.
 
 ---
 
@@ -26,10 +51,11 @@ All distribution logic is enforced **on-chain**. The frontend is a convenience l
                      ▼
 ┌─────────────────────────────────────────────────┐
 │              InheritanceVault (UUPS)             │
-│  • Holds ETH/ERC20/ERC721                       │
+│  • Holds ETH/ERC20/ERC721/ERC1155               │
 │  • Owner = donor                                │
+│  • 2-of-3 signers: donor/beneficiary/oracle     │
+│  • Freeze on claim + donor cancellation         │
 │  • ReentrancyGuard + AccessControl              │
-│  • Inactivity period tracking                   │
 └──────┬──────────┬──────────┬────────────────────┘
        │          │          │
        ▼          ▼          ▼
@@ -61,11 +87,11 @@ All distribution logic is enforced **on-chain**. The frontend is a convenience l
 | Contract | Purpose |
 |----------|---------|
 | **VaultFactory** | Deploys new vault proxies via `CREATE2`. Stores implementation address. |
-| **InheritanceVault** | UUPS-upgradeable vault holding assets. Tracks inactivity, manages beneficiaries. |
+| **InheritanceVault** | UUPS-upgradeable 2-of-3 vault holding ETH, ERC-20, ERC-721 and ERC-1155. Owns the approval set, freeze state and donor cancellation. |
 | **BeneficiaryRegistry** | On-chain registry of beneficiary allocations per vault. |
-| **ClaimManager** | Manages claim lifecycle. Enforces `beneficiaryVote && oracleVote` before execution. |
-| **OracleGateway** | Multi-sig oracle aggregator. N-of-M reporters must confirm death verification. |
-| **AssetRouter** | Routes ETH, ERC20, ERC721 from vault to beneficiaries by allocation. |
+| **ClaimManager** | Manages claim lifecycle. Freezes the vault on initiation, relays both votes, and moves assets on execution. |
+| **OracleGateway** | Multi-sig oracle aggregator. N-of-M reporters confirm via stored EIP-712 signatures. |
+| **AssetRouter** | Routes ETH, ERC-20, ERC-721 and ERC-1155 from vault to beneficiaries by allocation. |
 | **EmergencyPause** | Protocol-wide and per-vault pause control via guardian role. |
 | **DeathOracle** | Legacy oracle with direct reporter confirmation (used by VaultFactory). |
 
@@ -77,6 +103,55 @@ All distribution logic is enforced **on-chain**. The frontend is a convenience l
 - **Multi-sig oracle** prevents single point of failure
 - **Inactivity period** prevents premature distribution
 - **Emergency pause** for protocol-level incidents
+
+---
+
+## Implementation Status
+
+The spec above is implemented. Each claim in the About copy maps to enforced behaviour and a
+covering test in `contracts/test/InheritanceVault.t.sol`:
+
+| Spec claim | Implementation | Test |
+|------------|----------------|------|
+| **2-of-3 multi-signature vault** | `InheritanceVault` holds a three-signer approval set (`DONOR`, `BENEFICIARY`, `ORACLE`) and releases only at `REQUIRED_APPROVALS = 2`. A beneficiary claim alone is 1 of 3 and releases nothing. | `testSingleApprovalDoesNotAuthorizeRelease`, `testBeneficiaryPlusOracleAuthorizesRelease`, `testDonorPlusBeneficiaryAuthorizesRelease` |
+| **Claim freezes the vault** | `freezeForClaim()` sets `frozen`, records the beneficiary approval and opens the donor window. While frozen the donor cannot reconfigure the will. | `testClaimFreezesVault`, `testFrozenVaultBlocksDonorReconfiguration` |
+| **Donor notified by email / SMS** | `supabase/functions/_shared/notify.ts` sends over Resend (email) and Twilio (SMS). Every attempt — including one skipped for a missing provider key — is recorded in `notifications`. | — (off-chain) |
+| **Donor can cancel an improper claim** | `donorCancel()` clears every approval, unfreezes the vault and records proof of life. Available until the 2-of-3 threshold is met. | `testDonorCancelsImproperClaim`, `testDonorCancelRecordsProofOfLife`, `testOnlyDonorCanCancel`, `testDonorCannotCancelAfterAuthorization` |
+| **ERC-1155 support** | The vault holds ERC-721 and ERC-1155 via OZ holder hooks and releases all four asset types; `AssetRouter.distributeERC1155` added. | `testVaultHoldsAndReleasesERC1155`, `testVaultHoldsAndReleasesERC20`, `testVaultHoldsAndReleasesERC721` |
+| **Oracle records a signed decision on-chain** | `OracleGateway.submitSignedReport()` recovers an EIP-712 signature, requires the signer to hold `REPORTER_ROLE`, and stores the signature in `reportSignatures`. Any address may relay; authorship comes from the signature. | `testSignedReportRecordedOnChain`, `testSignedReportRejectsNonReporter` |
+| **No verified death, no release** | A denied or low-confidence verification unfreezes the vault and leaves assets untouched. | `testUnverifiedDeathLocksAssets`, `testLowConfidenceIsNotVerification` |
+| **Assets actually move** | `ClaimManager.executeClaim()` calls `vault.releaseTo()`. The ETH balance is snapshotted at authorization, so a later claimant is not shortchanged by an earlier withdrawal. | `testExecuteClaimTransfersEth`, `testAllocationsSplitProRata` |
+
+### Resolved design conflicts
+
+- **Donor veto vs. 2-of-3.** In a plain 2-of-3, beneficiary + oracle could release over a living
+  donor's objection. The donor veto is therefore time-boxed to the pending window: while a claim
+  is pending the donor may cancel it outright, and cancellation is itself the proof of life that
+  denies the claim. Once the threshold is met the authorization is final.
+- **Inactivity as a release gate.** `triggerVault()` no longer requires the inactivity period to
+  have elapsed — a verified death would otherwise wait on a dead-man clock the spec never
+  mentions. `inactivityPeriod` and `lastActivity` remain as liveness telemetry. Eligibility comes
+  from verification; authorization from the 2-of-3 threshold.
+- **DeathOracle path.** `triggerVault()` records the ORACLE approval and freezes the vault rather
+  than releasing on its own, so the legacy oracle route obeys the same threshold.
+
+### Operational requirements
+
+- Each vault must be wired once by its donor: `setClaimManager(...)` and `setOracleAuthority(...)`.
+  Until `claimManager` is set, no claim can freeze the vault.
+- Notification providers are read from the environment: `RESEND_API_KEY`, `RESEND_FROM`,
+  `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`, `APP_ORIGIN`. Unset keys make
+  sends record as `skipped` rather than silently succeed.
+- Contract dependencies are vendored via `forge install` and gitignored; run it after a fresh
+  clone. See `contracts/remappings.txt`.
+
+### Known limitations
+
+- `EmergencyPause` and `BeneficiaryRegistry` are deployed but not yet consulted by the vault.
+- `AssetRouter` distribution is available but the vault releases tokens directly; the router path
+  is not yet wired into `ClaimManager.executeClaim`, which settles ETH only.
+- Token release is per-asset and caller-driven — there is no single call that sweeps every token
+  a vault holds.
 
 ---
 
@@ -140,13 +215,15 @@ All distribution logic is enforced **on-chain**. The frontend is a convenience l
 ### Claim Flow
 1. Beneficiary connects wallet
 2. Beneficiary initiates claim via ClaimManager
-3. `beneficiaryVote = true` recorded on-chain
-4. Oracle verification triggered
-5. OracleGateway aggregates reporter results
-6. If `oracleVote == true` (confidence ≥ 0.99):
-   - ClaimManager marks VERIFIED
-   - Beneficiary calls `executeClaim()`
-   - AssetRouter distributes assets by allocation
+3. `beneficiaryVote = true` recorded on-chain; vault is frozen and the donor window opens
+4. Donor notified via email or SMS; while alive they may cancel, which clears every approval
+5. Oracle verification triggered
+6. OracleGateway aggregates reporter results
+7. If `oracleVote == true` (confidence ≥ 0.99):
+   - The oracle approval is recorded on the vault, meeting the 2-of-3 threshold
+   - ClaimManager marks VERIFIED and snapshots the releasable balance
+   - `executeClaim()` calls `vault.releaseTo()`, moving the beneficiary's allocation
+8. If death cannot be verified, the claim is DENIED, the vault unfreezes and assets remain locked
 
 ### Oracle Verification Engine
 1. Collects death records from trusted sources:
@@ -227,3 +304,6 @@ All distribution logic is enforced **on-chain**. The frontend is a convenience l
 5. **Emergency pause**: Protocol-level kill switch for incidents
 6. **ReentrancyGuard**: All value transfer functions protected
 7. **UUPS upgradeable**: Contracts can be upgraded via owner multisig
+8. **No custody**: The platform never holds donor assets; vaults are donor-owned contracts
+9. **Donor control while alive**: Beneficiaries and allocations remain editable until the vault is triggered
+10. **Off-chain identity**: Sensitive identity fields never touch the chain; only vault and claim events do

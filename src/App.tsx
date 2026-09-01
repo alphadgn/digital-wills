@@ -11,6 +11,7 @@ import { wagmiConfig } from "./config/wagmi";
 import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+import About from "./pages/About";
 import AssetRecovery from "./pages/AssetRecovery";
 import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
@@ -39,6 +40,7 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/about" element={<About />} />
                   <Route path="/asset-recovery" element={<AssetRecovery />} />
                   <Route path="/sign-in" element={<SignIn />} />
                   <Route path="/payment-success" element={<PaymentSuccess />} />
