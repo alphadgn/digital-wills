@@ -92,7 +92,7 @@ async function sendEmail(
 }
 
 async function sendSms(to: string, body: string): Promise<NotificationResult> {
-  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_FROM_NUMBER) {
+  if (!TWILIO_READY) {
     return {
       channel: "sms",
       status: "skipped",
