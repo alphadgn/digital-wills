@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/PrivyAuthContext";
 import { Award, ShieldCheck, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { getBackendClient } from "@/lib/backendClient";
 import { useAccount, useReadContract } from "wagmi";
 import { toast } from "@/hooks/use-toast";
 import { useDelegatedNFTCheck } from "@/hooks/useDelegatedNFTCheck";
@@ -57,6 +57,8 @@ const Hero = () => {
     if (!address) return;
     const checkPurchase = async () => {
       try {
+        const supabase = await getBackendClient();
+        if (!supabase) return;
         const { data, error } = await supabase.functions.invoke("check-purchase", {
           body: { wallet_address: address.toLowerCase() },
         });
@@ -127,6 +129,8 @@ const Hero = () => {
   const createCheckoutSession = async (tier: "standard" | "mayc") => {
     setIsCreatingCheckout(true);
     try {
+      const supabase = await getBackendClient();
+      if (!supabase) throw new Error("Payment service is temporarily unavailable");
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { tier },
       });

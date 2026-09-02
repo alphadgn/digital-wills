@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/PrivyAuthContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { getBackendClient } from "@/lib/backendClient";
 import { useAccount } from "wagmi";
 
 const PaymentSuccess = () => {
@@ -32,6 +32,11 @@ const PaymentSuccess = () => {
 
     const verify = async () => {
       try {
+        const supabase = await getBackendClient();
+        if (!supabase) {
+          setIsVerifying(false);
+          return;
+        }
         const { data, error } = await supabase.functions.invoke("verify-payment", {
           body: {
             session_id: sessionId,
