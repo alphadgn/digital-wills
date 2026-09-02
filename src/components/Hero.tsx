@@ -127,16 +127,9 @@ const Hero = () => {
   const createCheckoutSession = async (tier: "standard" | "mayc") => {
     setIsCreatingCheckout(true);
     try {
-      const supabase = await getBackendClient();
-      if (!supabase) throw new Error("Payment service is temporarily unavailable");
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { tier },
-      });
-
-      if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
-      }
+      const data = await callFunction<{ url?: string }>("create-checkout", { tier });
+      if (!data?.url) throw new Error("No checkout URL returned");
+      window.location.href = data.url;
     } catch (error) {
       console.error("Checkout error:", error);
       toast({
