@@ -34,7 +34,10 @@ const fallbackValue: AuthContextType = {
 function AuthInner({ children }: { children: ReactNode }) {
   const { ready, authenticated, user, login, logout, getAccessToken } = usePrivy();
   const { wallets } = useWallets();
-  const walletAddress = wallets[0]?.address ?? user?.wallet?.address ?? null;
+  // Prefer the wallet Privy already has on record for this account (a previously
+  // created embedded wallet or a linked external wallet). Only fall back to the
+  // freshly connected wallet list when Privy has not resolved a primary yet.
+  const walletAddress = user?.wallet?.address ?? wallets[0]?.address ?? null;
   const email = user?.email?.address ?? null;
 
   return (
@@ -98,7 +101,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         config={{
           appearance: { theme: "light", accentColor: "#3B4CDE" },
           loginMethods: ["wallet", "email"],
-          embeddedWallets: { createOnLogin: "off" },
+          // Email sign-ins with no prior wallet get a Privy embedded wallet created
+          // for them; users who already have one keep using it.
+          embeddedWallets: {
+            createOnLogin: "users-without-wallets",
+            requireUserPasswordOnCreate: false,
+            noPromptOnSignature: true,
+          },
         }}
       >
         <AuthInner>{children}</AuthInner>

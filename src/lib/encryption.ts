@@ -173,3 +173,80 @@ export async function decryptWillDocument(
   const json = await decryptData(payload, signature);
   return JSON.parse(json);
 }
+
+// ── Document keys (per-will random key, wrapped for each reader) ──
+
+/** Generate a fresh, extractable AES-256-GCM key for a single will document. */
+export async function generateDocumentKey(): Promise<CryptoKey> {
+  return crypto.subtle.generateKey({ name: ALGO, length: KEY_LENGTH }, true, [
+    "encrypt",
+    "decrypt",
+  ]);
+}
+
+async function exportKeyBase64(key: CryptoKey): Promise<string> {
+  const raw = await crypto.subtle.exportKey("raw", key);
+  return bufferToBase64(raw);
+}
+
+async function importKeyBase64(b64: string): Promise<CryptoKey> {
+  return crypto.subtle.importKey("raw", base64ToBuffer(b64), { name: ALGO }, true, [
+    "encrypt",
+    "decrypt",
+  ]);
+}
+
+/** Encrypt plaintext with an already-derived document key. */
+export async function encryptWithKey(
+  plaintext: string,
+  key: CryptoKey
+): Promise<EncryptedPayload> {
+  return encryptData(plaintext, key, new Uint8Array(SALT_LENGTH));
+}
+
+/** Decrypt a payload produced by `encryptWithKey`. */
+export async function decryptWithKey(
+  payload: EncryptedPayload,
+  key: CryptoKey
+): Promise<string> {
+  const plain = await crypto.subtle.decrypt(
+    { name: ALGO, iv: new Uint8Array(base64ToBuffer(payload.iv)) },
+    key,
+    base64ToBuffer(payload.ciphertext)
+  );
+  return new TextDecoder().decode(plain);
+}
+
+/**
+ * Wrap a document key so a single reader (the donor, or one beneficiary) can
+ * recover it with their passphrase/access code. The server only ever sees the
+ * wrapped blob.
+ */
+export async function wrapDocumentKey(
+  docKey: CryptoKey,
+  passphrase: string
+): Promise<EncryptedPayload> {
+  const { key: kek, salt } = await deriveKeyFromSignature(passphrase);
+  return encryptData(await exportKeyBase64(docKey), kek, salt);
+}
+
+/** Recover a document key from its wrapped blob. */
+export async function unwrapDocumentKey(
+  wrapped: EncryptedPayload,
+  passphrase: string
+): Promise<CryptoKey> {
+  const raw = await decryptData(wrapped, passphrase);
+  return importKeyBase64(raw);
+}
+
+/** Human-shareable access code for a beneficiary (not stored server-side). */
+export function generateAccessCode(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  const alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  let out = "";
+  bytes.forEach((b, i) => {
+    out += alphabet[b % alphabet.length];
+    if (i % 4 === 3 && i < bytes.length - 1) out += "-";
+  });
+  return out;
+}
