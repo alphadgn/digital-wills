@@ -14,7 +14,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Background from "@/components/DigitalWill/Background";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { supabase } from "@/integrations/supabase/client";
+import { getBackendClient } from "@/lib/backendClient";
 
 type ClaimStatus = ClaimRow["status"];
 
@@ -54,16 +54,26 @@ const Claims = () => {
 
   // Realtime subscription for claim updates
   useEffect(() => {
-    const channel = supabase
-      .channel("claims-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "claims" },
-        () => { loadClaims(); }
-      )
-      .subscribe();
+    let disposed = false;
+    let cleanup: (() => void) | undefined;
 
-    return () => { supabase.removeChannel(channel); };
+    void getBackendClient().then((supabase) => {
+      if (!supabase || disposed) return;
+      const channel = supabase
+        .channel("claims-realtime")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "claims" },
+          () => { loadClaims(); }
+        )
+        .subscribe();
+      cleanup = () => { void supabase.removeChannel(channel); };
+    });
+
+    return () => {
+      disposed = true;
+      cleanup?.();
+    };
   }, [loadClaims]);
 
   const handleExecute = async (claimId: string) => {
