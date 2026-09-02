@@ -69,18 +69,15 @@ const Hero = () => {
   }, [address]);
 
   const handlePurchase = async () => {
-    if (isAuthenticated) {
-      navigate("/dashboard");
+    // Not signed in → open the Privy sign-in modal first
+    if (!isAuthenticated) {
+      login();
       return;
     }
 
-    // If already purchased, go straight to sign-in
+    // Already purchased → straight to the dashboard
     if (hasPurchased) {
-      toast({
-        title: "Welcome back! 👋",
-        description: "You already have access. Signing you in...",
-      });
-      login();
+      navigate("/dashboard");
       return;
     }
 
@@ -96,10 +93,10 @@ const Hero = () => {
             title: hasDirectBAYC
               ? "BAYC Holder Verified! 🎉"
               : "Delegated BAYC Access Verified! 🎉",
-            description: "You get free access. Signing you in now...",
+            description: "You get free access. Taking you to your dashboard...",
           });
-          login();
           setIsCheckingNFT(false);
+          navigate("/dashboard");
           return;
         }
 
@@ -123,6 +120,7 @@ const Hero = () => {
     // Standard price for non-holders
     await createCheckoutSession("standard");
   };
+
 
   const createCheckoutSession = async (tier: "standard" | "mayc") => {
     setIsCreatingCheckout(true);
