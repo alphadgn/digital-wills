@@ -19,7 +19,7 @@ const Index = () => {
     <Background>
       <Header hideWalletConnect />
       
-      <div className="min-h-screen flex flex-col w-full max-w-full overflow-x-hidden">
+      <div className="flex flex-col flex-1 w-full max-w-full overflow-x-hidden">
         {!address ? (
           <LandingPage />
         ) : (
