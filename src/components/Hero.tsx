@@ -169,19 +169,15 @@ const Hero = () => {
                   ? "Verifying NFT Holdings..."
                   : "Redirecting to Checkout..."}
               </span>
-            ) : isAuthenticated ? (
+            ) : isAuthenticated && hasPurchased ? (
               "Go to Dashboard"
-            ) : hasPurchased ? (
-              <>
-                <ShieldCheck className="mr-2 h-5 w-5" />
-                Sign In (Already Purchased)
-              </>
             ) : (
               <>
                 <ShieldCheck className="mr-2 h-5 w-5" />
                 Purchase your Digital Will
               </>
             )}
+
           </Button>
 
           {!isAuthenticated && !hasPurchased && (
