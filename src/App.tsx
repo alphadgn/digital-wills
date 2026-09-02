@@ -23,6 +23,7 @@ import CreateVault from "./pages/CreateVault";
 import ManageBeneficiaries from "./pages/ManageBeneficiaries";
 import Claims from "./pages/Claims";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import CreateWill from "./pages/CreateWill";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => (
                   <Route path="/create-vault" element={<ProtectedRoute><CreateVault /></ProtectedRoute>} />
                   <Route path="/vault/:vaultId" element={<ProtectedRoute><VaultDetail /></ProtectedRoute>} />
                   <Route path="/vault/:vaultId/beneficiaries" element={<ProtectedRoute><ManageBeneficiaries /></ProtectedRoute>} />
+                  <Route path="/create-will" element={<ProtectedRoute><CreateWill /></ProtectedRoute>} />
                   <Route path="/claims" element={<ProtectedRoute><Claims /></ProtectedRoute>} />
                   <Route path="/security-audit" element={<ProtectedRoute><SecurityAudit /></ProtectedRoute>} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

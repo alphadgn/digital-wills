@@ -411,7 +411,9 @@ export type Database = {
         Row: {
           chain_id: number
           created_at: string
+          donor_dob: string | null
           donor_email: string | null
+          donor_legal_name: string | null
           donor_phone: string | null
           frozen: boolean
           frozen_at: string | null
@@ -427,7 +429,9 @@ export type Database = {
         Insert: {
           chain_id?: number
           created_at?: string
+          donor_dob?: string | null
           donor_email?: string | null
+          donor_legal_name?: string | null
           donor_phone?: string | null
           frozen?: boolean
           frozen_at?: string | null
@@ -443,7 +447,9 @@ export type Database = {
         Update: {
           chain_id?: number
           created_at?: string
+          donor_dob?: string | null
           donor_email?: string | null
+          donor_legal_name?: string | null
           donor_phone?: string | null
           frozen?: boolean
           frozen_at?: string | null

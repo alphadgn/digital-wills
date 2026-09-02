@@ -166,6 +166,21 @@ serve(async (req) => {
             .eq("id", data.id);
         }
 
+        // Kick the oracle so verification actually runs instead of the claim
+        // sitting in "pending". Failures here never block the claim.
+        try {
+          await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/oracle-service`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-oracle-secret": Deno.env.get("ORACLE_INTERNAL_SECRET") || "",
+            },
+            body: JSON.stringify({ claimId: data.id }),
+          });
+        } catch (e) {
+          console.error("Failed to trigger oracle-service:", e);
+        }
+
         result = { ...data, notifications };
         break;
       }
